@@ -7,11 +7,12 @@ toc-depth: 4
 format:
     html:
         self-contained: true
-        # keep-md: true
+    #     keep-md: true
     gfm: default
 format-links: false
-execute: 
+execute:
   keep-md: true
+prefer-html: true
 ---
 
 ```{=html}
