@@ -7,9 +7,11 @@ toc-depth: 4
 format:
     html:
         self-contained: true
-        keep-md: true
+        # keep-md: true
     gfm: default
 format-links: false
+execute: 
+  keep-md: true
 ---
 
 ```{=html}
@@ -5141,3 +5143,12 @@ pop_est_weighted_manual_zero
 
 
 In this case, the (un-rounded) 'manually' calculated total population for <code>B & W RESORT MARINA</code> is <code>0.09151145</code> (for reference, the rounded value obtained from the `aw_interpolate` function was <code>0)</code>. From the @fig-manual-zero-pop above, you can see that the service area reported for this system is very small, only covering a small fraction of a single census unit, resulting in a population estimate that is very low. In this case, it could be that the system area was drawn incorrectly (i.e., maybe it doesn't really depict the entire service area), in which case the reported service area should be revised. Or, it's possible that the population within the given census unit is very un-evenly distributed and instead there's a relatively high density population cluster in the depicted service area, in which case a more sophisticated method than an area-weighted average should be used (e.g., maybe consider the density of buildings, roads, and/or other features associated with inhabited areas).
+
+
+## Alternative Computation Methods
+
+In progress...
+
+### Population Weighted Average
+
+In progress...
