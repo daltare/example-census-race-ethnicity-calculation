@@ -4,9 +4,12 @@ subtitle: "Accessing U.S. Census Bureau Data & Calculating Weighted Averages wit
 number-sections: true
 toc: true
 toc-depth: 4
-format: 
+format:
     html:
         self-contained: true
+        keep-md: true
+    gfm: default
+format-links: false
 ---
 
 ```{=html}
