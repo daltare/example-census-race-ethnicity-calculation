@@ -7,6 +7,7 @@ toc-depth: 4
 format:
     html:
         self-contained: true
+bibliography: references.bib
 ---
 
 ```{=html}
@@ -19,9 +20,9 @@ text-align: left;
 ```
 ## Background {#sec-background}
 
-This document is intended to provide an example of how to use tools available from the [R programming language](https://www.R-project.org/) to estimate characteristics of any given 'target' spatial area(s) (e.g., neighborhoods, project boundaries, water supplier service areas, etc.), based on data from a source dataset containing the characteristic data of interest (e.g., census data, CalEnvrioScreen scores, etc.) whose boundaries overlap but don't necessarily align with the target area(s). It also provides some brief background on the various types of data available from the U.S Census Bureau, and links to a few places to find more in-depth information.
+This document is intended to provide an example of how to use tools available from the [R programming language](https://www.R-project.org/) [@R] to estimate characteristics of any given 'target' spatial area(s) (e.g., neighborhoods, project boundaries, water supplier service areas, etc.), based on data from a source dataset containing the characteristic data of interest (e.g., census data, CalEnvrioScreen scores, etc.) whose boundaries overlap but don't necessarily align with the target area(s). It also provides some brief background on the various types of data available from the U.S Census Bureau, and links to a few places to find more in-depth information.
 
-This particular example estimates demographic characteristics of community water systems in the Sacramento County area. It uses the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package to access selected demographic data from the U.S. Census Bureau for census units whose spatial extent covers those water systems' service areas, then uses the [`areal`](https://chris-prener.github.io/areal/) R package to estimate some demographic characteristics of each water system based on that census data. It also relies on a number of other R packages, such as the [`tidyverse`](https://www.tidyverse.org/) collection of packages for general data management and analysis, and the [`sf`](https://r-spatial.github.io/sf/) package for working with spatial data.
+This particular example estimates demographic characteristics of community water systems in the Sacramento County area. It uses the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package [@tidycensus] to access selected demographic data from the U.S. Census Bureau for census units whose spatial extent covers those water systems' service areas, then uses the [`areal`](https://chris-prener.github.io/areal/) R package [@areal] to estimate some demographic characteristics of each water system based on that census data. It also relies on a number of other R packages, such as the [`tidyverse`](https://www.tidyverse.org/) collection of packages [@tidyverse] for general data management and analysis, and the [`sf`](https://r-spatial.github.io/sf/) package [@sf] for working with spatial data.
 
 This example is just intended to be a simplified demonstration of a possible workflow. For a real analysis, additional steps and considerations -- that aren't covered here -- may be needed to deal with data inconsistencies (e.g., missing or incomplete data), required level of precision and acceptable assumptions (e.g. more fine-grained datasets or more sophisticated techniques could be used to estimate/model population distributions), or other project-specific issues that might arise.
 
@@ -136,7 +137,7 @@ plot_boundaries
 
 ## Census Data (Source Data) {#sec-census-data}
 
-This section provides some brief background on the various types of data available from the U.S. Census Bureau, and demonstrates how to retrieve data from the U.S. Census Bureau using the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package. Most of the information covered here comes from the book [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/index.html), which is a great source of information if you'd like more detail about any of the topics below.
+This section provides some brief background on the various types of data available from the U.S. Census Bureau, and demonstrates how to retrieve data from the U.S. Census Bureau using the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package. Most of the information covered here comes from the book [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/index.html), which is a great source of information if you'd like more detail about any of the topics below [@walker2023].
 
 ### Census Data Overview {#sec-census-overview}
 
@@ -1065,7 +1066,6 @@ pop_est_weighted_manual_zero
 ```
 
 In this case, the (un-rounded) 'manually' calculated total population for <code>`r system_check_zero`</code> is <code>`r prettyNum(pop_est_weighted_manual_zero, big.mark = ',')`</code> (for reference, the rounded value obtained from the `aw_interpolate` function was <code>`r prettyNum(pop_weighted_interp_zero, big.mark = ',')`)</code>. From the @fig-manual-zero-pop above, you can see that the service area reported for this system is very small, only covering a small fraction of a single census unit, resulting in a population estimate that is very low. In this case, it could be that the system area was drawn incorrectly (i.e., maybe it doesn't really depict the entire service area), in which case the reported service area should be revised. Or, it's possible that the population within the given census unit is very un-evenly distributed and instead there's a relatively high density population cluster in the depicted service area, in which case a more sophisticated method than an area-weighted average should be used (e.g., maybe consider the density of buildings, roads, and/or other features associated with inhabited areas).
-
 
 ## Alternative Computation Methods
 

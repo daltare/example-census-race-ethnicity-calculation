@@ -53,7 +53,26 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging-indent div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}</style>
 
 
 <script>const headroomChanged = new CustomEvent("quarto-hrChanged", {
@@ -4563,8 +4582,8 @@ text-align: left;
 </style>
 <section id="sec-background" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="sec-background"><span class="header-section-number">1</span> Background</h2>
-<p>This document is intended to provide an example of how to use tools available from the <a href="https://www.R-project.org/">R programming language</a> to estimate characteristics of any given ‘target’ spatial area(s) (e.g., neighborhoods, project boundaries, water supplier service areas, etc.), based on data from a source dataset containing the characteristic data of interest (e.g., census data, CalEnvrioScreen scores, etc.) whose boundaries overlap but don’t necessarily align with the target area(s). It also provides some brief background on the various types of data available from the U.S Census Bureau, and links to a few places to find more in-depth information.</p>
-<p>This particular example estimates demographic characteristics of community water systems in the Sacramento County area. It uses the <a href="https://walker-data.com/tidycensus/index.html"><code>tidycensus</code></a> R package to access selected demographic data from the U.S. Census Bureau for census units whose spatial extent covers those water systems’ service areas, then uses the <a href="https://chris-prener.github.io/areal/"><code>areal</code></a> R package to estimate some demographic characteristics of each water system based on that census data. It also relies on a number of other R packages, such as the <a href="https://www.tidyverse.org/"><code>tidyverse</code></a> collection of packages for general data management and analysis, and the <a href="https://r-spatial.github.io/sf/"><code>sf</code></a> package for working with spatial data.</p>
+<p>This document is intended to provide an example of how to use tools available from the <a href="https://www.R-project.org/">R programming language</a> <span class="citation" data-cites="R">(<a href="#ref-R" role="doc-biblioref">R Core Team 2023</a>)</span> to estimate characteristics of any given ‘target’ spatial area(s) (e.g., neighborhoods, project boundaries, water supplier service areas, etc.), based on data from a source dataset containing the characteristic data of interest (e.g., census data, CalEnvrioScreen scores, etc.) whose boundaries overlap but don’t necessarily align with the target area(s). It also provides some brief background on the various types of data available from the U.S Census Bureau, and links to a few places to find more in-depth information.</p>
+<p>This particular example estimates demographic characteristics of community water systems in the Sacramento County area. It uses the <a href="https://walker-data.com/tidycensus/index.html"><code>tidycensus</code></a> R package <span class="citation" data-cites="tidycensus">(<a href="#ref-tidycensus" role="doc-biblioref">Walker and Herman 2023</a>)</span> to access selected demographic data from the U.S. Census Bureau for census units whose spatial extent covers those water systems’ service areas, then uses the <a href="https://chris-prener.github.io/areal/"><code>areal</code></a> R package <span class="citation" data-cites="areal">(<a href="#ref-areal" role="doc-biblioref">Prener et al. 2019</a>)</span> to estimate some demographic characteristics of each water system based on that census data. It also relies on a number of other R packages, such as the <a href="https://www.tidyverse.org/"><code>tidyverse</code></a> collection of packages <span class="citation" data-cites="tidyverse">(<a href="#ref-tidyverse" role="doc-biblioref">Wickham et al. 2019</a>)</span> for general data management and analysis, and the <a href="https://r-spatial.github.io/sf/"><code>sf</code></a> package <span class="citation" data-cites="sf">(<a href="#ref-sf" role="doc-biblioref">Pebesma and Bivand 2023</a>)</span> for working with spatial data.</p>
 <p>This example is just intended to be a simplified demonstration of a possible workflow. For a real analysis, additional steps and considerations – that aren’t covered here – may be needed to deal with data inconsistencies (e.g., missing or incomplete data), required level of precision and acceptable assumptions (e.g. more fine-grained datasets or more sophisticated techniques could be used to estimate/model population distributions), or other project-specific issues that might arise.</p>
 </section>
 <section id="sec-setup" class="level2" data-number="2">
@@ -4677,7 +4696,7 @@ $ geometry   &lt;MULTIPOLYGON [m]&gt; MULTIPOLYGON (((-132703 403..., MULTIPOLYG
 </section>
 <section id="sec-census-data" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="sec-census-data"><span class="header-section-number">4</span> Census Data (Source Data)</h2>
-<p>This section provides some brief background on the various types of data available from the U.S. Census Bureau, and demonstrates how to retrieve data from the U.S. Census Bureau using the <a href="https://walker-data.com/tidycensus/index.html"><code>tidycensus</code></a> R package. Most of the information covered here comes from the book <a href="https://walker-data.com/census-r/index.html">Analyzing US Census Data: Methods, Maps, and Models in R</a>, which is a great source of information if you’d like more detail about any of the topics below.</p>
+<p>This section provides some brief background on the various types of data available from the U.S. Census Bureau, and demonstrates how to retrieve data from the U.S. Census Bureau using the <a href="https://walker-data.com/tidycensus/index.html"><code>tidycensus</code></a> R package. Most of the information covered here comes from the book <a href="https://walker-data.com/census-r/index.html">Analyzing US Census Data: Methods, Maps, and Models in R</a>, which is a great source of information if you’d like more detail about any of the topics below <span class="citation" data-cites="walker2023">(<a href="#ref-walker2023" role="doc-biblioref">Walker 2023</a>)</span>.</p>
 <section id="sec-census-overview" class="level3" data-number="4.1">
 <h3 data-number="4.1" class="anchored" data-anchor-id="sec-census-overview"><span class="header-section-number">4.1</span> Census Data Overview</h3>
 <p>Different census products/surveys contain data on different variables, at different geographic scales, over varying periods of time, and with varying levels of certainty. Therefore, there are a number of judgement calls to make when determining which type of census data to use for an analysis – e.g., which data product to use (Decennial Census or American Community Survey), which geographic scale to use (e.g., Block, Block Group, Tract, etc.), what time frame to use, which variables to assess, etc.</p>
@@ -9260,10 +9279,30 @@ $ geometry       &lt;POLYGON [m]&gt; POLYGON ((-138282.2 13643.2...</code></pre>
 <p>In progress…</p>
 
 
+
 </section>
 </section>
 
-</main> <!-- /main -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-sf" class="csl-entry" role="listitem">
+Pebesma, Edzer, and Roger Bivand. 2023. <span>“<span></span>Spatial Data Science: With Applications in r<span></span>.”</span> <a href="https://doi.org/10.1201/9780429459016">https://doi.org/10.1201/9780429459016</a>.
+</div>
+<div id="ref-areal" class="csl-entry" role="listitem">
+Prener, Christopher, Revord, and Charles. 2019. <span>“<span class="nocase">areal: An R package for areal weighted interpolation</span>.”</span> <em><span>Journal of Open Source Software</span></em> 4 (37). <a href="https://doi.org/10.21105/joss.01221">https://doi.org/10.21105/joss.01221</a>.
+</div>
+<div id="ref-R" class="csl-entry" role="listitem">
+R Core Team. 2023. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.
+</div>
+<div id="ref-walker2023" class="csl-entry" role="listitem">
+Walker, Kyle. 2023. <span>“Analyzing US Census Data,”</span> January. <a href="https://doi.org/10.1201/9780203711415">https://doi.org/10.1201/9780203711415</a>.
+</div>
+<div id="ref-tidycensus" class="csl-entry" role="listitem">
+Walker, Kyle, and Matt Herman. 2023. <span>“Tidycensus: Load US Census Boundary and Attribute Data as ’Tidyverse’ and ’Sf’-Ready Data Frames.”</span> <a href="https://CRAN.R-project.org/package=tidycensus">https://CRAN.R-project.org/package=tidycensus</a>.
+</div>
+<div id="ref-tidyverse" class="csl-entry" role="listitem">
+Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D’Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. <span>“Welcome to the <span></span>Tidyverse<span></span>”</span> 4: 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

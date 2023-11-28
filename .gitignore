@@ -9,3 +9,5 @@ _ignore/
 
 code_from_python_package_comparison.R
 /.quarto/
+
+quarto_document_publishing.txt
