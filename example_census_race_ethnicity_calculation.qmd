@@ -24,7 +24,7 @@ This document is intended to provide an example of how to use tools available fr
 
 This particular example estimates demographic characteristics of community water systems in the Sacramento County area. It uses the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package [@tidycensus] to access selected demographic data from the U.S. Census Bureau for census units whose spatial extent covers those water systems' service areas, then uses the [`areal`](https://chris-prener.github.io/areal/) R package [@areal] to estimate some demographic characteristics of each water system based on that census data. It also relies on a number of other R packages, such as the [`tidyverse`](https://www.tidyverse.org/) collection of packages [@tidyverse] for general data management and analysis, and the [`sf`](https://r-spatial.github.io/sf/) package [@sf] for working with spatial data.
 
-This example is just intended to be a simplified demonstration of a possible workflow. For a real analysis, additional steps and considerations -- that aren't covered here -- may be needed to deal with data inconsistencies (e.g., missing or incomplete data), required level of precision and acceptable assumptions (e.g. more fine-grained datasets or more sophisticated techniques could be used to estimate/model population distributions), or other project-specific issues that might arise.
+This example is just intended to be a simplified demonstration of a possible workflow. For a real analysis, additional steps and considerations -- that may not be covered here -- may be needed to deal with data inconsistencies (e.g., missing or incomplete data), required level of precision and acceptable assumptions (e.g. more fine-grained datasets or more sophisticated techniques could be used to estimate/model population distributions), or other project-specific issues that might arise.
 
 ## Setup {#sec-setup}
 
@@ -75,6 +75,43 @@ water_systems_sac <- st_read(here('01_data_input',
                                   'water_supplier_boundaries_sac', 
                                   'System_Area_Boundary_Layer_Sac.shp')) %>% 
     st_transform(crs_projected) # transform to common coordinate system
+```
+
+As an alternative, the code chunk below shows how to download this data directly from the online source dataset and apply the filters needed to reproduce the dataset in the `System_Area_Boundary_Layer_Sac.shp` file, using the [`arcgislayers`](https://r.esri.com/arcgislayers/index.html) package [@arcgislayers]. Note that the field names are different in the source dataset because they're automatically truncated when saving to shapefile format, so the code below renames them to be consistent with dataset read above. This code is commented out (with the `#` symbol), since it gives the same dataset as is contained in the shapefile that's read in above, but is included here as a reference for a more direct alternative way to obtain the current version of the target dataset.
+
+```{r}
+# # load arcgislayers package (see: https://r.esri.com/arcgislayers/index.html)
+# # install.packages('pak') # only needed if the pak package is not already installed
+# # pak::pkg_install("R-ArcGIS/arcgislayers", dependencies = TRUE)
+# library(arcgislayers)
+# 
+# # define link to data source
+# url_feature <- 'https://gispublic.waterboards.ca.gov/portalserver/rest/services/Drinking_Water/California_Drinking_Water_System_Area_Boundaries/FeatureServer/0'
+# 
+# # connect to data source
+# water_systems_feature_layer <- arc_open(url_feature)
+# 
+# # download and filter data from source
+# water_systems_sac <- arc_select(
+#   water_systems_feature_layer, 
+#   # apply filters
+#   where = "COUNTY = 'SACRAMENTO' AND STATE_CLASSIFICATION = 'COMMUNITY'",
+#   # select fields
+#   fields = c('WATER_SYSTEM_NAME', 'WATER_SYSTEM_NUMBER', 'GLOBALID', 
+#              'BOUNDARY_TYPE', 'OWNER_TYPE_CODE', 'COUNTY', 
+#              'REGULATING_AGENCY', 'FEDERAL_CLASSIFICATION', 'STATE_CLASSIFICATION',
+#              'SERVICE_CONNECTIONS', 'POPULATION')) %>% 
+#     # transform to commont coordinate system
+#     st_transform(crs_projected) %>% 
+#     # rename fields to match names from the shapefile
+#     rename(WATER_SY_1 = WATER_SYSTEM_NAME, 
+#            WATER_SYST = WATER_SYSTEM_NUMBER,
+#            BOUNDARY_T = BOUNDARY_TYPE,
+#            OWNER_TYPE = OWNER_TYPE_CODE,
+#            REGULATING = REGULATING_AGENCY,
+#            FEDERAL_CL = FEDERAL_CLASSIFICATION,
+#            STATE_CLAS = STATE_CLASSIFICATION,
+#            SERVICE_CO = SERVICE_CONNECTIONS)
 ```
 
 We can use the `glimpse` function (below) to take get a sense of what type of information is available in the water system dataset and how it's structured.
