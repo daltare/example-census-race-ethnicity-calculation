@@ -828,6 +828,7 @@ Once we've finished the computations and verified the outputs look reasonable, w
 The code below saves the tabular results to a csv file -- note that this dataset is in the 'wide' format we originally produced the results in:
 
 ```{r}
+#| cache: true
 write_csv(water_systems_sac_demographics %>% 
               st_drop_geometry(), # drop the spatial data since this is a tabular format
           file = here('02_data_results',
@@ -837,6 +838,7 @@ write_csv(water_systems_sac_demographics %>%
 For the tabular data, it might be useful to save the data in the long/tidy format we developed above when making plots:
 
 ```{r}
+#| cache: true
 write_csv(water_systems_sac_demographics_long %>% 
               st_drop_geometry(), # drop the spatial data since this is a tabular format
           file = here('02_data_results',
@@ -851,6 +853,7 @@ To save the output in a geospatial format, it may be best to save the data in a 
 #| message: false
 #| warning: false
 #| results: hide
+#| cache: true
 st_write(water_systems_sac_demographics, 
          here('02_data_results',
               'water_system_demographics_sac.gpkg'), 
