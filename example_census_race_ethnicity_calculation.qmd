@@ -51,6 +51,7 @@ library(scales)
 
 # options ----
 options(scipen = 999) # turn off scientific notation
+options(tigris_use_cache = TRUE) # use data caching for tigris
 
 # reference system ----
 crs_projected <- 3310 # set a common projected coordinate reference system to be used throughout this analysis - see: https://epsg.io/3310
@@ -256,7 +257,8 @@ census_data_decennial <- get_decennial(geography = 'block group', # can be 'bloc
                                            'pop_total' = 'P2_001N'
                                        ),
                                        output = 'wide', # can be 'wide' or 'tidy'
-                                       geometry = TRUE) 
+                                       geometry = TRUE,
+                                       cache_table = TRUE) 
 ```
 
 The output is an sf object (i.e., a dataframe-like object that also includes spatial data), in wide format, where each row represents a census unit, and the population of each racial/ethnic group is reported in a separate column. Here's a view of the contents and structure of the Decennial Census data that's returned:
@@ -296,15 +298,24 @@ census_data_acs <- get_acs(geography = 'block group',
                                          'med_hh_income' = 'B19013_001E'
                            ), 
                            output = 'wide', # can be 'wide' or 'tidy'
-                           geometry = TRUE)
-
-# for this example, drop columns corresponding to Margin of Error since it's not needed
-## these end with two digits and an M, like "001M"
-census_data_acs <- census_data_acs %>% 
-    select(-matches('\\d\\dM$'))
+                           geometry = TRUE,
+                           cache_table = TRUE)
 ```
 
 The output is an sf object (i.e., a dataframe-like object that also includes spatial data), in wide format, where each row represents a census unit, and the population of each racial/ethnic group, as well as the median household income, is reported in a separate column. Here's a view of the contents and structure of the `r acs_year` 5-year ACS data that's returned:
+
+```{r}
+glimpse(census_data_acs)
+```
+
+Note that the dataset that's returned includes fields corresponding to Margin of Error (MOE) for each variable we've requested (these are the fields that end with two digits and an M -- e.g., "001M"), since, as noted above in @sec-census-datasets , the ACS is based on a sample of the population and reports estimated values. Because we won't be incorporating those MOEs into the analysis below, we can drop them for this example.
+
+```{r}
+census_data_acs <- census_data_acs %>% 
+    select(-matches('\\d\\dM$')) # each "\\d" matches any single digit, the $ specifies "ends with"
+```
+
+Here's a view of the contents and structure of the revised `r acs_year` 5-year ACS dataset:
 
 ```{r}
 glimpse(census_data_acs)
