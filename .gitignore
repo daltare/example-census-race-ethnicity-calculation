@@ -3,11 +3,13 @@
 .RData
 .Ruserdata
 rsconnect/
+/.quarto/
 
 _email/
 _ignore/
 
-code_from_python_package_comparison.R
-/.quarto/
+data_results/*.csv
+data_results/*.gpkg
 
+code_from_python_package_comparison.R
 quarto_document_publishing.txt
