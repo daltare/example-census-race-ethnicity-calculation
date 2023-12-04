@@ -824,10 +824,12 @@ plot_results_scatter
 
 Once we've finished the computations and verified the outputs look reasonable, we can save the results to output files so they can be re-used and shared. The results can be saved in tabular (e.g., csv, excel) and/or spatial (e.g., shapefile, geopackage) formats, which may be helpful for different use cases. Note that you may need to think about exactly what variables to include in the output file(s) and how to format the output datasets (e.g., wide versus long format).
 
-The chunk of code below, which is hidden by default, just tests to see whether any of the datasets to be saved have been changed since the previous versions were saved. In general this is probably not needed for a typical workflow and can be ignored for most use cases -- it is just used here to make re-rendering of this document more efficient.
+The chunk of code below (which is hidden by default), just tests to see whether any of the datasets to be saved have been changed since the previous version was saved. In general this is probably not needed for a typical workflow and can be ignored for most use cases -- it is just used here to make re-rendering of this document a little more efficient.
 
 ```{r}
 #| code-fold: true
+#| warning: false
+#| message: false
 
 # compute hash for datasets to be saved (i.e., a unique identifier for each dataset), and compare against previous versions
 
@@ -852,13 +854,13 @@ if (file.exists(hash_file)) {
                              hash = c('missing', 'missing'))
 }
 
-## if new hash is different from previous hash, update the output file (i.e., write a new version of the file)
+## if new hash is different from previous hash, set flag to update the output file (i.e., write a new version of the file)
 file_update <- !identical(hash_table_current %>% filter(dataset == 'water_systems_sac_demographics') %>% pull(hash),
                           hash_table_previous %>% filter(dataset == 'water_systems_sac_demographics') %>% pull(hash))
 file_update_long <- !identical(hash_table_current %>% filter(dataset == 'water_systems_sac_demographics_long') %>% pull(hash),
                                hash_table_previous %>% filter(dataset == 'water_systems_sac_demographics_long') %>% pull(hash))
 
-## write current hashes to file
+## write current hashes to file (for comparison with future versions)
 write_csv(x = hash_table_current, 
           file = hash_file, 
           append = FALSE)
