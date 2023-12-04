@@ -824,67 +824,75 @@ plot_results_scatter
 
 Once we've finished the computations and verified the outputs look reasonable, we can save the results to output files so they can be re-used and shared. The results can be saved in tabular (e.g., csv, excel) and/or spatial (e.g., shapefile, geopackage) formats, which may be helpful for different use cases. Note that you may need to think about exactly what variables to include in the output file(s) and how to format the output datasets (e.g., wide versus long format).
 
+The chunk of code below, which is hidden by default, just tests to see whether any of the datasets to be saved have been changed since the previous versions were saved. In general this is probably not needed for a typical workflow and can be ignored for most use cases -- it is just used here to make re-rendering of this document more efficient.
+
+```{r}
+#| code-fold: true
+
+# compute hash for datasets to be saved (i.e., a unique identifier for each dataset), and compare against previous versions
+
+## define file that stores hash (unique identifier for dataset)
+hash_file <- here('02_data_results', 
+                  'dataset_hash.csv')
+
+## compute hashes (unique identifier for datasets)
+hash_current <- digest(object = water_systems_sac_demographics, 
+                       algo = 'md5')
+hash_current_long <- digest(object = water_systems_sac_demographics_long, 
+                            algo = 'md5')
+hash_table_current <- tibble(dataset = c('water_systems_sac_demographics', 'water_systems_sac_demographics_long'),
+                             hash = c(hash_current, hash_current_long))
+
+## get the previous hashes from file (if it exists), else create a new file to store the hashes
+if (file.exists(hash_file)) {
+    hash_table_previous <- read_csv(file = hash_file)
+} else {
+    file.create(hash_file)
+    hash_table_previous <- tibble(dataset = c('water_systems_sac_demographics', 'water_systems_sac_demographics_long'),
+                             hash = c('missing', 'missing'))
+}
+
+## if new hash is different from previous hash, update the output file (i.e., write a new version of the file)
+file_update <- !identical(hash_table_current %>% filter(dataset == 'water_systems_sac_demographics') %>% pull(hash),
+                          hash_table_previous %>% filter(dataset == 'water_systems_sac_demographics') %>% pull(hash))
+file_update_long <- !identical(hash_table_current %>% filter(dataset == 'water_systems_sac_demographics_long') %>% pull(hash),
+                               hash_table_previous %>% filter(dataset == 'water_systems_sac_demographics_long') %>% pull(hash))
+
+## write current hashes to file
+write_csv(x = hash_table_current, 
+          file = hash_file, 
+          append = FALSE)
+```
+
 #### Tabular Dataset {#sec-results-save-tabular}
 
 The code below saves the tabular results to a csv file -- note that this dataset is in the 'wide' format we originally produced the results in:
 
 ```{r}
 #| cache: false
-write_csv(water_systems_sac_demographics %>% 
-              st_drop_geometry(), # drop the spatial data since this is a tabular format
-          file = here('02_data_results',
-                      'water_system_demographics_sac.csv'))
+
+if (file_update == TRUE) {
+    write_csv(water_systems_sac_demographics %>% 
+                  st_drop_geometry(), # drop the spatial data since this is a tabular format
+              file = here('02_data_results',
+                          'water_system_demographics_sac.csv'))   
+}
 ```
 
 For the tabular data, it might be useful to save the data in the long/tidy format we developed above when making plots:
 
 ```{r}
 #| cache: false
-write_csv(water_systems_sac_demographics_long %>% 
-              st_drop_geometry(), # drop the spatial data since this is a tabular format
-          file = here('02_data_results',
-                      'water_system_demographics_sac_long.csv'))
+
+if (file_update_long == TRUE) {
+    write_csv(water_systems_sac_demographics_long %>% 
+                  st_drop_geometry(), # drop the spatial data since this is a tabular format
+              file = here('02_data_results',
+                          'water_system_demographics_sac_long.csv'))
+}
 ```
 
 #### Spatial Dataset {#sec-results-save-spatial}
-
-It's also useful to save the results to a spatial file format, which includes both the geospatial information about each feature along with the tabular (attribute) data associated with the feature.
-
-The chunk of code below, which is hidden by default, just tests to see whether the spatial dataset has been changed since the previous version was saved. In general this is probably not needed for a typical workflow and can be ignored for most use cases -- it is just used here to make re-rendering of this document more efficient.
-
-```{r}
-#| code-fold: true
-
-# compute hash for spatial dataset (i.e., a unique identifier for the dataset), and compare against previous version
-
-## define file that stores hash (unique identifier for dataset)
-hash_file_sf <- here('02_data_results', 
-                     'file_hash_sf.txt')
-
-## compute hash (unique identifier for dataset)
-hash_sf_current <- digest(water_systems_sac_demographics, 
-                          algo = 'md5')
-
-## get the previous hash from file (if it exists), else create a new file to store the hash
-if (file.exists(hash_file_sf)) {
-    hash_sf_previous <- read_lines(file = hash_file_sf)
-    # check that a value exists for previous hash
-    hash_sf_previous <- ifelse(is_empty(hash_sf_previous), 
-                               'missing', 
-                               hash_sf_previous)
-} else {
-    file.create(hash_file_sf)
-    hash_sf_previous <- 'missing'
-}
-
-## write new hash to file
-write_lines(x = hash_sf_current, 
-            file = hash_file_sf, 
-            append = FALSE)
-
-## if new hash is different from previous hash, update the output file (i.e., write a new version of the file)
-file_update_sf <- hash_sf_current != hash_sf_previous
-```
 
 To save the output in a geospatial format, it may be best to save the data in a wide format, so that all of the attribute data for each target area (water system) is in a single row along with its spatial data (i.e. the system boundary information). The code below saves the results -- in wide format -- to a geopackage file, which is a spatial file format that is similar to a shapefile.
 
@@ -894,7 +902,7 @@ To save the output in a geospatial format, it may be best to save the data in a 
 #| results: hide
 #| cache: false
 
-if (file_update_sf == TRUE) {
+if (file_update == TRUE) {
     st_write(water_systems_sac_demographics, 
              here('02_data_results',
                   'water_system_demographics_sac.gpkg'), 
