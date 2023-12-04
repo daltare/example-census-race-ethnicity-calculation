@@ -848,9 +848,13 @@ write_csv(water_systems_sac_demographics_long %>%
 
 #### Spatial Dataset {#sec-results-save-spatial}
 
-To save the output in a geospatial format, it may be best to save the data in a wide format, so that all of the attribute data for each target area (water system) is in a single row along with its spatial data (i.e. the system boundary information). The code below saves the results -- in wide format -- to a geopackage file, which is a spatial file format that is similar to a shapefile:
+It's also useful to save the results to a spatial file format, which includes both the geospatial information about each feature along with the tabular (attribute) data associated with the feature.
+
+The chunk of code below, which is hidden by default, just tests to see whether the spatial dataset has been changed since the previous version was saved. In general this is probably not needed for a typical workflow and can be ignored for most use cases -- it is just used here to make re-rendering of this document more efficient.
 
 ```{r}
+#| code-fold: true
+
 # compute hash for spatial dataset (i.e., a unique identifier for the dataset), and compare against previous version
 
 ## define file that stores hash (unique identifier for dataset)
@@ -880,8 +884,9 @@ write_lines(x = hash_sf_current,
 
 ## if new hash is different from previous hash, update the output file (i.e., write a new version of the file)
 file_update_sf <- hash_sf_current != hash_sf_previous
-
 ```
+
+To save the output in a geospatial format, it may be best to save the data in a wide format, so that all of the attribute data for each target area (water system) is in a single row along with its spatial data (i.e. the system boundary information). The code below saves the results -- in wide format -- to a geopackage file, which is a spatial file format that is similar to a shapefile.
 
 ```{r}
 #| message: false
@@ -895,7 +900,6 @@ if (file_update_sf == TRUE) {
                   'water_system_demographics_sac.gpkg'), 
              append = FALSE)  
 }
-
 ```
 
 ### Check -- Manual Calculations {#sec-manual-calcs}
