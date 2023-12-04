@@ -48,6 +48,7 @@ library(knitr)
 library(kableExtra)
 library(tmap)
 library(scales)
+library(digest)
 
 # options ----
 options(scipen = 999) # turn off scientific notation
@@ -850,14 +851,51 @@ write_csv(water_systems_sac_demographics_long %>%
 To save the output in a geospatial format, it may be best to save the data in a wide format, so that all of the attribute data for each target area (water system) is in a single row along with its spatial data (i.e. the system boundary information). The code below saves the results -- in wide format -- to a geopackage file, which is a spatial file format that is similar to a shapefile:
 
 ```{r}
+# compute hash for spatial dataset (i.e., a unique identifier for the dataset), and compare against previous version
+
+## define file that stores hash (unique identifier for dataset)
+hash_file_sf <- here('02_data_results', 
+                     'file_hash_sf.txt')
+
+## compute hash (unique identifier for dataset)
+hash_sf_current <- digest(water_systems_sac_demographics, 
+                          algo = 'md5')
+
+## get the previous hash from file (if it exists), else create a new file to store the hash
+if (file.exists(hash_file_sf)) {
+    hash_sf_previous <- read_lines(file = hash_file_sf)
+    # check that a value exists for previous hash
+    hash_sf_previous <- ifelse(is_empty(hash_sf_previous), 
+                               'missing', 
+                               hash_sf_previous)
+} else {
+    file.create(hash_file_sf)
+    hash_sf_previous <- 'missing'
+}
+
+## write new hash to file
+write_lines(x = hash_sf_current, 
+            file = hash_file_sf, 
+            append = FALSE)
+
+## if new hash is different from previous hash, update the output file (i.e., write a new version of the file)
+file_update_sf <- hash_sf_current != hash_sf_previous
+
+```
+
+```{r}
 #| message: false
 #| warning: false
 #| results: hide
 #| cache: false
-st_write(water_systems_sac_demographics, 
-         here('02_data_results',
-              'water_system_demographics_sac.gpkg'), 
-         append = FALSE)
+
+if (file_update_sf == TRUE) {
+    st_write(water_systems_sac_demographics, 
+             here('02_data_results',
+                  'water_system_demographics_sac.gpkg'), 
+             append = FALSE)  
+}
+
 ```
 
 ### Check -- Manual Calculations {#sec-manual-calcs}

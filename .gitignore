@@ -8,8 +8,9 @@ rsconnect/
 _email/
 _ignore/
 
-02_data_results/*.csv
-02_data_results/*.gpkg
+# 02_data_results/*.csv
+# 02_data_results/*.gpkg
+02_data_results/file_hash_sf.txt
 
 code_from_python_package_comparison.R
 quarto_document_publishing.txt
