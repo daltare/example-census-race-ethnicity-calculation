@@ -2,7 +2,7 @@ This repository contains source files for a document (published as a GitHub page
 
 ### Publishing
 
-This docuemnt is published as a site on GitHub pages, following the instructions [here](https://quarto.org/docs/publishing/github-pages.html). In particular:
+This document is published as a site on GitHub pages, following the instructions [here](https://quarto.org/docs/publishing/github-pages.html). In particular:
 
 -   Start here to set up the `gh-pages` branch in Git / GitHub and format `.gitignore` to ignore rendered directories
 -   Then follow instructions [here](https://quarto.org/docs/publishing/github-pages.html#github-action) to set up a GitHub Action for publication
