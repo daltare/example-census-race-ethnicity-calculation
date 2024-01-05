@@ -20,15 +20,15 @@ text-align: left;
 ```
 ## Background {#sec-background}
 
-This document is intended to provide an example of how to use tools available from the [R programming language](https://www.R-project.org/) [@R] to estimate characteristics of any given 'target' spatial area(s) (e.g., neighborhoods, project boundaries, water supplier service areas, etc.), based on data from a source dataset containing the characteristic data of interest (e.g., census data, CalEnvrioScreen scores, etc.) whose boundaries overlap but don't necessarily align with the target area(s). It also provides some brief background on the various types of data available from the U.S Census Bureau, and links to a few places to find more in-depth information.
+This document provides an example of how to use tools available from the [R programming language](https://www.R-project.org/) [@R] to estimate characteristics of any given *target* spatial area(s) (e.g., neighborhoods, project boundaries, water supplier service areas, etc.) based on data from a *source* dataset containing the characteristic data of interest (e.g., census data, CalEnvrioScreen scores, etc.), especially when the boundaries of the *source* and *target* areas overlap but don't necessarily align with each other. It also provides some brief background on the various types of data available from the U.S Census Bureau, and links to a few places to find more in-depth information.
 
-This particular example estimates demographic characteristics of community water systems in the Sacramento County area. It uses the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package [@tidycensus] to access selected demographic data from the U.S. Census Bureau for census units whose spatial extent covers those water systems' service areas, then uses the [`areal`](https://chris-prener.github.io/areal/) R package [@areal] to estimate some demographic characteristics of each water system based on that census data. It also relies on a number of other R packages, such as the [`tidyverse`](https://www.tidyverse.org/) collection of packages [@tidyverse] for general data management and analysis, and the [`sf`](https://r-spatial.github.io/sf/) package [@sf] for working with spatial data.
+This particular example estimates demographic characteristics of community water systems in the Sacramento County area (the *target* dataset). It uses the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package [@tidycensus] to access selected demographic data from the U.S. Census Bureau (the *source* dataset) for census units whose spatial extent covers those water systems' service areas, then uses the [`areal`](https://chris-prener.github.io/areal/) R package [@areal] to estimate some demographic characteristics of each water system based on that census data. It also relies on a number of other R packages, such as the [`tidyverse`](https://www.tidyverse.org/) collection of packages [@tidyverse] for general data management and analysis, and the [`sf`](https://r-spatial.github.io/sf/) package [@sf] for working with spatial data.
 
 This example is just intended to be a simplified demonstration of a possible workflow. For a real analysis, additional steps and considerations -- that may not be covered here -- may be needed to deal with data inconsistencies (e.g., missing or incomplete data), required level of precision and acceptable assumptions (e.g. more fine-grained datasets or more sophisticated techniques could be used to estimate/model population distributions), or other project-specific issues that might arise.
 
 ## Setup {#sec-setup}
 
-The code block below loads required packages for this analysis, and sets some user-defined options and defaults.
+The code block below loads required packages for this analysis, and sets some user-defined options and defaults. If they aren't already installed on your computer, you can install them with the R command `install.packages('package-name')` (and replace `package-name` with the name of the package you want to install).
 
 ```{r}
 #| message: false
@@ -61,7 +61,7 @@ crs_projected <- 3310 # set a common projected coordinate reference system to be
 
 ## Water System Boundaries (Target Data) {#sec-system-boundaries}
 
-In this section, we'll get the service area boundaries for Community Water Systems within the Sacramento County area. This will serve as the 'target' dataset -- i.e., the set of areas which we'll be estimating the characteristics of. We'll also get a dataset of county boundaries which overlap the water service areas in this study, which will help with accessing the census data and with making maps/visualizations.
+In this section, we'll get the service area boundaries for Community Water Systems within the Sacramento County area. This will serve as the *target* dataset -- i.e., the set of areas which we'll be estimating the characteristics of. We'll also get a dataset of county boundaries which overlap the water service areas in this study, which will help with accessing the census data and with making maps/visualizations.
 
 ### Read Water System Data
 
@@ -80,7 +80,7 @@ water_systems_sac <- st_read(here('02_data_input',
     st_transform(crs_projected) # transform to common coordinate system
 ```
 
-As an alternative, the code chunk below shows how to download this data directly from the online source dataset and apply the filters needed to reproduce the dataset in the `System_Area_Boundary_Layer_Sac.shp` file, using the [`arcgislayers`](https://r.esri.com/arcgislayers/index.html) package [@arcgislayers]. This code is commented out (with the `#` symbol), since it gives the same dataset as is contained in the shapefile that's read in above, but is included here as a reference for a more direct alternative way to obtain the current version of the target dataset. Note that, since this method is accessing the current version of the dataset, it may return somewhat different data than is in the shapefile read above (since the shapefile contains a locally saved version); also note that the field names are different in the source dataset, because they're automatically truncated when saving to shapefile format, so the code below renames them to be consistent with dataset read above.
+As an alternative, the code chunk below shows how to download this data directly from the online dataset and apply the filters needed to reproduce the dataset in the `System_Area_Boundary_Layer_Sac.shp` file, using the [`arcgislayers`](https://r.esri.com/arcgislayers/index.html) package [@arcgislayers]. This code is commented out (with the `#` symbol), since it gives the same dataset as is contained in the shapefile that's read in above, but is included here as a reference for a more direct alternative way to obtain the current version of the *target* dataset. Note that, since this method is accessing the current version of the dataset, it may return somewhat different data than is in the shapefile read above (since the shapefile contains a locally saved version); also note that the field names are different in the online dataset, because they're automatically truncated when saving to shapefile format, so the code below renames them to be consistent with dataset read above.
 
 ```{r}
 # # load arcgislayers package (see: https://r.esri.com/arcgislayers/index.html)
@@ -330,7 +330,7 @@ glimpse(census_data_acs)
 
 #### Plot Results {#sec-census-plot}
 
-@fig-suppliers-census-map shows the datasets that we'll use below to compute water system demographics (zoomed in to the area around the water systems in this study). Each water system -- the target dataset -- is shown with a different (randomly chosen) color. The boundaries of the census data -- the source dataset -- are shown in red; in this case we'll use the `r acs_year` 5-year ACS dataset. County boundaries are shown in grey (Sacramento county is show with a bold grey line).
+@fig-suppliers-census-map shows the datasets that we'll use below to compute water system demographics (zoomed in to the area around the water systems in this study). Each water system -- the *target* dataset -- is shown with a different (randomly chosen) color. The boundaries of the census data -- the *source* dataset -- are shown in red; in this case we'll use the `r acs_year` 5-year ACS dataset. County boundaries are shown in grey (Sacramento county is show with a bold grey line).
 
 ```{r}
 #| warning: false
@@ -385,16 +385,16 @@ plot_census
 
 ## Compute Water System Demographics {#sec-estimate-demographics}
 
-Now we can perform the calculations to estimate demographic characteristics for our target areas (water system service boundaries in the Sacramento County area) from our source demographic dataset (the census data we obtained above). For this example, we'll use the `r acs_year` 5-year ACS data that we retrieved above (which is saved in the `census_data_acs` variable) as our source of demographic data, and we'll estimate the following for each water system's service area:
+Now we can perform the calculations to estimate demographic characteristics for our *target* areas (water system service boundaries in the Sacramento County area) from our *source* demographic dataset (the census data we obtained above). For this example, we'll use the `r acs_year` 5-year ACS data that we retrieved above (which is saved in the `census_data_acs` variable) as our source of demographic data, and we'll estimate the following for each water system's service area:
 
 -   Population of each racial/ethnic group (using the racial/ethnic categories defined in the census dataset), and each racial/ethnic group's portion of the total service area population
 -   Median household income
 
-There are multiple ways this estimation can be done, but one of the most simple and straightforward is using an areal interpolation (essentially an area weighted average). The major simplifying assumption of this approach is that the population or other characteristic(s) of interest are evenly distributed within each unit in the source data -- e.g., in this case we're assuming that population (including the total population and the population of each racial/ethic group) and household income is evenly distributed within each census block group.
+There are multiple ways this estimation can be done, but one of the most simple and straightforward is using an areal interpolation (essentially an area weighted average). The major simplifying assumption of this approach is that the population or other characteristic(s) of interest are evenly distributed within each unit in the *source* data -- e.g., in this case we're assuming that population (including the total population and the population of each racial/ethic group) and household income is evenly distributed within each census block group.
 
 ### Prepare Census Data
 
-To calculate demographics for the target areas, we need to prepare the census data. First, we need to transform the `r acs_year` 5-year ACS dataset into the common projected coordinate reference system defined above.
+To calculate demographics for the *target* areas, we need to prepare the census data. First, we need to transform the `r acs_year` 5-year ACS dataset into the common projected coordinate reference system defined above.
 
 ```{r}
 # transform to common coordinate reference system
@@ -461,7 +461,7 @@ water_systems_sac_demographics <- water_systems_sac %>%
     )
 ```
 
-We've now got a dataset with the selected census data (population of each racial/ethnic group and median household income) estimated for each of the target geographic features (water system service areas). Here's a view of the contents and structure of the dataset:
+We've now got a dataset with the selected census data (population of each racial/ethnic group and median household income) estimated for each of the *target* geographic features (water system service areas). Here's a view of the contents and structure of the dataset:
 
 ```{r}
 glimpse(water_systems_sac_demographics)
@@ -555,7 +555,7 @@ water_systems_sac_demographics <- water_systems_sac_demographics %>%
     mutate(med_hh_income_est = round(med_hh_income_est, digits = 0))
 ```
 
-Finally, just as a check, add a column (which we'll call `pop_pct_difference`) to compute the difference between the estimated total population (in the `pop_est_total` field) and the total population listed in the `POPULATION` field (the reported value from the source water system dataset).
+Finally, just as a check, add a column (which we'll call `pop_pct_difference`) to compute the difference between the estimated total population (in the `pop_est_total` field) and the total population listed in the `POPULATION` field (the reported value from the water system dataset).
 
 ```{r}
 water_systems_sac_demographics <- water_systems_sac_demographics %>% 
@@ -590,7 +590,7 @@ water_systems_sac_demographics %>%
 
 <br>
 
-Note that there are a number of reasons why the estimated population values are likely to differ from the population numbers in the source dataset (e.g., the depicted boundaries may not be correct or exact, the supplier may have used different methods to count/estimate the population they serve, the time frames for the estimates may be different, etc.). But, there may also be some cases where the numbers differ significantly -- depending on the actual analysis being performed, this may mean that further work is needed for certain areas, or could mean that this method may not be sufficient and different methods are needed.
+Note that there are a number of reasons why the estimated population values are likely to differ from the population numbers in the water system dataset (e.g., the depicted boundaries may not be correct or exact, the supplier may have used different methods to count/estimate the population they serve, the time frames for the estimates may be different, etc.). But, there may also be some cases where the numbers differ significantly -- depending on the actual analysis being performed, this may mean that further work is needed for certain areas, or could mean that this method may not be sufficient and different methods are needed.
 
 For water systems with a small population and/or service area, the estimated demographics may not match the population numbers in the original water system dataset very well. You can see this in @tbl-pop-est-small by comparing the `POPULATION` field, which contains the total population values from the water supplier dataset, with the `pop_est_total` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `pop_pct_difference` field. This probably indicates that, for small areas, some adjustments and/or further analysis may be needed, and the preliminary estimated values should be treated with some caution/skepticism.
 
@@ -902,7 +902,7 @@ if (file_update_long == TRUE) {
 
 #### Spatial Dataset {#sec-results-save-spatial}
 
-To save the output in a geospatial format, it may be best to save the data in a wide format, so that all of the attribute data for each target area (water system) is in a single row along with its spatial data (i.e. the system boundary information). The code below saves the results -- in wide format -- to a geopackage file, which is a spatial file format that is similar to a shapefile.
+To save the output in a geospatial format, it may be best to save the data in a wide format, so that all of the attribute data for each *target* area (water system) is in a single row along with its spatial data (i.e. the system boundary information). The code below saves the results -- in wide format -- to a geopackage file, which is a spatial file format that is similar to a shapefile.
 
 ```{r}
 #| message: false
