@@ -52,14 +52,14 @@ rsconnect/
 _email/
 _ignore/
 
-# Quarto files -- note: can also use */ (e.g.: */_site) to look in any sub-directory
+# Quarto files -- this only looks for these files in the top level directory -- note: can also use */ (e.g.: */_site) to look in any sub-directory
 /.quarto/
 /_site/
 /docs/
 
 # Project Specific Files
-# 02_data_results/*.csv
-# 02_data_results/*.gpkg
-02_data_results/dataset_hash.csv
+# 03_data_results/*.csv
+# 03_data_results/*.gpkg
+03_data_results/dataset_hash.csv
 code_from_python_package_comparison.R
 quarto_document_publishing.txt

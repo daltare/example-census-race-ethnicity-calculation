@@ -1,0 +1,11 @@
+project:
+  type: website
+  # output-dir: docs
+format:
+  html:
+    theme:
+      # - default
+      light: flatly
+      dark: darkly
+execute:
+  freeze: true
