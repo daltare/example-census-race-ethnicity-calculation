@@ -222,7 +222,7 @@ The following websites may also be helpful for exploring the various census data
 
     -   2020 Census codes: <https://api.census.gov/data/2020/dec/pl/variables.html>
 
-    -   2021 ACS 5 year codes: <https://api.census.gov/data/2021/acs/acs5/variables.html>
+    -   2022 ACS 5 year codes: <https://api.census.gov/data/2022/acs/acs5/variables.html>
 
 -   Census Bureau's data interface (for Decennial Census and ACS, and other census datasets): <https://data.census.gov/cedsci/>
 
@@ -286,7 +286,7 @@ Note that for this dataset we've also included a statement to get median househo
 #| results: hide
 
 # set year
-acs_year <- 2021
+acs_year <- 2022
 
 # get census data
 census_data_acs <- get_acs(geography = 'block group', 
