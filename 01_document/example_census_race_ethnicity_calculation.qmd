@@ -1178,11 +1178,15 @@ In this case, the (un-rounded) 'manually' calculated total population for <code>
 
 ## Alternative Computation Methods
 
+::: callout-warning
 This section is in progress...
+:::
 
 ### Population Weighted Average
 
+::: callout-warning
 This section is in progress...
+:::
 
 This could be used for estimating certain types of metrics (e.g., median household income, CalEnviroScreen scores), using known or estimated population distributions (i.e., not used directly to determine population count in a given area).
 
@@ -1315,8 +1319,12 @@ plot_results_scatter_compare
 
 ## Working with Other (Non-Census) Source Data
 
+::: callout-warning
 This section is in progress...
+:::
 
 ### CalEnviroScreen
 
+::: callout-warning
 This section is in progress...
+:::
