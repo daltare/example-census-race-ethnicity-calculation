@@ -51,6 +51,10 @@ library(patchwork)
 library(scales)
 library(digest)
 
+# conflicts ----
+library(conflicted)
+conflicts_prefer(dplyr::filter)
+
 # options ----
 options(scipen = 999) # turn off scientific notation
 options(tigris_use_cache = TRUE) # use data caching for tigris
