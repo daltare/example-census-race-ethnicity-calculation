@@ -413,6 +413,35 @@ Here's a view of the contents and structure of the revised `r acs_year` 5-year A
 glimpse(census_data_acs)
 ```
 
+For further analysis, we may want to get the statewide data as a baseline for comparison (this could also be done for other scales, like the county level). We can use a similar process to get that data and clean/format it to match the more detailed data obtained above. Note that in this case we're also using the 5-year ACS (even though the 1-year ACS is also available at the statewide level, and would provide more up-to-date data) so that the statewide data will be directly comparable to the block group level data obtained above.
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
+census_data_acs_state <- get_acs(geography = 'state',
+                                 state = 'CA', 
+                                 year = acs_year,
+                                 survey = 'acs5',
+                                 variables = census_vars_acs, 
+                                 output = 'wide', # can be 'wide' or 'tidy'
+                                 geometry = TRUE,
+                                 cache_table = TRUE) %>% 
+    select(-matches('M$')) %>%  # the $ specifies "ends with"
+    # clean names (note this is a little different than the way we renamed fields above, either works)
+    rename_with(.fn = ~ str_remove(., # remove 'E' (estimate) from field names
+                                    pattern = 'E$')) %>% 
+    rename_with(.fn = ~ str_replace(., # add 'E' back to NAME field
+                                    pattern = 'NAM', 
+                                    replacement = 'NAME'))
+```
+
+Here's a view of the contents and structure of the revised `r acs_year` 5-year ACS statewide dataset:
+
+```{r} glimpse(census_data_acs_state)}
+```
+
 #### Plot Results {#sec-census-plot}
 
 @fig-suppliers-census-map shows the datasets that we'll use below to compute water system demographics (zoomed in to the area around the water systems in this study). Each water system -- the *target* dataset -- is shown with a different (randomly chosen) color. The boundaries of the census data -- the *source* dataset -- are shown in red; in this case we'll use the `r acs_year` 5-year ACS dataset. County boundaries are shown in grey (Sacramento county is show with a bold grey line).
