@@ -1,1 +1,1 @@
-Sitemap: https://github.com/daltare/example-census-race-ethnicity-calculation/sitemap.xml
+Sitemap: https://daltare.github.io/example-census-race-ethnicity-calculation/sitemap.xml
