@@ -58,6 +58,8 @@ _ignore/
 /docs/
 
 # Project Specific Files
+## ignore files that start with "scratch" in any directory
+**/scratch*.R 
 # 03_data_results/*.csv
 # 03_data_results/*.gpkg
 03_data_results/dataset_hash.csv
