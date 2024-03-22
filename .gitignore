@@ -63,6 +63,7 @@ _ignore/
 # Project Specific Files
 ## files with "scratch" in the filename any directory
 **/*scratch*.R 
+**/*scratch*.qmd
 # 03_data_results/*.csv
 # 03_data_results/*.gpkg
 03_data_results/dataset_hash.csv
