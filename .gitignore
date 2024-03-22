@@ -57,11 +57,17 @@ _ignore/
 /_site/
 /docs/
 
+# directories that include the word "scratch"
+*scratch*/ 
+
 # Project Specific Files
-## ignore files that start with "scratch" in any directory
-**/scratch*.R 
+## files with "scratch" in the filename any directory
+**/*scratch*.R 
+**/*scratch*.qmd
 # 03_data_results/*.csv
 # 03_data_results/*.gpkg
 03_data_results/dataset_hash.csv
 code_from_python_package_comparison.R
 quarto_document_publishing.txt
+water_supplier_boundaries_2024-03-11/
+water_supplier_boundaries_2024-03-11.zip

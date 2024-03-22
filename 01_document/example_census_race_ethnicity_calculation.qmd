@@ -18,10 +18,15 @@ text-align: left;
 }
 </style>
 ```
+
 ## Background {#sec-background}
 
 ::: callout-note
-For comments, suggestions, corrections, or questions on anything below, contact [david.altare\@waterboards.ca.gov](mailto:david.altare@waterboards.ca.gov), or [file an issue](https://github.com/daltare/example-census-race-ethnicity-calculation/issues) on github.
+For comments, suggestions, corrections, or questions on anything below, contact [david.altare\@waterboards.ca.gov](mailto:david.altare@waterboards.ca.gov), or [open an issue](https://github.com/daltare/example-census-race-ethnicity-calculation/issues) on github.
+:::
+
+::: callout-warning
+This document is a work in progress, and may change significantly.
 :::
 
 This document provides an example of how to use tools available from the [R programming language](https://www.R-project.org/) [@R] to estimate characteristics of any given *target* spatial area(s) (e.g., neighborhoods, project boundaries, water supplier service areas, etc.) based on data from a *source* dataset containing the characteristic data of interest (e.g., census data, CalEnvrioScreen scores, etc.), especially when the boundaries of the *source* and *target* areas overlap but don't necessarily align with each other. It also provides some brief background on the various types of data available from the U.S Census Bureau, and links to a few places to find more in-depth information.
@@ -54,6 +59,7 @@ library(tmap)
 library(patchwork)
 library(scales)
 library(digest)
+library(mapview)
 
 # conflicts ----
 library(conflicted)
@@ -67,164 +73,46 @@ options(tigris_use_cache = TRUE) # use data caching for tigris
 crs_projected <- 3310 # set a common projected coordinate reference system to be used throughout this analysis - see: https://epsg.io/3310
 ```
 
-## Water System Boundaries (Target Data) {#sec-system-boundaries}
 
-In this section, we'll get the service area boundaries for Community Water Systems within the Sacramento County area. This will serve as the *target* dataset -- i.e., the set of areas which we'll be estimating the characteristics of. We'll also get a dataset of county boundaries which overlap the water service areas in this study, which will help with accessing the census data and with making maps/visualizations.
+## Census Data Overview {#sec-census-overview}
 
-### Read Water System Data
-
-In this case, we'll get the water system dataset from a shapefile that's saved locally, then transform that dataset into a common coordinate reference system for mapping and analysis (which is defined above in the variable `crs_projected`).
-
-This water system dataset is a subset of the [California Drinking Water System Area Boundaries dataset](https://gispublic.waterboards.ca.gov/portal/home/item.html?id=fbba842bf134497c9d611ad506ec48cc). I created the subset used here by filtering the full dataset for systems within Sacramento County (by selecting records where the `COUNTY` field is "SACRAMENTO") and filtering for Community Water Systems (by selecting records where the `STATE_CLAS` field is "COMMUNITY"). I also dropped some un-needed fields from the dataset and reordered some columns.
-
-```{r}
-#| message: false
-#| warning: false
-#| results: hide
-
-water_systems_sac <- st_read(here('02_data_input', 
-                                  'water_supplier_boundaries_sac', 
-                                  'System_Area_Boundary_Layer_Sac.shp')) %>% 
-    st_transform(crs_projected) # transform to common coordinate system
-```
-
-As an alternative, the code chunk below shows how to download this data directly from the online dataset and apply the filters needed to reproduce the dataset in the `System_Area_Boundary_Layer_Sac.shp` file, using the [`arcgislayers`](https://r.esri.com/arcgislayers/index.html) package [@arcgislayers]. This code is commented out (with the `#` symbol), since it gives the same dataset as is contained in the shapefile that's read in above, but is included here as a reference for a more direct alternative way to obtain the current version of the *target* dataset. Note that, since this method is accessing the current version of the dataset, it may return somewhat different data than is in the shapefile read above (since the shapefile contains a locally saved version); also note that the field names are different in the online dataset, because they're automatically truncated when saving to shapefile format, so the code below renames them to be consistent with dataset read above.
-
-```{r}
-# # load arcgislayers package (see: https://r.esri.com/arcgislayers/index.html)
-# # install.packages('pak') # only needed if the pak package is not already installed
-# # pak::pkg_install("R-ArcGIS/arcgislayers", dependencies = TRUE)
-# library(arcgislayers)
-# 
-# # define link to data source
-# url_feature <- 'https://gispublic.waterboards.ca.gov/portalserver/rest/services/Drinking_Water/California_Drinking_Water_System_Area_Boundaries/FeatureServer/0'
-# 
-# # connect to data source
-# water_systems_feature_layer <- arc_open(url_feature)
-# 
-# # download and filter data from source
-# water_systems_sac <- arc_select(
-#   water_systems_feature_layer, 
-#   # apply filters
-#   where = "COUNTY = 'SACRAMENTO' AND STATE_CLASSIFICATION = 'COMMUNITY'",
-#   # select fields
-#   fields = c('WATER_SYSTEM_NAME', 'WATER_SYSTEM_NUMBER', 'GLOBALID', 
-#              'BOUNDARY_TYPE', 'OWNER_TYPE_CODE', 'COUNTY', 
-#              'REGULATING_AGENCY', 'FEDERAL_CLASSIFICATION', 'STATE_CLASSIFICATION',
-#              'SERVICE_CONNECTIONS', 'POPULATION')) %>% 
-#     # transform to commont coordinate system
-#     st_transform(crs_projected) %>% 
-#     # rename fields to match names from the shapefile
-#     rename(WATER_SY_1 = WATER_SYSTEM_NAME, 
-#            WATER_SYST = WATER_SYSTEM_NUMBER,
-#            BOUNDARY_T = BOUNDARY_TYPE,
-#            OWNER_TYPE = OWNER_TYPE_CODE,
-#            REGULATING = REGULATING_AGENCY,
-#            FEDERAL_CL = FEDERAL_CLASSIFICATION,
-#            STATE_CLAS = STATE_CLASSIFICATION,
-#            SERVICE_CO = SERVICE_CONNECTIONS)
-```
-
-We can use the `glimpse` function (below) to take get a sense of what type of information is available in the water system dataset and how it's structured.
-
-Note that this dataset already includes a `POPULATION` variable that indicates the population served by each water system. However, for this analysis we'll be making our own estimate of the population within each system's service area based on U.S. Census Bureau data and the spatial representation of the system boundaries. I don't know exactly how the `POPULATION` variable was derived in this dataset, and it likely will not exactly match the population estimates from this analysis, but may serve as a useful check to make sure our estimates are reasonable.
-
-```{r}
-glimpse(water_systems_sac)
-```
-
-### Get County Boundaries {#sec-county-boundaries}
-
-To determine what data to pull from the U.S. Census Bureau, and to create some maps later, we need to get a dataset of county boundaries. These are available from the [TIGER dataset](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html) and can be accessed using the [`tigris`](https://github.com/walkerke/tigris) R package [@tigris].
-
-```{r}
-#| message: false
-#| warning: false
-#| results: hide
-
-counties_ca <- counties(state = 'CA', 
-                        cb = TRUE) %>% # simplified
-    st_transform(crs_projected) # transform to common coordinate system
-```
-
-Then, we can get a list of counties that overlap with the boundaries of the Sacramento area community water systems obtained above. This list will be used when getting the census data (below) -- it is needed because there are some systems whose boundaries extend into neighboring counties (or at least have boundaries that intersect the edge of neighboring counties).
-
-```{r}
-counties_list <- st_filter(counties_ca, 
-                           water_systems_sac, 
-                           .predicate = st_overlaps) %>% 
-    pull(NAME)
-```
-
-The counties in the `counties_list` variable are: `r counties_list`.
-
-### Plot Water Systems and County Boundaries {#sec-plot-systems}
-
-As a check, @fig-sys-bounds plots the water systems (in blue) and the county boundaries (in grey):
-
-```{r}
-#| label: fig-sys-bounds
-#| fig-cap: "Water Systems and County Boundaries"
-#| fig-alt: Map showing water systems in Sacramento county, colored blue, with boundaries for Sacramento County and surrounding counties overlaid on top.
-
-# make plot
-plot_boundaries <- ggplot() +
-    geom_sf(data = water_systems_sac, 
-            fill = alpha('blue', 1),
-            color = 'black', 
-            linewidth = 0.1) + 
-    geom_sf(data = counties_ca %>% 
-                filter(NAME %in% counties_list), 
-            fill = NA,
-            color = 'grey', 
-            linewidth = 0.5) +
-    theme_void()
-
-# show plot
-plot_boundaries
-```
-
-## Census Data (Source Data) {#sec-census-data}
-
-This section provides some brief background on the various types of data available from the U.S. Census Bureau, and demonstrates how to retrieve data from the U.S. Census Bureau using the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package. Most of the information covered here comes from the book [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/index.html), which is a great source of information if you'd like more detail about any of the topics below [@walker2023].
-
-### Census Data Overview {#sec-census-overview}
+This section provides some brief background on the various types of data available from the U.S. Census Bureau (a later section - @sec-census-access - demonstrates how to retrieve data from the U.S. Census Bureau using the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package). Most of the information covered here comes from the book [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/index.html), which is a great source of information if you'd like more detail about any of the topics below [@walker2023].
 
 ::: callout-note
-If you're already familiar with Census data and want to skip this overview, go directly to @sec-census-access
+If you're already familiar with Census data and want to skip this overview, go directly to the next section: @sec-system-boundaries
 :::
 
 Different census products/surveys contain data on different variables, at different geographic scales, over varying periods of time, and with varying levels of certainty. Therefore, there are a number of judgement calls to make when determining which type of census data to use for an analysis -- e.g., which data product to use (Decennial Census or American Community Survey), which geographic scale to use (e.g., Block, Block Group, Tract, etc.), what time frame to use, which variables to assess, etc.
 
 More detailed information about U.S. Census Bureau's data products and other topics mentioned below is available [here](https://walker-data.com/census-r/the-united-states-census-and-the-r-programming-language.html#the-united-states-census-and-the-r-programming-language).
 
-#### Census Geography / Hierarchy {#sec-census-hierarchy}
+### Census Unit Geography / Hierarchy {#sec-census-hierarchy}
 
-Data from the U.S. Census Bureau is aggregated to census units which are available at different geographic scales. Some of these units are nested and can be neatly aggregated (e.g., each census tract is composed of a collection of block groups, and each block group is composed of a collection of blocks), while other census units are outside this hierarchy (e.g., Zip Code Tabulation Areas don't coincide with any other census unit). @fig-census-hierarchies shows the relationship of all of the various census units.
+Publicly available datasets from the U.S Census Bureau generally consist of individual survey responses aggregated to defined census units (e.g., census tracts) that cover varying geographic scales. Some of these units are nested and can be neatly aggregated (e.g., each census tract is composed of a collection of block groups, and each block group is composed of a collection of blocks), while other census units are outside this hierarchy (e.g., Zip Code Tabulation Areas don't coincide with any other census unit). @fig-census-hierarchies shows the relationship of all of the various census units.
 
-Commonly used cenus statistical units like tracts and block groups have target population size ranges, and can be adjusted every 10 years (with the decennial census) based on population changes. [Census tracts](https://www.census.gov/programs-surveys/geography/about/glossary.html#par_textimage_13) are generally around 4,000 people, with a range from about 1,200 to 8,000, and [block groups](https://www.census.gov/programs-surveys/geography/about/glossary.html#par_textimage_4) generally contain 600 to 3,000 people. [Blocks](https://www.census.gov/programs-surveys/geography/about/glossary.html#par_textimage_5) are the smallest census units, and are "areas bounded by visible features, such as streets, roads, streams, and railroad tracks, and by nonvisible boundaries, such as selected property lines and city, township, school district, and county limits and short line-of-sight extensions of streets and roads". For example, a census block may be "a city block bounded on all sides by streets", while "blocks in suburban and rural areas may be larger, more irregular in shape, and bounded by a variety of features, such as roads, streams, and transmission lines".
+Commonly used census statistical units like tracts and block groups have target population size ranges, and can be adjusted every 10 years (with the decennial census) based on population changes. For example, all ACS 5-year datasets prior to 2020 use the 2010 boundaries for tracts, block groups, and blocks, and all ACS 5-year datasets from [2020 onward](https://www.census.gov/programs-surveys/acs/technical-documentation/table-and-geography-changes/2020/geography-changes.html) (presumably through 2029) use the 2020 boundaries for those units. [Census tracts](https://www.census.gov/programs-surveys/geography/about/glossary.html#par_textimage_13) are generally around 4,000 people, with a range from about 1,200 to 8,000, and [block groups](https://www.census.gov/programs-surveys/geography/about/glossary.html#par_textimage_4) generally contain 600 to 3,000 people. [Blocks](https://www.census.gov/programs-surveys/geography/about/glossary.html#par_textimage_5) are the smallest census units, and are "areas bounded by visible features, such as streets, roads, streams, and railroad tracks, and by nonvisible boundaries, such as selected property lines and city, township, school district, and county limits and short line-of-sight extensions of streets and roads". For example, a census block may be "a city block bounded on all sides by streets", while "blocks in suburban and rural areas may be larger, more irregular in shape, and bounded by a variety of features, such as roads, streams, and transmission lines".
 
 ::: callout-caution
-Census boundaries can change over time. Commonly used statistical units like tracts, block groups, blocks, etc. tend to be revised every 10 years (with the decennial census), so it's important to use a census boundary dataset that matches the version of the census demographic data you're retrieving; otherwise, the demographic data may not be referring to the geographic areas in your boundary dataset. In some cases, census units can be split or merged, so a census unit that exists in a given year of the census data may not exist at all in a differen't year's dataset.
+Census boundaries can change over time. Commonly used statistical units like tracts, block groups, and blocks tend to be revised every 10 years (with the decennial census), so it's important to use a census boundary dataset that matches the version of the census demographic data you're retrieving; otherwise, the demographic data may not match geographic areas in your boundary dataset. In some cases, a census unit that exists in a given year of the census data may not exist at all in a different year's dataset, because census units can be split or merged when boundaries are revised.
 
 For more information, see [here](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_geography_handbook_2020_ch02.pdf) or [here](https://www.census.gov/programs-surveys/acs/geography-acs/geography-boundaries-by-year.html) or [here](https://www.census.gov/programs-surveys/geography/about/glossary.html#par_textimage_6) or [here](https://www.census.gov/data/academy/data-gems/2021/compare-2020-census-and-2010-census-redistricting-data.html).
 :::
 
-![Census Unit Hierarchies](https://walker-data.com/census-r/img/screenshots/census-hierarchies.png){#fig-census-hierarchies}
-
 For a list of the different geographic units available for each of the different census products/surveys (see @sec-census-datasets) that can be accessed via the `tidycensus` package, go [here](https://walker-data.com/tidycensus/articles/basic-usage.html#geography-in-tidycensus).
 
-#### Census Datasets / Surveys {#sec-census-datasets}
+![Census Unit Hierarchies](https://walker-data.com/census-r/img/screenshots/census-hierarchies.png){#fig-census-hierarchies}
+
+### Census Datasets / Surveys {#sec-census-datasets}
 
 The Decennial Census is conducted every 10 years, and is intended to provide a complete count of the US population and assist with political redistricting. As a result, it collects a relatively limited set of basic demographic data, but (should) provide a high degree of precision (i.e., in general it should provide exact counts). It is available for geographic units down to the census block (the smallest census unit available -- see @sec-census-hierarchy). For information about existing and planned future releases of 2020 census data products, go [here](https://www.census.gov/programs-surveys/decennial-census/decade/2020/planning-management/release/about-2020-data-products.html).
 
-The American Community Survey (ACS) provides a much larger array of demographic information than the Decennial Census, and is updated more frequently. The ACS is based on a sample of the population (rather than a count of the entire population, as in the Decennial Census), so it represents estimated values rather than precise counts, therefore each data point is available as an estimate (typically labeled with an 'E' in census variable codes, which are discussed in @sec-census-variables ) along with an associated margin of error (typically labeled with 'MOE' in census variable codes) around its estimated value.
+The American Community Survey (ACS) provides a much larger array of demographic information than the Decennial Census, and is updated more frequently. The ACS is based on a sample of the population (rather than a count of the entire population, as in the Decennial Census), so it represents estimated values rather than precise counts; therefore, each data point is available as an estimate (typically labeled with an "E" in census variable codes, which are discussed in @sec-census-variables ) along with an associated margin of error (typically labeled with "M" or "MOE" in census variable codes) around its estimated value.
 
 The ACS is available in two formats. The 5-year ACS is a rolling average of 5 years of data (e.g., the 2021 5-year ACS dataset is an average of the ACS data from 2017 through 2021), and is generally available for geographic units down to the census block group (though some 5-year ACS data may only be available at less granular levels). The 1-year ACS provides data for a single year, and is only available for geographies with population greater than 65,000 (e.g., large cities and counties). Therefore, only the 5-year ACS will be useful for any analysis at a relatively fine scale (e.g., anything that requires data at or more detailed than the census tract level, or any analysis that considers smaller counties/cities -- by definition, census tracts always contain significantly fewer than 65,000 people).
 
 In addition to the Decennial Census and ACS data, a number of other census data products/surveys are also available. For example, see the `censusapi` R package ([here](https://github.com/hrecht/censusapi) or [here](https://www.hrecht.com/censusapi/index.html)) for access to over 300 census API endpoints. For historical census data, see the discussion [here](https://walker-data.com/census-r/other-census-and-government-data-resources.html?q=API%20endpoint#other-census-and-government-data-resources) on using NHGIS, IPUMS, and the `ipumsr` package.
 
-#### Census Variables / Codes {#sec-census-variables}
+### Census Variables / Codes {#sec-census-variables}
 
 Each census product collects data for many different demographic variables, and each variable is generally associated with an identifier code. In order to access census data programmatically, you often need to know the code associated with each variable of interest. When determining which variables to use, you need to consider what census product contains those variables (see @sec-census-datasets) and how they differ in terms of time frame, precision, spatial granularity (see @sec-census-hierarchy), etc.
 
@@ -244,19 +132,130 @@ The following websites may also be helpful for exploring the various census data
 
 -   National Historical Geographic Information System (NHGIS) (for ACS data and historical decennial Census data): <https://www.nhgis.org/>
 
-### Accessing Census Data {#sec-census-access}
 
-::: callout-caution
-Because the boundaries of census units (e.g., tracts, block groups, blocks, etc) can change over time, it's important to make sure that the version (year) of the census data you're retrieving matches the version of the census boundary dataset you're using. The methods shown here retrieve the census boundary dataset together with the census demographic data, which ensures that this won't be a potential problem; however, this could be an issue if you use a different method which retrieves these datasets (geographic boundaries and demographic data) via separate processes.
-:::
+## Target Data Boundaries (Water Systems) {#sec-system-boundaries}
+
+In this section, we'll get the service area boundaries for Community Water Systems within the Sacramento County area. This will serve as the *target* dataset – i.e., the set of areas which we'll be estimating the characteristics of – and will also be used to specifying what census data we want to retrieve. We'll also get a dataset of county boundaries which overlap the water service areas in this study, which can also help with specifying what census data to access and/or with making maps and visualizations.
+
+### Read Water System Data
+
+In this case, we'll get the water system dataset from a shapefile that's saved locally, then transform that dataset into a common coordinate reference system for mapping and analysis (which is defined above in the variable `crs_projected`).
+
+This water system dataset comes from the [California Drinking Water System Area Boundaries dataset](https://gispublic.waterboards.ca.gov/portal/home/item.html?id=fbba842bf134497c9d611ad506ec48cc). For this example, the dataset has been pre-filtered for systems within Sacramento County (by selecting records where the `COUNTY` field is "SACRAMENTO") and for Community Water Systems (by selecting records where the `STATE_CLAS` field is "COMMUNITY"). Some un-needed fields have also been dropped, remaining fields have been re-orderd.
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
+water_systems_sac <- st_read(here('02_data_input', 
+                                  'water_supplier_boundaries_sac', 
+                                  'System_Area_Boundary_Layer_Sac.shp')) %>% 
+    st_transform(crs_projected) # transform to common coordinate system
+```
+
+We can use the `glimpse` function (below) to take get a sense of what type of information is available in the water system dataset and how it's structured.
+
+Note that this dataset already includes a `POPULATION` variable that indicates the population served by each water system. However, for this analysis we'll be making our own estimate of the population within each system's service area based on U.S. Census Bureau data and the spatial representation of the system boundaries. I don't know exactly how the `POPULATION` variable was derived in this dataset, and it likely will not exactly match the population estimates from this analysis, but may serve as a useful check to make sure our estimates are reasonable.
+
+```{r}
+glimpse(water_systems_sac)
+```
+
+#### Alternative Data Retrieval Method
+
+Reading in data from a shapefile is shown above because it's likely one of the more common ways that users will access their *target* boundary data. However, depending on the dataset, there may be other ways to access the data. For example, the code chunk below demonstrates an alternative -- using the [`arcgislayers`](https://r.esri.com/arcgislayers/index.html) package [@arcgislayers] -- that connects directly to the source dataset (to retrieve the most recent version) and applies the filters needed to reproduce the dataset in the `System_Area_Boundary_Layer_Sac.shp` file. Note that this code is not actually used; it is just presented here for reference.
+
+```{r}
+#| eval: false
+
+# load arcgislayers package (see: https://r.esri.com/arcgislayers/index.html)
+install.packages('pak') # only needed if the pak package is not already installed
+pak::pkg_install("R-ArcGIS/arcgislayers", dependencies = TRUE)
+
+library(arcgislayers)
+
+# define link to data source
+url_feature <- 'https://gispublic.waterboards.ca.gov/portalserver/rest/services/Drinking_Water/California_Drinking_Water_System_Area_Boundaries/FeatureServer/0'
+
+# connect to data source
+water_systems_feature_layer <- arc_open(url_feature)
+
+# download and filter data from source
+water_systems_sac <- arc_select(
+  water_systems_feature_layer,
+  # apply filters
+  where = "COUNTY = 'SACRAMENTO' AND STATE_CLASSIFICATION = 'COMMUNITY'",
+  # select fields
+  fields = c('WATER_SYSTEM_NAME', 'WATER_SYSTEM_NUMBER', 'GLOBALID',
+             'BOUNDARY_TYPE', 'OWNER_TYPE_CODE', 'COUNTY',
+             'REGULATING_AGENCY', 'FEDERAL_CLASSIFICATION', 'STATE_CLASSIFICATION',
+             'SERVICE_CONNECTIONS', 'POPULATION')) %>%
+    # transform to common coordinate system
+    st_transform(crs_projected) %>%
+    # rename fields to match names from the shapefile (which automatically truncates field names)
+    rename(WATER_SY_1 = WATER_SYSTEM_NAME,
+           WATER_SYST = WATER_SYSTEM_NUMBER,
+           BOUNDARY_T = BOUNDARY_TYPE,
+           OWNER_TYPE = OWNER_TYPE_CODE,
+           REGULATING = REGULATING_AGENCY,
+           FEDERAL_CL = FEDERAL_CLASSIFICATION,
+           STATE_CLAS = STATE_CLASSIFICATION,
+           SERVICE_CO = SERVICE_CONNECTIONS)
+```
+
+
+### Get County Boundaries {#sec-county-boundaries}
+
+When accessing census data, it may be useful to know which counties overlap the target dataset, as described below in @sec-census-access (note that, even though the dataset is filtered for systems in Sacramento county, there are some systems whose boundaries extend into neighboring counties). County boundaries may also be useful for making maps in later stages of the analysis. We can get a dataset of county boundaries in California from the [TIGER dataset](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html), which can be accessed with R using the [`tigris`](https://github.com/walkerke/tigris) R package [@tigris].
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
+counties_ca <- counties(state = 'CA', 
+                        cb = TRUE) %>% # simplified
+    st_transform(crs_projected) # transform to common coordinate system
+```
+
+Then, we can get a list of counties that overlap with the boundaries of the Sacramento area community water systems obtained above.
+
+```{r}
+counties_overlap <- counties_ca %>% st_filter(water_systems_sac, 
+                                           .predicate = st_overlaps)
+
+counties_list <- counties_overlap %>% pull(NAME)
+```
+
+The counties in the `counties_list` variable are: `r counties_list`. 
+
+
+@fig-suppliers-counties shows the water systems and county boundaries in an interactive map.
+
+```{r}
+#| label: fig-suppliers-counties
+#| fig-cap: "Selected water systems (with county boundaries for reference)."
+
+# sac_county <- counties_ca %>% filter(NAME == 'Sacramento')
+mapview(counties_overlap, alpha.regions = 0, zcol = 'NAME', layer.name = 'County', legend = FALSE) + 
+    mapview(water_systems_sac, zcol = 'WATER_SY_1', layer.name = 'Water System', legend = FALSE)
+```
+
+
+## Accessing Census Data {#sec-census-access}
 
 The following sections demonstrate how to retrieve census data from the Decennial Census and the ACS using the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package.
 
-In order to use the `tidycensus` R package, you'll need to obtain a personal API from the US Census Bureau (which is free and available to anyone) by signing up here: <http://api.census.gov/data/key_signup.html>. Once you have your API key, you'll need to register it in R by entering the command `census_api_key(key = "YOUR API KEY", install = TRUE)` in the console. Note that the `install = TRUE` argument means that the key is saved for all future R sessions, so you'll only need to run that command once on your computer (rather than including it in your scripts). Alternatively, you could save your key to an environment variable and retrieve it using `Sys.getenv()` (to avoid entering your key into any scripts that could potentially be shared).
+In order to use the `tidycensus` R package, you'll need to obtain a personal API key from the US Census Bureau (which is free and available to anyone) by signing up here: <http://api.census.gov/data/key_signup.html>. Once you have your API key, you'll need to register it in R by entering the command `census_api_key(key = "YOUR API KEY", install = TRUE)` in the console. Note that the `install = TRUE` argument means that the key is saved for all future R sessions, so you'll only need to run that command once on your computer (rather than including it in your scripts). Alternatively, you could save your key to an environment variable and retrieve it using `Sys.getenv()`. Either way will help you avoid the possibility of entering your API key into any scripts that could be shared publicly.
 
-#### Decennial Census {#sec-census-access-decennial}
+::: callout-caution
+Because the boundaries of census units (e.g., tracts, block groups, blocks, etc) can change over time, it's important to make sure that the version (year) of the census data you're retrieving matches the version of the census boundary dataset you're using. The methods shown below retrieve the census boundary dataset together with the census demographic data, which ensures that this won't be a potential problem. However, if you use a different workflow that retrieves the geographic boundaries and demographic data via separate processes, you should ensure that the versions are consistent.
+:::
 
-This section retrieves census data from the 2020 U.S. Decennial Census, using the `get_decennial` function from the `tidycensus` package. For this example we're getting data at the 'Block Group' level (with the `geography = 'block group'` argument), for the counties defined above in the `counties_list` variable (with the `county = counties_list` argument). By setting the `geometry = TRUE` argument we'll be able to get the spatial data -- i.e., the boundaries of the census block groups -- along with the tabular data defined in the `variables` argument (see @sec-census-variables for information about how to find variable codes). Also, while by default the `tidycensus` package returns data in long/tidy format, we're getting the data in wide format for this example (by specifying `output = 'wide'`) because it'll be easier to work with for the method described below to estimate demographics for non-census geographies.
+### Decennial Census {#sec-census-access-decennial}
+
+This section retrieves census data from the 2020 U.S. Decennial Census, using the `get_decennial` function from the `tidycensus` package. For this example we're getting data at the 'Block Group' level (with the `geography = 'block group'` argument), for the counties defined above in the `counties_list` variable (with the `county = counties_list` argument). By setting the `geometry = TRUE` argument we'll be able to get the spatial data -- i.e., the boundaries of the census block groups -- along with the tabular data defined in the `variables` argument (see @sec-census-variables for information about how to find variable codes). In this case, we're first saving the census variables we want in the `census_vars_decennial` object, and also providing descriptive names associated with each variable code, which makes the data easier to work with later. Also, while by default the `tidycensus` package returns data in long/tidy format, we're getting the data in wide format for this example (by specifying `output = 'wide'`) because it'll be easier to work with for the interpolation method described below to estimate demographics for non-census geographies.
 
 Note that, to the extent possible, using census data at the most granular spatial level should provide the best results when estimating demographics for areas whose boundaries don't align with census unit boundaries. However, depending on the use case, it may require too much time and computational resources to use the most granular spatial data, and may not be necessary to obtain a reasonable estimate. As noted above, in general the most granular level of Decennial Census data available is at the 'Block' level (though Decennial Census data may not be available for all data types at the block level, due to data privacy issues), but this example gets data at the 'Block Group' level for speed and simplicity. Data at the 'Block' level may be a better choice for a real-world analysis if possible.
 
@@ -297,11 +296,11 @@ The output is an sf object (i.e., a dataframe-like object that also includes spa
 glimpse(census_data_decennial)
 ```
 
-#### American Community Survey (ACS) {#sec-census-access-acs}
+### American Community Survey (ACS) {#sec-census-access-acs}
 
 To get data from the ACS, you can use the `get_acs()` function, which is very similar to the `get_decennial()` function used above.
 
-Note that for this dataset we've also included statements to get additional socio-economic data, such as counts of population below and above the poverty line, median household income, and income profile data (income by bracket).
+Note that for this dataset we've also included statements to get additional socio-economic data, such as counts of population below and above the poverty line, median household income, and income profile data (income by bracket). Similar to above, we're first saving the census variables we want in the `census_vars_acs` object, and also providing descriptive names associated with each variable code to make the data easier to work with later.
 
 ```{r}
 #| message: false
@@ -391,7 +390,7 @@ glimpse(census_data_acs)
 Note that the dataset that's returned includes fields corresponding to Margin of Error (MOE) for each variable we've requested (these are the fields that end with two digits and an M -- e.g., "001M"), since, as noted above in @sec-census-datasets , the ACS is based on a sample of the population and reports estimated values.
 
 ::: callout-tip
-It is possible to calculate MOEs for derived estimates – e.g., when aggregating groups of census units – and in many cases it may be worthwhile to do that to provide extra context to the data. However, it may be difficult to do for more complex aggregations, such as the area and population weighted interpolation shown below. For guidance on how calculate MOEs for some types of derived estimates, see [this document](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_general_handbook_2020_ch08.pdf).
+It is possible to calculate MOEs for derived estimates – e.g., when aggregating groups of census units – and in many cases it may be worthwhile to do that to provide extra context to the data. However, it may be difficult to do for more complex aggregations, such as the area and population weighted interpolations shown below. For guidance on how calculate MOEs for some types of derived estimates, see [this document](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_general_handbook_2020_ch08.pdf).
 :::
 
 Because we won't be incorporating those MOEs into the analysis below, we can drop them for this example, then clean up the field names.
@@ -413,7 +412,37 @@ Here's a view of the contents and structure of the revised `r acs_year` 5-year A
 glimpse(census_data_acs)
 ```
 
-#### Plot Results {#sec-census-plot}
+For further analysis, we may want to get the statewide data as a baseline for comparison (this could also be done for other scales, like the county level). We can use a similar process to get that data and clean/format it to match the more detailed data obtained above. Note that in this case we're also using the 5-year ACS (even though the 1-year ACS is also available at the statewide level, and would provide more up-to-date data) so that the statewide data will be directly comparable to the block group level data obtained above.
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
+census_data_acs_state <- get_acs(geography = 'state',
+                                 state = 'CA', 
+                                 year = acs_year,
+                                 survey = 'acs5',
+                                 variables = census_vars_acs, 
+                                 output = 'wide', # can be 'wide' or 'tidy'
+                                 geometry = TRUE,
+                                 cache_table = TRUE) %>% 
+    select(-matches('M$')) %>%  # the $ specifies "ends with"
+    # clean names (note this is a little different than the way we renamed fields above, either works)
+    rename_with(.fn = ~ str_remove(., # remove 'E' (estimate) from field names
+                                    pattern = 'E$')) %>% 
+    rename_with(.fn = ~ str_replace(., # add 'E' back to NAME field
+                                    pattern = 'NAM', 
+                                    replacement = 'NAME'))
+```
+
+Here's a view of the contents and structure of the revised `r acs_year` 5-year ACS statewide dataset:
+
+```{r}
+glimpse(census_data_acs_state)
+```
+
+### Plot Results {#sec-census-plot}
 
 @fig-suppliers-census-map shows the datasets that we'll use below to compute water system demographics (zoomed in to the area around the water systems in this study). Each water system -- the *target* dataset -- is shown with a different (randomly chosen) color. The boundaries of the census data -- the *source* dataset -- are shown in red; in this case we'll use the `r acs_year` 5-year ACS dataset. County boundaries are shown in grey (Sacramento county is show with a bold grey line).
 
@@ -473,7 +502,7 @@ plot_census
 Now we can perform the calculations to estimate demographic characteristics for our *target* areas (water system service boundaries in the Sacramento County area) from our *source* demographic dataset (the census data we obtained above). For this example, we'll use the `r acs_year` 5-year ACS data that we retrieved above (which is saved in the `census_data_acs` variable) as our source of demographic data, and we'll estimate the following for each water system's service area:
 
 -   Population of each racial/ethnic group (using the racial/ethnic categories defined in the census dataset), and each racial/ethnic group's portion of the total service area population
--   Median household income
+-   Socio-economic variables like poverty rate, median household income, income distributions, and per capita income
 
 There are multiple ways this estimation can be done, but one of the most simple and straightforward is using an areal interpolation (essentially an area weighted average). The major simplifying assumption of this approach is that the population or other characteristic(s) of interest are evenly distributed within each unit in the *source* data -- e.g., in this case we're assuming that population (including the total population and the population of each racial/ethic group) and household income is evenly distributed within each census block group.
 
@@ -522,6 +551,19 @@ glimpse(census_data_filter)
 ```
 
 ### Areal Interpolation {#sec-areal-interp}
+
+
+
+::: callout-caution
+Areal interpolation, based on area weighted averaging, is possibly most useful for estimating count data for overlapping polygons - like population size or number of households - since we generally have no other information about how population density varies within the source polygons (unless significantly more effort is invested, such as looking at aerial imagery data). 
+
+However, for intensive variables that are associated with the estimated count data - per capita or median household income - it may be be more appropriate to use the corresponding estimated count data (rather than area) as a weighting factor. For example, for per capita income, we can use the estimated population counts to produce a population weighted average per capia income (rather than an area weighted average per capita income). 
+:::
+
+::: callout-tip
+In addition, there may be cases where we can use more granular block-level population data from the decennial census to estimate population densities and distributions within larger census units, like block groups and tracts.  
+See @sec-pop-weighted-interpolation for more information.
+:::
 
 There are a couple of ways to implement the areal interpolation method. The example below uses the [`aw_interpolate`](https://chris-prener.github.io/areal/reference/aw_interpolate.html) function from the [`areal`](https://chris-prener.github.io/areal/) R package. The `sf` package's [`st_interpolate_aw`](https://r-spatial.github.io/sf/reference/interpolate_aw.html) function provides similar functionality. It's also possible to 'manually' implement the process using lower level functions from the `sf` package, which can be useful for even more control, but is more complicated to implement (see @sec-manual-calcs below for examples of 'manual' calculations that demonstrate how the interpolation function works and provide a check on the results).
 
@@ -576,12 +618,12 @@ water_systems_sac_demographics <- water_systems_sac %>%
                        'households_rent_total', 
                        'households_rent_over30pct', 
                        'households_rent_over50pct'
-                   ), 
-                   intensive = c(
-                       'median_household_income', 
-                       'average_household_size', 
-                       'per_capita_income'
-                   )
+                   )#, 
+                   # intensive = c(
+                   #     'median_household_income', 
+                   #     'average_household_size', 
+                   #     'per_capita_income'
+                   # )
     )
 ```
 
@@ -605,99 +647,70 @@ water_systems_sac_demographics %>%
 
 <br>
 
-#### Revise Calculation of Intensive Variables {#sec-revise-interp-med-hh-inc}
-
-::: callout-caution
-As noted above, using interpolated results for the variables in the intensive list below may not be the best approach.
-
-Especially for median household income an areal weighted interpolation may not be appropriate, because aggregating multiple census units changes the distribution of household income, so the resulting value (weighted average of medians) may not reflect the true median very well. It may be more appropriate to use the counts in each income bracket to estimate a median income and/or present the income distribution rather than a single value.
-:::
-
-Note that for `r sum(is.na(water_systems_sac_demographics$median_household_income))` water systems, the estimated median household income is missing. That's because the median household income for is missing for some of the census block groups we retrieved above (a total of `r sum(is.na(census_data_filter$median_household_income))` of the overlapping census block groups from the `r acs_year` 5-year ACS dataset are missing median household income data).
-
-As a workaround, we can re-calculate the median household income for water system service areas using only the census block groups that have median household income data (i.e., drop census block groups where the median household income is `NA` for this calculation). Note that simply removing census units with missing data could impact the quality of our calculations if there are significant portions of a service area covered by census units that contain missing values for this variable, and in a real-world analysis it may be necessary to do additional work to investigate and make adjustments to account for these missing values. However, in this case we'll just drop them for simplicity.
-
-```{r}
-water_systems_sac_demographics_hh_inc <- water_systems_sac %>% 
-    aw_interpolate(tid = WATER_SY_1, 
-                   source = census_data_filter %>% 
-                       filter(!is.na(median_household_income)), # drop census units with missing income data
-                   sid = GEOID, 
-                   # weight = 'sum',
-                   output = 'sf', 
-                   intensive = c('median_household_income')
-    )
-```
-
-The re-calculated median household income estimates have `r sum(is.na(water_systems_sac_demographics_hh_inc$median_household_income))` missing value(s), and we can replace the original median household income estimates with these re-calculated values:
-
-```{r}
-water_systems_sac_demographics <- water_systems_sac_demographics %>% 
-    mutate(median_household_income = water_systems_sac_demographics_hh_inc$median_household_income)
-
-rm(water_systems_sac_demographics_hh_inc)
-```
-
-@tbl-water-sys-demographics-rev below provides a view of the revised dataset.
-
-#### Clean & Format Results {#sec-results-clean}
+### Clean & Format Results {#sec-results-clean}
 
 We could stop here, and save the dataset containing the results to an output file (as is done in @sec-results-save ). But, it may be useful to do some additional computations and re-formatting before saving the dataset. For example, in this case it may be useful to calculate the racial/ethnic breakdown of each system's population as percentages of the total population (in addition to the total counts derived above).
 
-We can start by renaming the fields that start with `population_` and `median_household_income` to indicate that they are estimates.
+```{r}
+# We can start by renaming the fields that start with population_ and median_household_income to indicate that they are estimates.
+
+# water_systems_sac_demographics <- water_systems_sac_demographics %>%
+#     rename_with(.fn = ~ str_replace(.,
+#                                     pattern = 'population_',
+#                                     replacement = 'population_')) # %>%
+#     rename_with(.fn = ~ str_replace(., 
+#                                     pattern = 'median_household_income', 
+#                                     replacement = 'median_household_income'))
+```
+
+```{r}
+# Then add columns with each racial/ethnic group's estimated percent of the total population within each water system's service area:
+
+water_systems_sac_demographics <- water_systems_sac_demographics %>% 
+    mutate(
+        across(
+            .cols = starts_with('population_'),
+            .fns = ~ round(.x / population_total * 100, 2),
+            .names = "{str_replace(.col, 'population_', 'percent_')}"
+        ), 
+        .after = population_white) 
+```
+
+We can also calculate the estimated poverty rate for each water system's service area.
 
 ```{r}
 water_systems_sac_demographics <- water_systems_sac_demographics %>% 
-    rename_with(.fn = ~ str_replace(., 
-                                    pattern = 'population_', 
-                                    replacement = 'population_est_')) %>% 
-    rename_with(.fn = ~ str_replace(., 
-                                    pattern = 'median_household_income', 
-                                    replacement = 'median_household_income_est'))
+    mutate(poverty_rate_percent = 
+               round(100 * poverty_below_count / poverty_total_assessed,
+                     2),
+           .before = poverty_above_count)
 ```
 
-Then add columns with each racial/ethnic group's estimated percent of the total population within each water system's service area:
+Then format the data, rounding the estimated values to appropriate levels of precision:
 
 ```{r}
 water_systems_sac_demographics <- water_systems_sac_demographics %>% 
     mutate(
         across(
-            .cols = starts_with('population_est_'),
-            .fns = ~ .x / population_est_total * 100,
-            .names = "{str_replace(.col, 'population_est_', 'percent_est_')}"
-        )) 
-```
-
-Then format the data, rounding the estimated population and median household income values to the nearest whole number, and the estimated population percentages to two decimal places:
-
-```{r}
-water_systems_sac_demographics <- water_systems_sac_demographics %>% 
-    mutate(
-        across(
-            .cols = starts_with('population_est_'),
+            .cols = starts_with('population_'),
             .fns = ~ round(.x, 0)
-        )) %>% 
-    mutate(
-        across(
-            .cols = starts_with('percent_est_'),
-            .fns = ~ round(.x, 2)
-        )) %>% 
-    mutate(median_household_income_est = round(median_household_income_est, digits = 0))
+        )) # %>% 
+    # mutate(median_household_income = round(median_household_income, digits = 0))
 ```
 
-Finally, just as a check, add a column (which we'll call `population_percent_difference`) to compute the difference between the estimated total population (in the `population_est_total` field) and the total population listed in the `POPULATION` field (the reported value from the water system dataset).
+Finally, just as a check, add a column (which we'll call `population_percent_difference`) to compute the difference between the estimated total population (in the `population_total` field) and the total population listed in the `POPULATION` field (the reported value from the water system dataset).
 
 ```{r}
 water_systems_sac_demographics <- water_systems_sac_demographics %>% 
     mutate(population_percent_difference = 
-               round((population_est_total - POPULATION) / POPULATION * 100, 2))
+               round((population_total - POPULATION) / POPULATION * 100, 2))
 
 # rearrange fields to make order more logical
 water_systems_sac_demographics <- water_systems_sac_demographics %>% 
-    relocate(population_est_total, .after = 'POPULATION') %>% 
-    relocate(population_percent_difference, .after = 'population_est_total') %>% 
-    relocate(median_household_income_est, geometry, .after = last_col()) %>% 
-    select(-percent_est_total) # drop the percent_est_total field - it's always just "1"
+    relocate(population_total, .after = 'POPULATION') %>% 
+    relocate(population_percent_difference, .after = 'population_total') %>% 
+    # relocate(median_household_income, geometry, .after = last_col()) %>% 
+    select(-percent_total) # drop the percent_total field - it's always just "1"
 ```
 
 Here's a view of the contents and structure of the re-formatted dataset:
@@ -722,7 +735,7 @@ water_systems_sac_demographics %>%
 
 Note that there are a number of reasons why the estimated population values are likely to differ from the population numbers in the water system dataset (e.g., the depicted boundaries may not be correct or exact, the supplier may have used different methods to count/estimate the population they serve, the time frames for the estimates may be different, etc.). But, there may also be some cases where the numbers differ significantly -- depending on the actual analysis being performed, this may mean that further work is needed for certain areas, or could mean that this method may not be sufficient and different methods are needed.
 
-For water systems with a small population and/or service area, the estimated demographics may not match the population numbers in the original water system dataset very well. You can see this in @tbl-pop-est-small by comparing the `POPULATION` field, which contains the total population values from the water supplier dataset, with the `population_est_total` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `population_percent_difference` field. This probably indicates that, for small areas, some adjustments and/or further analysis may be needed, and the preliminary estimated values should be treated with some caution/skepticism.
+For water systems with a small population and/or service area, the estimated demographics may not match the population numbers in the original water system dataset very well. You can see this in @tbl-pop-est-small by comparing the `POPULATION` field, which contains the total population values from the water supplier dataset, with the `population_total` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `population_percent_difference` field. This probably indicates that, for small areas, some adjustments and/or further analysis may be needed, and the preliminary estimated values should be treated with some caution/skepticism.
 
 Note: See @sec-zero-pop below for some initial investigation into water systems whose estimated population is zero.
 
@@ -733,12 +746,12 @@ Note: See @sec-zero-pop below for some initial investigation into water systems 
 water_systems_sac_demographics %>% 
     arrange(POPULATION) %>% 
     slice(1:10) %>% 
-    select(WATER_SY_1, POPULATION, population_est_total, population_percent_difference) %>% 
+    select(WATER_SY_1, POPULATION, population_total, population_percent_difference) %>% 
     st_drop_geometry() %>% 
     kable()
 ```
 
-But for larger water systems, the estimated population values seem to be more in line with the population numbers in the original dataset. You can see this in @tbl-pop-est-large by, as above, comparing the `POPULATION` field, which contains the total population values from the water supplier dataset, with the `population_est_total` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `population_percent_difference` field.
+But for larger water systems, the estimated population values seem to be more in line with the population numbers in the original dataset. You can see this in @tbl-pop-est-large by, as above, comparing the `POPULATION` field, which contains the total population values from the water supplier dataset, with the `population_total` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `population_percent_difference` field.
 
 ```{r}
 #| label: tbl-pop-est-large
@@ -747,12 +760,13 @@ But for larger water systems, the estimated population values seem to be more in
 water_systems_sac_demographics %>% 
     arrange(desc(POPULATION)) %>% 
     slice(1:10) %>% 
-    select(WATER_SY_1, POPULATION, population_est_total, population_percent_difference) %>% 
+    select(WATER_SY_1, POPULATION, population_total, population_percent_difference) %>% 
     st_drop_geometry() %>% 
     kable()
 ```
 
-### Re-Format & Plot Results {#sec-results-plot-all}
+
+### Plot Results {#sec-results-plot-all}
 
 As a check, we can make some plots to visualize the data before saving.
 
@@ -760,12 +774,12 @@ For plotting, it'll help to first convert from wide to long format, and adjust t
 
 ```{r}
 water_systems_sac_demographics_long <- water_systems_sac_demographics %>% 
-    select(WATER_SY_1, starts_with('percent_est_')) %>% # select only the fields with percentages, and the water system name/id
+    select(WATER_SY_1, starts_with('percent_')) %>% # select only the fields with percentages, and the water system name/id
     # convert to long format
-    pivot_longer(cols = starts_with('percent_est_'), names_to = 'metric') %>% 
+    pivot_longer(cols = starts_with('percent_'), names_to = 'metric') %>% 
     # format the metric field to make titles
     mutate(metric = metric %>% 
-               str_remove_all(pattern = 'percent_est_') %>% 
+               str_remove_all(pattern = 'percent_') %>% 
                str_replace_all(pattern = '_', replacement = ' ') %>% 
                str_replace_all(pattern = ' or ', replacement = ' / ') %>% 
                str_to_title(.) %>% 
@@ -842,8 +856,8 @@ As another example, we may want to look at the portion of all Non-White resident
 
 plot_results_non_white <- ggplot() +
     geom_sf(data = water_systems_sac_demographics %>% 
-                mutate(percent_est_non_white = 100 - percent_est_white), # compute non-white portion of population for each water system
-            aes(fill = percent_est_non_white), 
+                mutate(percent_non_white = 100 - percent_white), # compute non-white portion of population for each water system
+            aes(fill = percent_non_white), 
             color = 'black') +
     scale_fill_distiller(palette = 'Blues', 
                          direction = 1) +
@@ -859,102 +873,6 @@ plot_results_non_white <- ggplot() +
 plot_results_non_white
 ```
 
-Alternatively, with the `tmap` package, we can show both the percent (blue color gradient) and count (size of circles) of the Non-White population in each water system's service area, as in @fig-providers-pct-pop.
-
-```{r}
-#| label: fig-providers-pct-pop
-#| fig-cap: "Portion and population of Non-White residents served by each water system in the Sacramento County Area"
-#| message: false
-#| warning: false
-
-t_map_percent_population_nonwhite <- 
-    tm_shape(water_systems_sac_demographics %>% 
-                 mutate(percent_est_non_white = 100 - percent_est_white, # compute non-white portion of population for each water system
-                        population_est_non_white = population_est_total - population_est_white # compute total non-white population for each water system
-                 ) 
-    ) +
-    tm_polygons(col = 'percent_est_non_white',
-                palette = "Blues",
-                title = 'Non-White Percent' #, legend.hist = TRUE
-    ) +
-    tm_bubbles(size = "population_est_non_white",
-               alpha = 0.5,
-               col = "green",
-               title.size = "Non-White Population") +
-    tm_shape(counties_ca %>% 
-                 filter(NAME == 'Sacramento')) +
-    tm_borders(col = 'black') +
-    tm_layout(# main.title = "Non-White Population in Community Water Systems \nin Sacramento County",
-        # main.title.size = 0.9
-        frame = FALSE,
-        legend.outside = TRUE
-    ) + 
-    tm_credits(paste0('Data from ', acs_year, ' 5-year ACS'), 
-               position = c("RIGHT", "BOTTOM"))
-
-t_map_percent_population_nonwhite
-```
-
-Similarly, we can show both the percent Non-White population (blue color gradient) and median household income (size of circles) for each water system's service area, as in @fig-providers-pct-nonwhite-med-inc.
-
-```{r}
-#| label: fig-providers-pct-nonwhite-med-inc
-#| fig-cap: "Portion of Non-White residents and median household income for each water system in the Sacramento County Area"
-#| message: false
-#| warning: false
-
-t_map_percent_nonwhite_medincome <- 
-    tm_shape(water_systems_sac_demographics %>% 
-                 mutate(percent_est_non_white = 100 - percent_est_white # compute non-white portion of population for each water system
-                 ) 
-    ) +
-    tm_polygons(col = 'percent_est_non_white',
-                palette = "Blues",
-                title = 'Non-White Percent' #, legend.hist = TRUE
-    ) +
-    tm_bubbles(size = "median_household_income_est", 
-               alpha = 0.5,
-               col = "green",
-               title.size = "Median Household Income"
-    ) +
-    tm_shape(counties_ca %>% 
-                 filter(NAME == 'Sacramento')) +
-    tm_borders(col = 'black') +
-    tm_layout(# main.title = "Non-White Population and Median Household Income \nin Community Water Systems in Sacramento County", 
-        # main.title.size = 0.9
-        frame = FALSE,
-        legend.outside = TRUE 
-    ) + 
-    tm_credits(paste0('Data from ', acs_year, ' 5-year ACS'), 
-               position = c("RIGHT", "BOTTOM"))
-
-t_map_percent_nonwhite_medincome
-```
-
-We could also do a more detailed analysis of the relationships between some of the computed characteristics. For example, @fig-pct-nonwhite-med-inc-scatter shows the relationship between median household income and percent non-white population for the water systems in this study.
-
-```{r}
-#| label: fig-pct-nonwhite-med-inc-scatter
-#| fig-cap: "Portion of Non-White residents and median household income for water systems in the Sacramento County Area"
-#| warning: false
-#| message: false
-
-plot_results_scatter <- ggplot(data = water_systems_sac_demographics %>% 
-                                   mutate(percent_est_non_white = (100 - percent_est_white)/100), # compute non-white portion of population for each water system) 
-                               aes(x = percent_est_non_white, 
-                                   y = median_household_income_est)) +
-    geom_point() +
-    # scale_fill_distiller(palette = 'Blues', 
-    #                      direction = 1) +
-    geom_smooth(method = 'lm') +
-    labs(title = NULL, 
-         caption = paste0('Data from ', acs_year, ' 5-year ACS'),
-         x = 'Percent Non-White Population in Service Area',
-         y = 'Median Household Income') +
-    scale_y_continuous(labels = label_dollar()) +
-    scale_x_continuous(labels = label_percent())
-plot_results_scatter
-```
 
 ### Save Results {#sec-results-save}
 
@@ -1063,7 +981,7 @@ system_check <- 'CARMICHAEL WATER DISTRICT'
 # get the total estimated population for this supplier from above
 population_weighted_interp <- water_systems_sac_demographics %>% 
     filter(WATER_SY_1 == system_check) %>% 
-    pull(population_est_total)
+    pull(population_total)
 ```
 
 In this case, we'll check the calculation for the water system: <code>`r system_check`</code>. The estimated population for this system using the areal interpolation above (@sec-areal-interp) was: <code>`r prettyNum(population_weighted_interp, big.mark = ',')`</code>.
@@ -1127,99 +1045,15 @@ The weighted average population for the water system is the sum of the area weig
 
 ```{r}
 # this should be the same as the interpolated result
-population_est_weighted_manual <- interpolate_manual_pop %>% 
+population_weighted_manual <- interpolate_manual_pop %>% 
     pull(population_weighted) %>% 
     sum() %>% 
     round(digits = 0)
-population_est_weighted_manual
+population_weighted_manual
 ```
 
-So, as a final check, the 'manually' calculated total population for <code>`r system_check`</code> is <code>`r prettyNum(population_est_weighted_manual, big.mark = ',')`</code>, and the value obtained from the `aw_interpolate` function above was <code>`r prettyNum(population_weighted_interp, big.mark = ',')`</code>.
+So, as a final check, the 'manually' calculated total population for <code>`r system_check`</code> is <code>`r prettyNum(population_weighted_manual, big.mark = ',')`</code>, and the value obtained from the `aw_interpolate` function above was <code>`r prettyNum(population_weighted_interp, big.mark = ',')`</code>.
 
-#### Median Household Income {#sec-manual-calcs-med-hh-inc}
-
-The methodology for calculating a variable like median household income, which doesn't represent a count (unlinke the population example in @sec-manual-calcs-pop above) is a bit different. Computations on variables which represent averages, medians, percentages, densities, etc. are known as spatially intensive operations (see [this documenation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#extensive-and-intensive-interpolations) for more information).
-
-```{r}
-# get the estimated median household income for this supplier from above
-median_household_income_interp <- water_systems_sac_demographics %>% 
-    filter(WATER_SY_1 == system_check) %>% 
-    pull(median_household_income_est)
-```
-
-In this case, we'll check the calculation for the water system: <code>`r system_check`</code>. The estimated median household income for this system using the areal interpolation above (@sec-areal-interp) was: <code>`r paste0('$', prettyNum(median_household_income_interp, big.mark = ','))`</code>.
-
-As with the population calculation, we'll first get the portions of the census units that intersect the target water system's service area. They are shown in red in @fig-manual-pop above.
-
-```{r}
-#| message: false
-#| warning: false
-
-interpolate_manual_hh_inc <- st_intersection(census_data_acs, 
-                                             water_systems_sac %>%
-                                                 filter(WATER_SY_1 == system_check))
-```
-
-Next, we need to account for census units where median household income is missing (missing values are represented as `NA` in our census dataset), in this case by removing them from the calculation (like we did above in @sec-revise-interp-med-hh-inc) -- in this case that's `r sum(is.na(interpolate_manual_hh_inc$median_household_income))` census unit(s) with missing median household income data. Note that simply removing census units with missing data could impact the quality of our calculations if there are significant portions of the service area covered by census units that contain missing values for this variable, and in a real-world analysis it may be necessary to do additional work to investigate and make adjustments to account for these missing values. However, in this case we'll just drop them for simplicity.
-
-```{r}
-sum(is.na(interpolate_manual_hh_inc$median_household_income))
-
-interpolate_manual_hh_inc <- interpolate_manual_hh_inc %>% 
-    filter(!is.na(median_household_income))
-```
-
-Then we'll compute the combined area of the portions of the census units that intersect the water system area.
-
-```{r}
-# get portion of census units that intersect the system area ----
-interpolate_manual_hh_inc <- interpolate_manual_hh_inc %>% 
-    mutate(intersect_area = st_area(.))
-
-# compute combined area of all census segments that intersect the system area
-total_intersection_area <- sum(interpolate_manual_hh_inc$intersect_area)
-```
-
-Next we'll a compute weights for the census units that intersect the water system area. The weight for a given census unit is calculated as the area of that census unit that intersects the water system area, divided by the combined area of the portions of the census units that intersect the water system area.
-
-```{r}
-# compute weight
-interpolate_manual_hh_inc <- interpolate_manual_hh_inc %>% 
-    mutate(total_intersection_area = total_intersection_area) %>% 
-    mutate(weight = drop_units(intersect_area / total_intersection_area))
-```
-
-The weights should sum to 1.
-
-```{r}
-# check - the weights should sum to 1
-sum(interpolate_manual_hh_inc$weight) == 1
-```
-
-Then we can compute the weighted median household income for each census unit, which is just the median household income for that census unit multiplied by the weight calculated above.
-
-```{r}
-interpolate_manual_hh_inc <- interpolate_manual_hh_inc %>% 
-    mutate(med_hh_inc_weighted = median_household_income * weight)
-
-glimpse(interpolate_manual_hh_inc %>% 
-            select(GEOID, NAME, median_household_income, 
-                   intersect_area, total_intersection_area, weight, 
-                   med_hh_inc_weighted))
-```
-
-The area weighted median household income estimate for the water system is then the sum of the weighted median household income for each of the intersecting census units (remember that census units where median household income is missing -- i.e., `NA` -- have already been removed above).
-
-```{r}
-# this should be the same as the interpolated result
-median_household_income_est_weighted_manual <- interpolate_manual_hh_inc %>% 
-    pull(med_hh_inc_weighted) %>% 
-    sum() %>% 
-    round(digits = 0)
-median_household_income_est_weighted_manual
-```
-
-So, as a final check, the manually calculated median household income for <code>`r system_check`</code> is <code>`r paste0('$', prettyNum(median_household_income_est_weighted_manual, big.mark = ','))`</code>, and the value obtained from the `aw_interpolate` function was <code>`r paste0('$', prettyNum(median_household_income_interp, big.mark = ','))`</code>.
 
 #### Systems with Zero Estimated Population {#sec-zero-pop}
 
@@ -1228,7 +1062,7 @@ For some water systems, the estimated population using the areal interpolation a
 ```{r}
 # pick a system to check
 system_check_zero <- water_systems_sac_demographics %>% 
-    filter(population_est_total == 0) %>% 
+    filter(population_total == 0) %>% 
     arrange(WATER_SY_1) %>% 
     slice(1) %>% 
     pull(WATER_SY_1)
@@ -1236,7 +1070,7 @@ system_check_zero <- water_systems_sac_demographics %>%
 # get the total estimated population for this system from above
 population_weighted_interp_zero <- water_systems_sac_demographics %>% 
     filter(WATER_SY_1 == system_check_zero) %>% 
-    pull(population_est_total)
+    pull(population_total)
 ```
 
 In this case, we'll check the calculation for the water system: <code>`r system_check_zero`</code>. The estimated population for this system using the areal weighted interpolation with the `aw_interpolate` function above (@sec-areal-interp) was: <code>`r prettyNum(population_weighted_interp_zero, big.mark = ',')`</code>.
@@ -1298,13 +1132,13 @@ The weighted average population for the water system is the sum of the area weig
 
 ```{r}
 # this should be the same as the interpolated result
-population_est_weighted_manual_zero <- interpolate_manual_zero %>% 
+population_weighted_manual_zero <- interpolate_manual_zero %>% 
     pull(population_weighted) %>% 
     sum() 
-population_est_weighted_manual_zero
+population_weighted_manual_zero
 ```
 
-In this case, the (un-rounded) 'manually' calculated total population for <code>`r system_check_zero`</code> is <code>`r prettyNum(population_est_weighted_manual_zero, big.mark = ',')`</code> (for reference, the rounded value obtained from the `aw_interpolate` function was <code>`r prettyNum(population_weighted_interp_zero, big.mark = ',')`)</code>. From the @fig-manual-zero-pop above, you can see that the service area reported for this system is very small, only covering a small fraction of a single census unit, resulting in a population estimate that is very low. In this case, it could be that the system area was drawn incorrectly (i.e., maybe it doesn't really depict the entire service area), in which case the reported service area should be revised. Or, it's possible that the population within the given census unit is very un-evenly distributed and instead there's a relatively high density population cluster in the depicted service area, in which case a more sophisticated method than an area-weighted average should be used (e.g., maybe consider the density of buildings, roads, and/or other features associated with inhabited areas).
+In this case, the (un-rounded) 'manually' calculated total population for <code>`r system_check_zero`</code> is <code>`r prettyNum(population_weighted_manual_zero, big.mark = ',')`</code> (for reference, the rounded value obtained from the `aw_interpolate` function was <code>`r prettyNum(population_weighted_interp_zero, big.mark = ',')`)</code>. From the @fig-manual-zero-pop above, you can see that the service area reported for this system is very small, only covering a small fraction of a single census unit, resulting in a population estimate that is very low. In this case, it could be that the system area was drawn incorrectly (i.e., maybe it doesn't really depict the entire service area), in which case the reported service area should be revised. Or, it's possible that the population within the given census unit is very un-evenly distributed and instead there's a relatively high density population cluster in the depicted service area, in which case a more sophisticated method than an area-weighted average should be used (e.g., maybe consider the density of buildings, roads, and/or other features associated with inhabited areas).
 
 ## Alternative Computation Methods
 
@@ -1312,7 +1146,7 @@ In this case, the (un-rounded) 'manually' calculated total population for <code>
 This section is in progress...
 :::
 
-### Population Weighted Average
+### Population Weighted Interpolation {#sec-pop-weighted-interpolation}
 
 ::: callout-warning
 This section is in progress...
@@ -1358,7 +1192,7 @@ results_interp_popwt <- interpolate_pw(from = census_data_filter %>%
                                            st_transform(crs_projected), 
                                        # weight_placement = 'surface',
                                        weight_column = 'population_total') %>% 
-    rename(median_household_income_est_popwt = median_household_income) # rename results field
+    rename(median_household_income_popwt = median_household_income) # rename results field
 ```
 
 ```{r}
@@ -1373,79 +1207,6 @@ glimpse(results_interp_popwt)
 
 Note that not all water systems get an estimated value using this method (even if `NA` values are removed from the source data) -- a total of `r sum(is.na(results_interp_popwt$median_household_income))` systems are missing results with this method, which tend to be the smallest water systems.
 
-@fig-pct-nonwhite-med-inc-compare shows a comparison (note that each plot only includes systems that have a population weighted result, so the results look a little different than the scatter plot above in @fig-pct-nonwhite-med-inc-scatter showing all systems). Also, note that these figures may not be that helpful by themselves for this example, but just provide an example of how different approaches could be compared to check whether or not the results are sensitive to the methodology used in any significant way.
-
-```{r}
-#| label: fig-pct-nonwhite-med-inc-compare
-#| fig-cap: "Relationship between Non-White population and median household income for water systems in the Sacramento County Area, using an area-weighted (left, blue) versus population-weighted approach (right, orange) approach to deterime median household income"
-#| fig-alt: Side by side scatter plots... (in progress)
-#| warning: false
-#| message: false
-
-# Plot area weighted results
-plot_results_scatter_areawt <- ggplot(data = water_systems_sac_demographics %>% 
-                                           mutate(percent_est_non_white = (100 - percent_est_white)/100) %>% # compute non-white portion of population for each water system) 
-                                           left_join(results_interp_popwt %>% st_drop_geometry(), 
-                                                     by = 'WATER_SY_1') %>% # join the population weighted estimate
-                                          filter(!is.na(median_household_income_est_popwt)), # drop results for systems where the pop weighted result is missing, for consistency
-                                       aes(x = percent_est_non_white, 
-                                           y = median_household_income_est)) +
-    geom_smooth(method = 'lm', color = 'blue') +    
-    geom_point(color = 'dodgerblue') +
-    labs(title = NULL, 
-         caption = paste0('Data from ', acs_year, ' 5-year ACS'),
-         x = 'Non-White Population',
-         y = 'Median Household Income (Area Weighted)') +
-    scale_y_continuous(labels = label_dollar(), limits = c(0, 160000)) +
-    scale_x_continuous(labels = label_percent())
-
-
-
-# Plot population weighted results
-plot_results_scatter_popwt <- ggplot(data = water_systems_sac_demographics %>% 
-                                           mutate(percent_est_non_white = (100 - percent_est_white)/100) %>% # compute non-white portion of population for each water system) 
-                                           left_join(results_interp_popwt %>% st_drop_geometry(), 
-                                                     by = 'WATER_SY_1'), # join the population weighted estimate 
-                                       aes(x = percent_est_non_white, 
-                                           y = median_household_income_est_popwt)) +
-    geom_smooth(method = 'lm', color = 'orangered4') +    
-    geom_point(color = 'orangered') +
-    labs(title = NULL, 
-         caption = paste0('Data from ', acs_year, ' 5-year ACS'),
-         x = 'Non-White Population',
-         y = 'Median Household Income (Population Weighted)') +
-    scale_y_continuous(labels = label_dollar(), limits = c(0, 160000)) +
-    scale_x_continuous(labels = label_percent())
-
-# combine the two plots (side by side)
-plot_results_scatter_areawt + plot_results_scatter_popwt
-```
-
-@fig-method-compare-scatter shows a more direct comparison of the population weighted approach with the original area-weighted approach.
-
-```{r}
-#| label: fig-method-compare-scatter
-#| fig-cap: "Relationship between median household income for water systems in the Sacramento County Area estimated from U.S. Census Bureau data using an area-weighted versus population-weighted estimate"
-#| fig-alt: Scatterplot showing median household income for Sacramento County area water systems estimated from census data, with results using an area-weighted estimate on the x axis and a population-weighted estimate on the y axis.
-#| warning: false
-#| message: false
-#| 
-plot_results_scatter_compare <- ggplot(data = water_systems_sac_demographics %>% 
-                                           left_join(results_interp_popwt %>% st_drop_geometry(), 
-                                                     by = 'WATER_SY_1'), # join the population weighted estimate 
-                                       aes(x = median_household_income_est, 
-                                           y = median_household_income_est_popwt)) +
-    geom_abline(slope = 1, intercept = 0, color = 'black', linetype = 'dashed', size = 0.6, alpha = 0.8) + 
-    geom_point(alpha = 0.5, size = 2) +
-    labs(title = NULL, 
-         caption = paste0('Data from ', acs_year, ' 5-year ACS'),
-         x = 'Median Household Income (Area Weighted)',
-         y = 'Median Household Income (Population Weighted)') +
-    scale_y_continuous(labels = label_dollar(), limits = c(0, 160000)) +
-    scale_x_continuous(labels = label_dollar(), limits = c(0, 160000))
-
-plot_results_scatter_compare
-```
 
 ## Working with Other (Non-Census) Source Data
 
