@@ -1,5 +1,5 @@
 ---
-title: "Estimating Demographics and Other Characteristics for Custom Spatial Features -- Example Workflow"
+title: "Estimating Demographics and Other Characteristics of Custom Spatial Features -- Example Workflow"
 subtitle: "Accessing U.S. Census Bureau Data and Calculating Weighted Averages with Areal and Population Weighted Interpolation"
 number-sections: true
 toc: true
@@ -18,7 +18,6 @@ text-align: left;
 }
 </style>
 ```
-
 ## Background {#sec-background}
 
 ::: callout-note
@@ -72,7 +71,6 @@ options(tigris_use_cache = TRUE) # use data caching for tigris
 # reference system ----
 crs_projected <- 3310 # set a common projected coordinate reference system to be used throughout this analysis - see: https://epsg.io/3310
 ```
-
 
 ## Census Data Overview {#sec-census-overview}
 
@@ -132,7 +130,6 @@ The following websites may also be helpful for exploring the various census data
 
 -   National Historical Geographic Information System (NHGIS) (for ACS data and historical decennial Census data): <https://www.nhgis.org/>
 
-
 ## Target Data Boundaries (Water Systems) {#sec-system-boundaries}
 
 In this section, we'll get the service area boundaries for Community Water Systems within the Sacramento County area. This will serve as the *target* dataset – i.e., the set of areas which we'll be estimating the characteristics of – and will also be used to specifying what census data we want to retrieve. We'll also get a dataset of county boundaries which overlap the water service areas in this study, which can also help with specifying what census data to access and/or with making maps and visualizations.
@@ -164,7 +161,7 @@ glimpse(water_systems_sac)
 
 #### Alternative Data Retrieval Method
 
-Reading in data from a shapefile is shown above because it's likely one of the more common ways that users will access their *target* boundary data. However, depending on the dataset, there may be other ways to access the data. For example, the code chunk below demonstrates an alternative -- using the [`arcgislayers`](https://r.esri.com/arcgislayers/index.html) package [@arcgislayers] -- that connects directly to the source dataset (to retrieve the most recent version) and applies the filters needed to reproduce the dataset in the `System_Area_Boundary_Layer_Sac.shp` file. Note that this code is not actually used; it is just presented here for reference.
+Reading in data from a shapefile is shown above because it's likely one of the more common ways that users will access their *target* boundary data. However, depending on the dataset, there may be other ways to access the data. For example, the code chunk below demonstrates an alternative -- using the [`arcgislayers`](https://r.esri.com/arcgislayers/index.html) package [@arcgislayers] -- that connects directly to the source dataset (to retrieve the most recent version) and applies the filters needed to reproduce the dataset in the `System_Area_Boundary_Layer_Sac.shp` file.
 
 ```{r}
 #| eval: false
@@ -204,10 +201,9 @@ water_systems_sac <- arc_select(
            SERVICE_CO = SERVICE_CONNECTIONS)
 ```
 
-
 ### Get County Boundaries {#sec-county-boundaries}
 
-When accessing census data, it may be useful to know which counties overlap the target dataset, as described below in @sec-census-access (note that, even though the dataset is filtered for systems in Sacramento county, there are some systems whose boundaries extend into neighboring counties). County boundaries may also be useful for making maps in later stages of the analysis. We can get a dataset of county boundaries in California from the [TIGER dataset](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html), which can be accessed with R using the [`tigris`](https://github.com/walkerke/tigris) R package [@tigris].
+When accessing census data using the `tidycensus` R package as shown below (in @sec-census-access), it's often useful (though not strictly required) to know which counties overlap the target dataset (note that, even though the dataset is filtered for systems in Sacramento county, there are some systems whose boundaries extend into neighboring counties). County boundaries may also be useful for making maps in later stages of the analysis. We can get a dataset of county boundaries in California from the [TIGER dataset](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html), which can be accessed with R using the [`tigris`](https://github.com/walkerke/tigris) R package [@tigris].
 
 ```{r}
 #| message: false
@@ -228,8 +224,7 @@ counties_overlap <- counties_ca %>% st_filter(water_systems_sac,
 counties_list <- counties_overlap %>% pull(NAME)
 ```
 
-The counties in the `counties_list` variable are: `r counties_list`. 
-
+The counties in the `counties_list` variable are: `r counties_list`.
 
 @fig-suppliers-counties shows the water systems and county boundaries in an interactive map.
 
@@ -241,7 +236,6 @@ The counties in the `counties_list` variable are: `r counties_list`.
 mapview(counties_overlap, alpha.regions = 0, zcol = 'NAME', layer.name = 'County', legend = FALSE) + 
     mapview(water_systems_sac, zcol = 'WATER_SY_1', layer.name = 'Water System', legend = FALSE)
 ```
-
 
 ## Accessing Census Data {#sec-census-access}
 
@@ -255,11 +249,18 @@ Because the boundaries of census units (e.g., tracts, block groups, blocks, etc)
 
 ### Decennial Census {#sec-census-access-decennial}
 
-This section retrieves census data from the 2020 U.S. Decennial Census, using the `get_decennial` function from the `tidycensus` package. For this example we're getting data at the 'Block Group' level (with the `geography = 'block group'` argument), for the counties defined above in the `counties_list` variable (with the `county = counties_list` argument). By setting the `geometry = TRUE` argument we'll be able to get the spatial data -- i.e., the boundaries of the census block groups -- along with the tabular data defined in the `variables` argument (see @sec-census-variables for information about how to find variable codes). In this case, we're first saving the census variables we want in the `census_vars_decennial` object, and also providing descriptive names associated with each variable code, which makes the data easier to work with later. Also, while by default the `tidycensus` package returns data in long/tidy format, we're getting the data in wide format for this example (by specifying `output = 'wide'`) because it'll be easier to work with for the interpolation method described below to estimate demographics for non-census geographies.
+This section retrieves census data from the Decennial Census, using the `get_decennial` function from the `tidycensus` package. As of this writing, the most recent version of the decennial census data available is from 2020, and we can set that as a variable below.
 
-Note that, to the extent possible, using census data at the most granular spatial level should provide the best results when estimating demographics for areas whose boundaries don't align with census unit boundaries. However, depending on the use case, it may require too much time and computational resources to use the most granular spatial data, and may not be necessary to obtain a reasonable estimate. As noted above, in general the most granular level of Decennial Census data available is at the 'Block' level (though Decennial Census data may not be available for all data types at the block level, due to data privacy issues), but this example gets data at the 'Block Group' level for speed and simplicity. Data at the 'Block' level may be a better choice for a real-world analysis if possible.
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
 
-Also, as a side note, `tidycensus` returns the Census Bureau's [cartographic boundary shapefiles](https://www.census.gov/geo/maps-data/data/tiger-cart-boundary.html) by default (as opposed to the [core TIGER/Line shapefiles](https://www.census.gov/geo/maps-data/data/tiger-line.html)). Those default cartographic boundary shapefiles are pre-clipped to the US coastline, and are smaller/faster to process (alternatively you can use `cb = FALSE` to get the TIGER/Line data) (see [here](https://walker-data.com/census-r/spatial-analysis-with-us-census-data.html#better-cartography-with-spatial-overlay)). So the default spatial data returned by `tidycensus` may be somewhat different than the default spatial data returned by the `tigris` package, but in general I find it's best to use the default `tidycensus` spatial data.
+# set year
+decennial_year <- 2020
+```
+
+Next, we can define the list of demographic variables we'd like to retrieve tabular data for, by saving the census variables we want in the `census_vars_decennial` object (see @sec-census-variables for more information about how to discover variables of interest and find their associated codes). Note that here we're providing descriptive names associated with each variable code, which makes the data easier to work with later, but isn't strictly necessary (i.e., you could just supply the variable codes alone).
 
 ```{r}
 #| message: false
@@ -278,16 +279,66 @@ census_vars_decennial <- c(
                                            'population_multiple' = 'P2_011N', # Two or more races (Not Hispanic or Latino)
                                            'population_total' = 'P2_001N'
 )
+```
+
+Then, we can create an object that we can use to filter our request to the census API so that it will only return census units that overlap with our target areas (the object will be passed to the `filter_by` argument of the `get_decennial` function below). Note that this isn't strictly necessary (you could also apply the filter after making the API request), but may helpful to speed the query and reduce memory usage, especially in the case of large queries.
+
+::: callout-note
+At the time of this writing, the `filter_by` argument of the tidycensus `get_decennial` function is fairly new, and not yet included in the official documentation.
+
+Also, the `filter_by` argument is optional, and only appears to accept a simple features (sf) object with a single row / feature (e.g., a single water system), and will not accept an sf object with multiple rows / features. The process below attempts to work around this constraint by joining all of the selected water systems into a single multi-part polygon (i.e., an sf object with a single row). However, if you only want to retrieve data for census units that overlap a single target area (e.g., a single water system), you can skip this step.
+:::
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+#| lst-label: lst-filter_obj
+#| lst-cap: Create filter_by object for API query
+
+water_systems_filter <- water_systems_sac %>% 
+    st_union() %>% 
+    st_as_sf()
+```
+
+Finally, we can make the data request, using the `get_decennial` function, which accepts several arguments that specify exactly what data to return.
+
+For this example we're getting data at the 'Block' level (with the `geography = 'block'` argument) for the demographic variables defined above in the `census_vars_decennial` object (which is passed to the `variables` argument). As noted above, block-level data is the most granular level of spatial data available, and should provide the best results when estimating demographics for areas whose boundaries don't align with census unit boundaries. However, depending on the use case, it may require too much time and computational resources to use the most granular spatial data, and may not be necessary to obtain a reasonable estimate. Also, keep in mind that block-level data may not be available for all variables, and some variables may only be available at less granular spatial scales (like block groups or tracts).
+
+In addition to the tabular data associated with the demographic variables in our list, we'll also get the spatial data -- i.e., the boundaries of the census blocks -- by setting the `geometry = TRUE` argument. When we do this, the tabular demographic data is pre-joined to the spatial data, so the API request returns a single dataset with both the spatial and attribute (demographic) data combined.
+
+::: callout-note
+The `tidycensus` package generally returns the Census Bureau's [cartographic boundary shapefiles](https://www.census.gov/geo/maps-data/data/tiger-cart-boundary.html) by default (as opposed to the [core TIGER/Line shapefiles](https://www.census.gov/geo/maps-data/data/tiger-line.html), which is the default format returned by the `tigris` R package). The default cartographic boundary shapefiles are pre-clipped to the US coastline, and are smaller/faster to process (alternatively you can use `cb = FALSE` to get the core TIGER/Line data) (see [here](https://walker-data.com/census-r/spatial-analysis-with-us-census-data.html#better-cartography-with-spatial-overlay)). So the default spatial data returned by `tidycensus` may be somewhat different than the default spatial data returned by the `tigris` package, but in general I find it's best to use the default `tidycensus` spatial data.
+:::
+
+::: callout-warning
+At the block level, it appears that `tidycensus` only returns the more detailed core TIGER/Line shapefiles (i.e., they are identical to the default block-level geographic data returned by `tigris`). In some cases, that can create minor inconsistencies when working with both blocks and block groups and using the default geographies.
+:::
+
+We also narrow down the search parameters geographically by specifying the state (with `state = 'CA'`) and counties (`county = counties_list`) we're seeking data for.
+
+::: callout-note
+Supplying a list of counties may not be strictly necessary, especially in cases where you supply the optional `filter_by` argument. However, especially when working with granular data like blocks, supplying the county argument seems to greatly speed the API request.
+:::
+
+Also, while by default the `tidycensus` package returns data in long/tidy format, we're getting the data in wide format for this example (by specifying `output = 'wide'`) because it'll be easier to work with for the interpolation method described below to estimate demographics for non-census geographies.
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
 
 # get census data
-census_data_decennial <- get_decennial(geography = 'block group', # can be 'block', 'block group', 'tract', 'county', etc.
+census_data_decennial <- get_decennial(geography = 'block', # can be 'block', 'block group', 'tract', 'county', etc.
                                        state = 'CA', 
                                        county = counties_list,
-                                       year = 2020,
+                                       filter_by = water_systems_filter,
+                                       year = decennial_year,
                                        variables = census_vars_decennial,
                                        output = 'wide', # can be 'wide' or 'tidy'
                                        geometry = TRUE,
-                                       cache_table = TRUE) 
+                                       cache_table = TRUE) %>% 
+    st_transform(crs_projected) # convert to common coordinate system
 ```
 
 The output is an sf object (i.e., a dataframe-like object that also includes spatial data), in wide format, where each row represents a census unit, and the population of each racial/ethnic group is reported in a separate column. Here's a view of the contents and structure of the Decennial Census data that's returned:
@@ -298,9 +349,7 @@ glimpse(census_data_decennial)
 
 ### American Community Survey (ACS) {#sec-census-access-acs}
 
-To get data from the ACS, you can use the `get_acs()` function, which is very similar to the `get_decennial()` function used above.
-
-Note that for this dataset we've also included statements to get additional socio-economic data, such as counts of population below and above the poverty line, median household income, and income profile data (income by bracket). Similar to above, we're first saving the census variables we want in the `census_vars_acs` object, and also providing descriptive names associated with each variable code to make the data easier to work with later.
+To get data from the ACS, you can use the `get_acs()` function, which is very similar to the `get_decennial()` function used above. As of this writing, the most recent version of the 5-year ACS data available is the 2018-2022 ACS, and we can set that as a variable below (which makes it easier to update this document in future years).
 
 ```{r}
 #| message: false
@@ -309,6 +358,14 @@ Note that for this dataset we've also included statements to get additional soci
 
 # set year
 acs_year <- 2022
+```
+
+However, since the ACS data contains data on a much broader set of socio-economic metrics, the requested data includes a greatly expanded list of variables, defined in the `census_vars_acs` object (see @sec-census-variables for more information about how to discover variables of interest and find their associated codes). As above, we can provide descriptive names associated with each variable code, which makes the data easier to work with later, but isn't strictly necessary (i.e., you could just supply the variable codes alone).
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
 
 # define variables to pull from the ACS
 census_vars_acs <- c(
@@ -368,20 +425,30 @@ census_vars_acs <- c(
     # --- other income / economic variables ---
     'per_capita_income' = 'B19301_001' # note: per capita income by race (at block group level) available in table B19301I
 )
+```
+
+Finally, we can make the data request, using the `get_acs` function, which is very similar to the `get_decennial` function described above ( @sec-census-access-decennial). However, for this example we're getting data at the 'Block Group' level (with the `geography = 'block group'` argument), which is the most granular level of spatial data available for ACS data. But, keep in mind that block group-level data may not be available for all variables, and some variables may only be available at less granular spatial scales (like tracts). Note that the `water_systems_filter` object supplied to the `filter_by` argument was created above in @lst-filter_obj.
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
 
 # get census data
 census_data_acs <- get_acs(geography = 'block group',
                            state = 'CA', 
                            county = counties_list,
+                           filter_by = water_systems_filter,
                            year = acs_year,
                            survey = 'acs5',
                            variables = census_vars_acs, 
                            output = 'wide', # can be 'wide' or 'tidy'
                            geometry = TRUE,
-                           cache_table = TRUE)
+                           cache_table = TRUE) %>% 
+    st_transform(crs_projected) # convert to common coordinate system
 ```
 
-The output is an sf object (i.e., a dataframe-like object that also includes spatial data), in wide format, where each row represents a census unit, and the population of each racial/ethnic group, as well as the median household income, is reported in a separate column. Here's a view of the contents and structure of the `r acs_year` 5-year ACS data that's returned:
+As above, the output is an sf object (i.e., a dataframe-like object that also includes spatial data), in wide format, where each row represents a census unit, and the each demographic variable is reported in a separate column. Here's a view of the contents and structure of the `r acs_year` 5-year ACS data that's returned:
 
 ```{r}
 glimpse(census_data_acs)
@@ -390,7 +457,9 @@ glimpse(census_data_acs)
 Note that the dataset that's returned includes fields corresponding to Margin of Error (MOE) for each variable we've requested (these are the fields that end with two digits and an M -- e.g., "001M"), since, as noted above in @sec-census-datasets , the ACS is based on a sample of the population and reports estimated values.
 
 ::: callout-tip
-It is possible to calculate MOEs for derived estimates – e.g., when aggregating groups of census units – and in many cases it may be worthwhile to do that to provide extra context to the data. However, it may be difficult to do for more complex aggregations, such as the area and population weighted interpolations shown below. For guidance on how calculate MOEs for some types of derived estimates, see [this document](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_general_handbook_2020_ch08.pdf).
+It is possible to calculate MOEs for derived estimates – e.g., when aggregating groups of census units – and in many cases it may be worthwhile to do that to provide extra context to the data. However, it may be difficult to do for more complex aggregations, such as the areal interpolation shown below. For guidance on how calculate MOEs for some types of derived estimates, see [this document](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_general_handbook_2020_ch08.pdf).
+
+`tidycensus` also has functions for calculating derives margins of error based on Census-supplied formulas, including [`moe_sum()`](https://walker-data.com/tidycensus/reference/moe_sum.html), [`moe_product()`](https://walker-data.com/tidycensus/reference/moe_product.html), [`moe_ratio()`](https://walker-data.com/tidycensus/reference/moe_ratio.html), and [`moe_prop()`](https://walker-data.com/tidycensus/reference/moe_prop.html).
 :::
 
 Because we won't be incorporating those MOEs into the analysis below, we can drop them for this example, then clean up the field names.
@@ -427,6 +496,7 @@ census_data_acs_state <- get_acs(geography = 'state',
                                  output = 'wide', # can be 'wide' or 'tidy'
                                  geometry = TRUE,
                                  cache_table = TRUE) %>% 
+    st_transform(crs_projected) %>%  # convert to common coordinate system
     select(-matches('M$')) %>%  # the $ specifies "ends with"
     # clean names (note this is a little different than the way we renamed fields above, either works)
     rename_with(.fn = ~ str_remove(., # remove 'E' (estimate) from field names
@@ -434,12 +504,6 @@ census_data_acs_state <- get_acs(geography = 'state',
     rename_with(.fn = ~ str_replace(., # add 'E' back to NAME field
                                     pattern = 'NAM', 
                                     replacement = 'NAME'))
-```
-
-Here's a view of the contents and structure of the revised `r acs_year` 5-year ACS statewide dataset:
-
-```{r}
-glimpse(census_data_acs_state)
 ```
 
 ### Plot Results {#sec-census-plot}
@@ -552,16 +616,14 @@ glimpse(census_data_filter)
 
 ### Areal Interpolation {#sec-areal-interp}
 
-
-
 ::: callout-caution
-Areal interpolation, based on area weighted averaging, is possibly most useful for estimating count data for overlapping polygons - like population size or number of households - since we generally have no other information about how population density varies within the source polygons (unless significantly more effort is invested, such as looking at aerial imagery data). 
+Areal interpolation, based on area weighted averaging, is possibly most useful for estimating count data for overlapping polygons - like population size or number of households - since we generally have no other information about how population density varies within the source polygons (unless significantly more effort is invested, such as looking at aerial imagery data).
 
-However, for intensive variables that are associated with the estimated count data - per capita or median household income - it may be be more appropriate to use the corresponding estimated count data (rather than area) as a weighting factor. For example, for per capita income, we can use the estimated population counts to produce a population weighted average per capia income (rather than an area weighted average per capita income). 
+However, for intensive variables that are associated with the estimated count data - like per capita or median household income - it may be be more appropriate to use the corresponding estimated count data (rather than area) as a weighting factor. For example, for per capita income, we can use the estimated population counts to produce a population weighted average per capia income (rather than an area weighted average per capita income).
 :::
 
 ::: callout-tip
-In addition, there may be cases where we can use more granular block-level population data from the decennial census to estimate population densities and distributions within larger census units, like block groups and tracts.  
+In addition, there may be cases where we can use more granular block-level population data from the decennial census to estimate population densities and distributions within larger census units, like block groups and tracts.\
 See @sec-pop-weighted-interpolation for more information.
 :::
 
@@ -765,7 +827,6 @@ water_systems_sac_demographics %>%
     kable()
 ```
 
-
 ### Plot Results {#sec-results-plot-all}
 
 As a check, we can make some plots to visualize the data before saving.
@@ -872,7 +933,6 @@ plot_results_non_white <- ggplot() +
     theme_void()
 plot_results_non_white
 ```
-
 
 ### Save Results {#sec-results-save}
 
@@ -1054,7 +1114,6 @@ population_weighted_manual
 
 So, as a final check, the 'manually' calculated total population for <code>`r system_check`</code> is <code>`r prettyNum(population_weighted_manual, big.mark = ',')`</code>, and the value obtained from the `aw_interpolate` function above was <code>`r prettyNum(population_weighted_interp, big.mark = ',')`</code>.
 
-
 #### Systems with Zero Estimated Population {#sec-zero-pop}
 
 For some water systems, the estimated population using the areal interpolation above (@sec-areal-interp) was zero, and it may be useful to look at an example to see what's going on with one of those cases.
@@ -1206,7 +1265,6 @@ glimpse(results_interp_popwt)
 ```
 
 Note that not all water systems get an estimated value using this method (even if `NA` values are removed from the source data) -- a total of `r sum(is.na(results_interp_popwt$median_household_income))` systems are missing results with this method, which tend to be the smallest water systems.
-
 
 ## Working with Other (Non-Census) Source Data
 
