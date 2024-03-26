@@ -1122,7 +1122,7 @@ census_data_interpolate <- census_data_interpolate %>%
 Select systems to plot
 
 ```{r}
-n_systems <- 10
+n_systems <- 20
 systems_top_n <- water_system_demographics %>% 
     slice_max(population_total_count, n = n_systems) %>% 
     pull(WATER_SY_1)
@@ -1171,6 +1171,9 @@ biscale_map <- ggplot() +
             color = "white",
             fill = 'gold'
     ) +
+    geom_sf(data = counties_ca %>% filter(NAME == 'Sacramento'), 
+            color = 'grey',
+            fill = NA) +
     bi_theme()
 
 biscale_legend <- bi_legend(pal = biscale_pal,
