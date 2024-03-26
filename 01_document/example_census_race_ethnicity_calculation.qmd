@@ -59,6 +59,9 @@ library(patchwork)
 library(scales)
 library(digest)
 library(mapview)
+library(biscale)
+library(cowplot)
+library(glue)
 
 # conflicts ----
 library(conflicted)
@@ -593,8 +596,11 @@ We can also calculate the poverty rate for each census unit (which may be useful
 
 ```{r}
 census_data_acs <- census_data_acs %>% 
-    mutate(poverty_rate_pct_calc_census_unit = 100 * poverty_below_count / poverty_total_assessed_count, 
-           .after = poverty_above_count)
+    mutate(poverty_rate_pct_calc_census_unit = case_when(
+        poverty_total_assessed_count == 0 ~ 0,
+        .default = 100 * poverty_below_count / poverty_total_assessed_count
+    ), 
+    .after = poverty_above_count)
 ```
 
 ```{r}
@@ -694,24 +700,35 @@ Next, we need to combine the weighted values calculated above to produce the est
 
 #### Combine Results by Water System
 
-First, combine the results by summing all of the count-based variables (derived from areal interpolation), and calculating weighted averages for all variables computed in step 2 above.
+First, combine the results by summing all of the count-based variables (derived from areal interpolation), and calculating weighted averages for all variables computed in step 2 above. Note that we have to first calculate the denominator for each variable calculated with population weighted interpolation, because some of those variables contain missing values for records where the denominator is present (and if we don't remove the missing values, we get an `NA` for any water system that contains a block group with a missing value for that variable). For example, there are block groups where the median household income is missing, but the total household count is available for that block group – in that case, the weighted average should not include the households in that block group in the denominator; otherwise, the true value will be underestimated.
 
 ```{r}
 water_system_demographics <- census_data_interpolate %>% 
     group_by(WATER_SY_1) %>% 
+    mutate(
+        average_household_size_denominator = if_else(is.na(average_household_size), 0, households_count),
+        median_household_income_denominator = if_else(is.na(median_household_income), 0, households_count),
+        per_capita_income_denominator = if_else(is.na(per_capita_income), 0, population_total_count)
+    ) %>% 
     summarize(
         across(
             .cols = ends_with('_count'),
             .fns = ~ sum(.x)
         ),
-        average_household_size_hh_weighted = sum(average_household_size_weighted) / sum(households_count),
-        median_household_income_hh_weighted = sum(median_household_income_weighted) / sum(households_count),
-        per_capita_income_pop_weighted = sum(per_capita_income_weighted) / sum(population_total_count)
+        average_household_size_hh_weighted = 
+            sum(average_household_size_weighted, na.rm = TRUE) / 
+            sum(average_household_size_denominator),
+        median_household_income_hh_weighted = 
+            sum(median_household_income_weighted, na.rm = TRUE) /
+            sum(median_household_income_denominator),
+        per_capita_income_pop_weighted = 
+            sum(per_capita_income_weighted, na.rm = TRUE) / 
+            sum(per_capita_income_denominator)
     ) %>% 
     ungroup()
 ```
 
-#### Check - Variables Estimated with Areal Interpolation {#sec-check-areal-interp}
+#### Check - Count Variables Estimated with Areal Interpolation {#sec-check-areal-interp}
 
 As noted above, it's also possible to use pre-built functions for areal interpolation. This section demonstrates those functions and uses them as a check of our computed count data.
 
@@ -792,8 +809,11 @@ We can also calculate the estimated poverty rate for each water system's service
 
 ```{r}
 water_system_demographics <- water_system_demographics %>% 
-    mutate(poverty_rate_percent = 100 * poverty_below_count / poverty_total_assessed_count, 
-           .after = poverty_above_count)
+    mutate(poverty_rate_percent = case_when(
+        poverty_total_assessed_count == 0 ~ 0,
+        .default = 100 * poverty_below_count / poverty_total_assessed_count
+    ), 
+    .after = poverty_above_count)
 ```
 
 And compute income brackets in 25k increments:
@@ -847,10 +867,20 @@ And compute \# and % of households below income thresholds:
 
 ```
 
-And, compute other variables (% households by % housing cost, ...)
+And, compute the portion of households paying more than 30% / 50% of their income toward housing costs:
 
 ```{r}
-
+water_system_demographics <- water_system_demographics %>%
+    mutate(households_percent_housing_costs_above_30_percent = 
+               100 * (households_mortgage_over30pct_count + 
+                          households_no_mortgage_over30pct_count +
+                          households_rent_over30pct_count) / 
+               households_count) %>% 
+    mutate(households_percent_housing_costs_above_50_percent = 
+               100 * (households_mortgage_over50pct_count + 
+                          households_no_mortgage_over50pct_count +
+                          households_rent_over50pct_count) / 
+               households_count)
 ```
 
 Finally, we can round the estimated values to appropriate levels of precision:
@@ -1071,6 +1101,137 @@ This section is in progress...
 For simplicity, this section will focus on presenting estimated demographics for some of the largest water suppliers in the Sacramento county region (results for small water systems may not be very accurate and should be used with some caution - see @sec-check-pop-estimated-reported and @sec-small-area-estimates for more investigation of the results for small systems).
 
 \[TO DO: add visualizations\]
+
+Prepare interpolation data
+
+```{r}
+# census_data_interpolate  census_data_clip
+census_data_interpolate <- census_data_interpolate %>% 
+    mutate(households_percent_housing_costs_above_30_percent = 
+               100 * (households_mortgage_over30pct_count + 
+                          households_no_mortgage_over30pct_count +
+                          households_rent_over30pct_count) / 
+               households_count) %>% 
+    mutate(households_percent_housing_costs_above_50_percent = 
+               100 * (households_mortgage_over50pct_count + 
+                          households_no_mortgage_over50pct_count +
+                          households_rent_over50pct_count) / 
+               households_count)
+```
+
+Select systems to plot
+
+```{r}
+n_systems <- 10
+systems_top_n <- water_system_demographics %>% 
+    slice_max(population_total_count, n = n_systems) %>% 
+    pull(WATER_SY_1)
+```
+
+### Bivariate Map
+
+All water systems:
+
+```{r}
+# see: https://chris-prener.github.io/biscale/articles/biscale.html
+
+# households_percent_housing_costs_above_30_percent
+# households_percent_housing_costs_above_50_percent
+
+# Housing Costs as a Percentage of Household Income in the past 12 months. Table B25140 shows the count of households paying more than 30% of their income towards housing costs broken out by three tenure categories (owned with a mortgage, owned without a mortgage, and rented). The table also shows the number of households paying more than 50% of their income toward housing costs
+biscale_pal <- 'BlueOr' # 'GrPink' # 'DkViolet2'
+biscale_dim <- 3
+# create classes
+biscale_data <- bi_class(water_system_demographics %>% 
+                             filter(WATER_SY_1 %in% systems_top_n) %>% 
+                             filter(!is.na(median_household_income_hh_weighted)), 
+                         x = households_percent_housing_costs_above_30_percent, 
+                         y = median_household_income_hh_weighted, 
+                         style = "quantile", 
+                         dim = biscale_dim)
+
+# create map - all systems
+biscale_map <- ggplot() +
+    geom_sf(data = biscale_data, 
+            mapping = aes(fill = bi_class), 
+            color = "white", 
+            size = 0.1, 
+            show.legend = FALSE) +
+    bi_scale_fill(pal = biscale_pal, 
+                  dim = biscale_dim) + 
+    labs(
+        title = "Housing Cost and Income in Sacramento \nWater Systems", 
+        caption = "% Housing cost shows the percent of households paying more than 30% of their income towards housing costs \nIncome shows median household income (yellow = missing)",
+        subtitle = glue("Top {n_systems} systems by population")
+    ) +
+    # add the missing polygons back in
+    geom_sf(data = water_system_demographics %>% 
+                filter(WATER_SY_1 == system_plot) %>% 
+                filter(is.na(median_household_income_hh_weighted)),
+            color = "white",
+            fill = 'gold'
+    ) +
+    bi_theme()
+
+biscale_legend <- bi_legend(pal = biscale_pal,
+                            dim = biscale_dim,
+                            xlab = "% Housing Costs ",
+                            ylab = "Income ",
+                            size = 8)
+
+biscale_plot <- ggdraw() +
+    draw_plot(biscale_map, 0, 0, 1, 1) +
+    draw_plot(biscale_legend, 0.1, .65, 0.2, 0.2)
+biscale_plot
+```
+
+Plot of block groups overlapping `{r} str_to_title(system_plot)`:
+
+```{r}
+# create map - single system
+biscale_pal_system <- 'BlueOr' # 'GrPink' # 'DkViolet2'
+biscale_dim_system <- 3
+biscale_data_system <- bi_class(census_data_interpolate %>% 
+                                    filter(WATER_SY_1 == system_plot) %>% 
+                                    filter(!is.na(median_household_income)), 
+                                x = households_percent_housing_costs_above_30_percent, 
+                                y = median_household_income, 
+                                style = "quantile", 
+                                dim = biscale_dim_system)
+
+biscale_map_system  <- ggplot() +
+    geom_sf(data = biscale_data_system , 
+            mapping = aes(fill = bi_class), 
+            color = "white", 
+            size = 0.1, 
+            show.legend = FALSE) +
+    bi_scale_fill(pal = biscale_pal_system, 
+                  dim = biscale_dim_system) + 
+    labs(
+        title = glue("Housing Cost and Income \nin {str_to_title(system_plot)}"), 
+                     caption = "% Housing cost shows the percent of households paying more than 30% of their income towards housing costs \nIncome shows median household income (yellow = missing)"#,
+        # subtitle = ""
+    ) +
+    # add the missing polygons back in
+    geom_sf(data = census_data_interpolate %>% 
+                                    filter(WATER_SY_1 == system_plot) %>% 
+                                    filter(is.na(median_household_income)),
+            color = "white",
+            fill = 'gold'
+            ) +
+    bi_theme()
+
+biscale_legend <- bi_legend(pal = biscale_pal_system,
+                            dim = biscale_dim_system,
+                            xlab = "% Housing Costs ",
+                            ylab = "Income ",
+                            size = 8)
+
+biscale_plot_system <- ggdraw() +
+  draw_plot(biscale_map_system, 0, 0, 1, 1) +
+  draw_plot(biscale_legend, 0.1, .55, 0.2, 0.2)
+biscale_plot_system
+```
 
 ## Check - Estimated vs Reported Population Estimates {#sec-check-pop-estimated-reported}
 
