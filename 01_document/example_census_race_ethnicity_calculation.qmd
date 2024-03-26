@@ -1250,7 +1250,7 @@ glimpse(results_interpolate_pw)
 This section is in progress...
 :::
 
-In addition to using census data, it's possible to use other datasets to compute characteristics of custom *target* areas like water systems. The process is generally likely to be similar to the processes shown above using census data, but each dataset may require unique considerations (e.g., to handle missing values, uncertain boundaries, etc.).
+In addition to using census data, it's possible to use other types of *source* datasets to compute characteristics of custom *target* areas like water systems. The process is generally likely to be similar to the processes shown above using census data, but each source dataset may require unique considerations (e.g., to handle missing values, uncertain boundaries, etc.).
 
 ### CalEnviroScreen {#sec-calenviroscreen}
 
@@ -1258,7 +1258,7 @@ In addition to using census data, it's possible to use other datasets to compute
 
 Notes to consider:
 
--   Some census tracts are missing CES scores (overall and/or for certain indicators), and have to deal with those missing values somehow.
+-   Some census tracts are missing CES scores (overall and/or for certain indicators), and have to deal with those missing values somehow
 
 -   CES 4.0 is tract-level data, and uses 2010 census boundaries (so boundaries won't match current ACS boundaries)
 
