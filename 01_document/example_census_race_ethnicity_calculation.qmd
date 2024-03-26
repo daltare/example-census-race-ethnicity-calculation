@@ -1,6 +1,6 @@
 ---
-title: "Estimating Demographics and Other Characteristics of Custom Spatial Features -- Example Workflow"
-subtitle: "Accessing U.S. Census Bureau Data and Calculating Weighted Averages with Areal and Population Weighted Interpolation"
+title: "Estimating Demographics of Custom Spatial Features"
+subtitle: "Accessing U.S. Census Bureau Data & Calculating Weighted Averages with Areal- and Population-Weighted Interpolation"
 number-sections: true
 toc: true
 toc-depth: 4
@@ -218,8 +218,9 @@ counties_ca <- counties(state = 'CA',
 Then, we can get a list of counties that overlap with the boundaries of the Sacramento area community water systems obtained above.
 
 ```{r}
-counties_overlap <- counties_ca %>% st_filter(water_systems_sac, 
-                                           .predicate = st_overlaps)
+counties_overlap <- counties_ca %>% 
+    st_filter(water_systems_sac, 
+              .predicate = st_overlaps)
 
 counties_list <- counties_overlap %>% pull(NAME)
 ```
@@ -234,8 +235,15 @@ The counties in the `counties_list` variable are: `r counties_list`.
 #| label: fig-suppliers-counties
 #| fig-cap: "Selected water systems (with county boundaries for reference)."
 
-mapview(counties_overlap, alpha.regions = 0, zcol = 'NAME', layer.name = 'County', legend = FALSE) + 
-    mapview(water_systems_sac, zcol = 'WATER_SY_1', layer.name = 'Water System', legend = FALSE)
+mapview(counties_overlap, 
+        alpha.regions = 0, 
+        zcol = 'NAME', 
+        layer.name = 'County', 
+        legend = FALSE) + 
+    mapview(water_systems_sac, 
+            zcol = 'WATER_SY_1', 
+            layer.name = 'Water System', 
+            legend = FALSE)
 ```
 
 ## Accessing Census Data {#sec-census-access}
@@ -270,15 +278,15 @@ Next, we can define the list of demographic variables we'd like to retrieve tabu
 
 # define variables to pull from the decennial census
 census_vars_decennial <- c(
-    'population_hispanic_or_latino' = 'P2_002N', # Total Hispanic or Latino
-                                           'population_white_count' = 'P2_005N', # White (Not Hispanic or Latino)
-                                           'population_black_or_african_american_count' = 'P2_006N', # Black or African American (Not Hispanic or Latino)
-                                           'population_native_american_or_alaska_native_count' = 'P2_007N', # American Indian and Alaska Native (Not Hispanic or Latino)
-                                           'population_asian_count' = 'P2_008N', # Asian (Not Hispanic or Latino)
-                                           'population_pacific_islander_count' = 'P2_009N', # Native Hawaiian and Other Pacific Islander (Not Hispanic or Latino)
-                                           'population_other_count' = 'P2_010N', # Some other race (Not Hispanic or Latino)
-                                           'population_multiple_count' = 'P2_011N', # Two or more races (Not Hispanic or Latino)
-                                           'population_total_count' = 'P2_001N'
+    'population_hispanic_or_latino_count' = 'P2_002N', # Total Hispanic or Latino
+    'population_white_count' = 'P2_005N', # White (Not Hispanic or Latino)
+    'population_black_or_african_american_count' = 'P2_006N', # Black or African American (Not Hispanic or Latino)
+    'population_native_american_or_alaska_native_count' = 'P2_007N', # American Indian and Alaska Native (Not Hispanic or Latino)
+    'population_asian_count' = 'P2_008N', # Asian (Not Hispanic or Latino)
+    'population_pacific_islander_count' = 'P2_009N', # Native Hawaiian and Other Pacific Islander (Not Hispanic or Latino)
+    'population_other_count' = 'P2_010N', # Some other race (Not Hispanic or Latino)
+    'population_multiple_count' = 'P2_011N', # Two or more races (Not Hispanic or Latino)
+    'population_total_count' = 'P2_001N'
 )
 ```
 
@@ -516,12 +524,13 @@ census_data_acs_state <- get_acs(geography = 'state',
 system_plot <- 'SACRAMENTO SUBURBAN WATER DISTRICT'
 ```
 
-@fig-suppliers-census-map shows the datasets that we'll use below to compute water system demographics; for this example we'll use the `r acs_year` 5-year ACS dataset for the `{r} system_plot` system (plotting all systems tends to be slow in this format). Note that you can toggle layers on and off (and change their order of appearance) using the layers button in the upper left part of the map (below the zoom buttons).
+@fig-suppliers-census-map shows the `r acs_year` 5-year ACS census units that overlap with one of the water systems (`{r} str_to_title(system_plot)`) that we'll compute demographics for below (plotting the census units that overlap all systems tends to be slow in this format).
 
+::: {#fig-suppliers-census-map}
 ```{r}
 #| warning: false
-#| label: fig-suppliers-census-map
-#| fig-cap: "Water system (filled polygon) and boundaries of census units (light blue) that will be used to estimate water system demographics."
+# label: fig-suppliers-census-map
+# fig-cap: "Water system (filled polygon) and boundaries of census units (light blue) that will be used to estimate water system demographics."
 
 mapview(water_systems_sac %>% 
             filter(WATER_SY_1 == system_plot), 
@@ -538,6 +547,9 @@ mapview(water_systems_sac %>%
             legend = FALSE) #  zcol = 'NAME'
 ```
 
+Water system `{r} str_to_title(system_plot)` (filled polygon) and boundaries of census units (light blue) that will be used to estimate water system demographics.
+:::
+
 ## Compute Water System Demographics {#sec-estimate-demographics}
 
 Now we can perform the calculations to estimate demographic characteristics for our *target* areas (water system service boundaries in the Sacramento County area) from our *source* demographic dataset (the census data we obtained above). For this example, we'll use the `r acs_year` 5-year ACS data that we retrieved above (which is saved in the `census_data_acs` variable) as our source of demographic data, and we'll estimate the following for each water system's service area:
@@ -545,23 +557,23 @@ Now we can perform the calculations to estimate demographic characteristics for 
 -   Population of each racial/ethnic group (using the racial/ethnic categories defined in the census dataset), and each racial/ethnic group's portion of the total service area population
 -   Socio-economic variables like poverty rate, median household income, income distributions, and per capita income
 
-There are multiple ways this estimation can be done. For this example, we'll employ a two step strategy:
+There are multiple ways this estimation can be done. For this example, we'll employ a three step strategy:
 
-1.  To estimate population (total and by demographic group) and other count data (population above / below poverty rate, households by income bracket, etc.) for overlapping census units, apply an areal interpolation (essentially an area weighted average) to estimate how much of the census unit's count applies to the associated water service area. For example, for a census unit that partially overlaps a service area, only a fraction of its count for a given variable will be applied to that service area; for a census unit that completely overlaps a service area, the full count for that variable will be applied to the service area.
+1.  Estimate values for count-based variables (typically referred to as 'extensive' data types) -- e.g., total population, popultion by race/ethnicity, population above / below poverty rate, households by income bracket -- for overlapping census unit, using areal interpolation. This is essentially an area weighted average, which estimates how much of each *source* unit's (census unit) count applies to the *target* area (a given water service area), based on the portion of its area that overlaps that target area -- for more information about the process, see [this documentation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html) from the `areal` R package. For example, for a census unit that partially overlaps a service area, only a fraction of its count for a given variable will be applied to that service area; for a census unit that completely overlaps a service area, the full count for that variable will be applied to the service area.
 
     The major simplifying assumption of this approach is that the population or count-based variable of interest are evenly distributed within each unit in the *source* data. For example, in this case we're assuming that population (including the total population and the population of each racial/ethic group), households of each income bracket, populations above / below the poverty rate, etc. are evenly distributed within each census block group.
 
-2.  Using the estimated count data (populations, households, etc), compute weighted averages for variables that describe those populations, using the associated count data as a weighting factor (e.g., population-weighted averages for population based data, or household-weighted averages for household-based data). This method was chosen because, from the population / household count data, we know that population densities differ between census units. So, since we have a reasonable estimate of population within each census unit, using a population or household weighted average likely will yield more accurate results than a simple area-weighted average for these variables.
-
-::: callout-caution
-Areal interpolation, based on area weighted averaging, is useful for estimating count data for overlapping polygons - like population size or number of households - since we generally have no other information about how population density varies within the source polygons (unless significantly more effort is invested, such as looking at aerial imagery data).
-
-While it's possible to also use areal interpolation to estimate variables that are associated with / describe the estimated count data (generally referred to as 'intensive' variables) - like average household size, per capita income, median household income, etc - it may be be more appropriate to use the corresponding estimated count data (rather than area) as a weighting factor. For example, for per capita income, we can use the estimated population counts to produce a population weighted average per capita income (rather than an area weighted average per capita income). This is the approach taken here.
+::: callout-tip
+While this section uses the block group-level count data from the 5-year ACS, there may be cases where it could be useful or necessary to use more granular block-level population data from the decennial census to estimate population densities and distributions within larger census units, like block groups and tracts. This could especially be the case when estimating characteristics for small areas in rural environments. See @sec-small-area-estimates and/or @sec-detailed-pop-estimates for more information.
 :::
+
+2.  Using the estimated count data (populations, households, etc), compute weighted values for variables that describe those populations, using the associated count data as a weighting factor (e.g., population-weighted values for population based data, or household-weighted values for household-based data) -- these variables are typically referred to as 'intensive' data types.
 
 ::: callout-tip
-There may be cases where it could be useful or necessary to use more granular block-level population data from the decennial census to estimate population densities and distributions within larger census units, like block groups and tracts. This could especially be the case when estimating characteristics for small areas in rural environments. See @sec-pop-weighted-interpolation for more information.
+Although it's possible to use areal interpolation to aggregate these variables as well, the multi-step approach described here can be useful because we know (from the population / household count data) that population densities differ between census units. Since we have a reasonable estimate of the count data (population, households, etc) within each census unit, using a population or household weighted average likely will yield more accurate results than a simple area-weighted average for these variables. For example, for per capita income, we can use the estimated population counts to produce a population weighted average per capita income (rather than an area weighted average per capita income, which is likely less meaningful as it over-weights large census areas with lower population densities). Areal interpolation may be more useful for cases where we generally have no other information about how density varies between the source polygons (unless significantly more effort is invested, such as looking at aerial imagery data)
 :::
+
+3.  Aggregate interpolated values at the water system level.
 
 ### Prepare Census Data
 
@@ -595,9 +607,9 @@ census_data_acs <- census_data_acs %>%
 
 ### Interpolation Step 1: Areal Interpolation (for Count Variables) {#sec-areal-interp}
 
-There are a couple of ways to implement the areal interpolation method. The example below 'manually' implements the process using functions from the `sf` package, for reasons described below. However, note that there are R packages which make it possible to perform areal interpolation with a single function - for example, the `sf` package's [`st_interpolate_aw`](https://r-spatial.github.io/sf/reference/interpolate_aw.html) function and the [`areal`](https://chris-prener.github.io/areal/) package's [`aw_interpolate`](https://chris-prener.github.io/areal/reference/aw_interpolate.html) function. This example uses a more 'manual' approach because this makes it possible to use the multi-step process described above, and also produces useful intermediate calculated data for mapping and visualization. However, we can use the single-function approach to double check our implementation of the areal interpolation approach for the count data.
+There are a couple of ways to implement the areal interpolation method. The example below 'manually' implements the process using functions from the `sf` package, for reasons described below. However, note that there are R packages which make it possible to perform areal interpolation with a single function - for example, the `sf` package's [`st_interpolate_aw`](https://r-spatial.github.io/sf/reference/interpolate_aw.html) function and the [`areal`](https://chris-prener.github.io/areal/) package's [`aw_interpolate`](https://chris-prener.github.io/areal/reference/aw_interpolate.html) function. This example uses a more 'manual' approach because this makes it possible to use the multi-step process described above, and also produces useful intermediate calculated data for mapping and visualization. However, we can use the single-function approach to double check our implementation of the areal interpolation approach for the count data (see @sec-check-areal-interp).
 
-First, clip the census data
+First, we clip the census data to the water system boundaries:
 
 ```{r}
 #| warning: false
@@ -609,12 +621,13 @@ census_data_clip <- census_data_acs %>%
     mutate(areal_weight_factor = drop_units(clipped_area / cenus_unit_area))
 ```
 
-Plot of `{r} system_plot`:
+@fig-map-clipped-polygons shows a plot of the census units clipped to the `{r} str_to_title(system_plot)` water system, along with the original/complete census units. Note that you can toggle layers on and off (and change their order of appearance) using the layers button in the upper left part of the map (below the zoom buttons).
 
+::: {#fig-map-clipped-polygons}
 ```{r}
 #| warning: false
-#| label: fig-map-clipped-polygons
-#| fig-cap: "Water systems (filled polygons), boundaries of overalpping census units (grey), and clipped portions of census units (light blue) that will be used to estimate water system demographics."
+# label: fig-map-clipped-polygons
+# fig-cap: "Water systems (filled polygons), boundaries of overalpping census units (grey), and clipped portions of census units (light blue) that will be used to estimate water system demographics."
 
 mapview(water_systems_sac %>% 
             filter(WATER_SY_1 == system_plot), 
@@ -641,7 +654,10 @@ mapview(water_systems_sac %>%
             legend = FALSE)
 ```
 
-Compute area-weighted values
+Water system `{r} str_to_title(system_plot)` (filled polygon), boundaries of overalpping census units (grey), and clipped portions of census units (light blue) that will be used to estimate water system demographics.
+:::
+
+Next, we can compute the area-weighted counts for the portions of census units that overlap each water system boundary:
 
 ```{r}
 census_data_interpolate <- census_data_clip %>% 
@@ -653,38 +669,7 @@ census_data_interpolate <- census_data_clip %>%
         )) 
 ```
 
-#### Check
-
-As noted above, it's also possible to use pre-built functions for areal interpolation. Since we're using a two-step process which also implements population weighted averaging we're not using them directly in this example, but they can be a useful check of our computed count data.
-
-Note that there are some settings that you may need to modify in the `aw_interpolate` function depending on the type of analysis you're doing. In particular, for more information about the `weight` argument -- which can be either `sum` or `total` -- see [this section of the documentation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#calculating-weights-for-extensive-interpolations). For more information about extensive versus intensive interpolations, see [this section of the documenation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#extensive-and-intensive-interpolations) (as noted above, the method applied here avoids using areal interpolation to calculate intensive variables, because area may not be a good metric for determining how to weight those variables, considering that we can estimate associated counts for populations/households/etc.).
-
-::: callout-caution
-To calculate an aggregated value for a variable like median household income, which depends on the distribution of the underling data, it may be worth considering whether a weighed average value is an appropriate measure. In some cases, it may be more appropriate to use the counts in each income bracket to estimate a median income, and/or present the income distribution rather than a single value.
-:::
-
-Check:
-
-```{r}
-# ## sf package
-# z <- st_interpolate_aw(x = census_data_acs %>% select(population_total_count, poverty_below_count), 
-#                        to = water_systems_sac, 
-#                        extensive = TRUE)
-# View(z %>% arrange(desc(population_total_count)))
-# 
-# ## areal package
-# zz <- aw_interpolate(water_systems_sac, 
-#                tid = WATER_SY_1, 
-#                source = census_data_acs, 
-#                sid = GEOID, 
-#                weight = 'total', 
-#                extensive = c('population_total_count', 'poverty_below_count'))
-# View(zz %>% arrange(desc(population_total_count)))
-# View(water_system_demographics %>% arrange(desc(population_total_count)))
-# 
-# sum(z$population_total_count) == sum(water_system_demographics$population_total_count)
-# sum(zz$population_total_count) == sum(water_system_demographics$population_total_count)
-```
+As noted above, it's also possible to use pre-built functions from several R packages to perform areal interpolation in a single step. Since we're using a three-step process, which also implements population weighted averaging for some variables, we're not using those functions directly in this example. However, they can be a useful check to validate our computed count data, but only after we aggregate our data at the system level -- see @sec-check-areal-interp for more details.
 
 ### Interpolation Step 2: Compute Population Weighted Values (Intensive Variables) {#sec-pop-interp}
 
@@ -697,9 +682,19 @@ census_data_interpolate <- census_data_interpolate %>%
            per_capita_income_weighted = per_capita_income * population_total_count)
 ```
 
-### Summarize Demographics by Water System
+::: callout-caution
+To calculate an aggregated value for a variable like median household income, which depends on the distribution of the underling data, it may be worth considering whether a weighed average value is an appropriate measure. In some cases, it may be more appropriate to use the counts in each income bracket to estimate a median income, and/or present the income distribution rather than a single value.
 
-#### Aggregate by Water System
+For a discussion of the problem and a proposed solution, see [this document](https://www.documentcloud.org/documents/6165014-How-to-Recalculate-a-Median.html#document/p1).
+:::
+
+### Interpolation Step 3: Aggregate by Water System
+
+Next, we need to combine the weighted values calculated above to produce the estimates for each water system, and can also use those combined values to compute some additional metrics for each system (like rates, income distributions, etc.).
+
+#### Combine Results by Water System
+
+First, combine the results by summing all of the count-based variables (derived from areal interpolation), and calculating weighted averages for all variables computed in step 2 above.
 
 ```{r}
 water_system_demographics <- census_data_interpolate %>% 
@@ -716,19 +711,92 @@ water_system_demographics <- census_data_interpolate %>%
     ungroup()
 ```
 
+#### Check - Variables Estimated with Areal Interpolation {#sec-check-areal-interp}
+
+As noted above, it's also possible to use pre-built functions for areal interpolation. This section demonstrates those functions and uses them as a check of our computed count data.
+
+From the `sf` package, we can use the `st_interpolate_aw` function:
+
+```{r}
+#| warning: false
+
+# NOTE: it's only necessary to check the estimated values for one variable - 
+# this just checks the total estimated population
+
+# sf package
+check_sf <- st_interpolate_aw(x = census_data_acs %>% 
+                                  select(population_total_count),
+                       to = water_systems_sac,
+                       extensive = TRUE) %>% 
+    bind_cols(water_systems_sac %>% st_drop_geometry)
+
+# check - should be TRUE if results are equivalent
+all(check_sf %>% 
+        arrange(WATER_SY_1) %>% 
+        pull(population_total_count) %>% 
+        round(5) ==
+    water_system_demographics %>% 
+        arrange(WATER_SY_1) %>% 
+        pull(population_total_count) %>% 
+        round(5)
+)
+```
+
+From the `areal` package, we can use the `aw_interpolate` function. Note that there are some settings that you may need to modify in the `aw_interpolate` function depending on the type of analysis you're doing. In particular, for more information about the `weight` argument -- which can be either `sum` or `total` -- see [this section of the documentation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#calculating-weights-for-extensive-interpolations). For more information about extensive versus intensive interpolations, see [this section of the documenation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#extensive-and-intensive-interpolations) (as noted above, the method applied here avoids using areal interpolation to calculate intensive variables, because area may not be a good metric for determining how to weight those variables, considering that we can estimate associated counts for populations/households/etc.).
+
+```{r}
+#| warning: false
+
+# NOTE: it's only necessary to check the estimated values for one variable - 
+# this just checks the total estimated population
+
+# areal package
+check_areal <- aw_interpolate(water_systems_sac,
+                              tid = WATER_SY_1,
+                              source = census_data_acs,
+                              sid = GEOID,
+                              weight = 'total',
+                              extensive = c('population_total_count'))
+
+# check - should be TRUE if results are equivalent
+all(check_areal %>% 
+        arrange(WATER_SY_1) %>% 
+        pull(population_total_count) %>% 
+        round(5) ==
+    water_system_demographics %>% 
+        arrange(WATER_SY_1) %>% 
+        pull(population_total_count) %>% 
+        round(5)
+)
+```
+
 #### Clean & Format Results {#sec-results-clean}
 
-We could stop here, and save the dataset containing the results to an output file (as is done in @sec-results-save). But, it may be useful to do some additional computations and re-formatting before saving the dataset. For example, in this case it may be useful to calculate the racial/ethnic breakdown of each system's population as percentages of the total population (in addition to the total counts derived above).
+We could stop here, and save the dataset containing the results to an output file (done below - see @sec-results-save). But, it may be useful to do some additional computations and re-formatting before saving the dataset. For example, in this case it may be useful to calculate the racial/ethnic breakdown of each system's population as percentages of the total population (in addition to the total counts computed above), and calculate other rates / distributions.
 
-Compute poverty rate
+First we can add fields with each racial/ethnic group's estimated percent of the total population within each water system's service area:
+
+```{r}
+water_system_demographics <- water_system_demographics %>%
+    mutate(
+        across(
+            .cols = starts_with('population_'),
+            .fns = ~ round(.x / population_total_count * 100, 2),
+            .names = "{str_replace(.col, '_count', '_percent')}"
+        ),
+        .after = population_other_or_multiple_count) %>% 
+    select(-population_total_percent) # this always equals 1, not needed
+```
+
+We can also calculate the estimated poverty rate for each water system's service area.
 
 ```{r}
 water_system_demographics <- water_system_demographics %>% 
-    mutate(poverty_rate_pct_calc_system = 100 * poverty_below_count / poverty_total_assessed_count, 
+    mutate(poverty_rate_percent = 100 * poverty_below_count / poverty_total_assessed_count, 
            .after = poverty_above_count)
 ```
 
-Compute 25k income brackets
+And compute income brackets in 25k increments:
 
 ```{r}
 water_system_demographics <- water_system_demographics %>% 
@@ -745,76 +813,66 @@ water_system_demographics <- water_system_demographics %>%
                households_income_45k_50k_count,
            households_income_50k_75k_count =
                households_income_50k_60k_count +
-               households_income_60k_75k_count
-    )
+               households_income_60k_75k_count,
+           .after = households_income_above_200k_count
+    ) # note - above 75k is already in 25k increments
 ```
 
-Calculate grouped median household income....
+And compute income brackets in 50k increments:
+
+```{r}
+water_system_demographics <- water_system_demographics %>% 
+    mutate(households_income_0_50k_count = 
+               households_income_0_25k_count + 
+               households_income_25k_50k_count,
+           households_income_50k_100k_count =
+               households_income_50k_75k_count +
+               households_income_75k_100k_count,
+           households_income_100k_150k_count =
+               households_income_100k_125k_count +
+               households_income_125k_150k_count,
+           .after = households_income_50k_75k_count
+    ) # above 150k is already in 50k increments
+```
+
+And compute grouped median household income:
 
 ```{r}
 
 ```
 
-Compute other percentages (demographic groups, % households by housing cost, % households below income thresholds)
+And compute \# and % of households below income thresholds:
 
 ```{r}
 
 ```
 
-```{r}
-# Then add columns with each racial/ethnic group's estimated percent of the total population within each water system's service area:
+And, compute other variables (% households by % housing cost, ...)
 
-# water_systems_sac_demographics <- water_systems_sac_demographics %>% 
-#     mutate(
-#         across(
-#             .cols = starts_with('population_'),
-#             .fns = ~ round(.x / population_total * 100, 2),
-#             .names = "{str_replace(.col, 'population_', 'percent_')}"
-#         ), 
-#         .after = population_white) 
+```{r}
+
 ```
 
-We can also calculate the estimated poverty rate for each water system's service area.
+Finally, we can round the estimated values to appropriate levels of precision:
 
 ```{r}
-# water_systems_sac_demographics <- water_systems_sac_demographics %>% 
-#     mutate(poverty_rate_percent = 
-#                round(100 * poverty_below_count / poverty_total_assessed,
-#                      2),
-#            .before = poverty_above_count)
-```
-
-Then format the data, rounding the estimated values to appropriate levels of precision:
-
-```{r}
-# water_systems_sac_demographics <- water_systems_sac_demographics %>% 
-#     mutate(
-#         across(
-#             .cols = starts_with('population_'),
-#             .fns = ~ round(.x, 0)
-#         )) # %>% 
-#     # mutate(median_household_income = round(median_household_income, digits = 0))
-```
-
-Finally, just as a check, add a column (which we'll call `population_percent_difference`) to compute the difference between the estimated total population (in the `population_total` field) and the total population listed in the `POPULATION` field (the reported value from the water system dataset).
-
-```{r}
-# water_systems_sac_demographics <- water_systems_sac_demographics %>% 
-#     mutate(population_percent_difference = 
-#                round((population_total - POPULATION) / POPULATION * 100, 2))
-# 
-# # rearrange fields to make order more logical
-# water_systems_sac_demographics <- water_systems_sac_demographics %>% 
-#     relocate(population_total, .after = 'POPULATION') %>% 
-#     relocate(population_percent_difference, .after = 'population_total') %>% 
-#     # relocate(median_household_income, geometry, .after = last_col()) %>% 
-#     select(-percent_total) # drop the percent_total field - it's always just "1"
+water_system_demographics <- water_system_demographics %>%
+    mutate(
+        across(
+            .cols = ends_with('_count'),
+            .fns = ~ round(.x, 0)
+        ))  %>%
+    mutate(
+        across(
+            .cols = ends_with('_percent'),
+            .fns = ~ round(.x, 2)
+        ))
 ```
 
 We've now got a dataset with the selected census data estimated for each of the *target* geographic features (water system service areas). Here's a view of the contents and structure of the re-formatted dataset (only the first few fields are shown):
 
 ```{r}
-# glimpse(water_systems_sac_demographics[,1:20])
+glimpse(water_system_demographics[,1:20])
 ```
 
 @tbl-water-sys-demographics-rev provides a complete view of the cleaned and re-formatted dataset. These results are saved locally in tabular and spatial format in @sec-results-save.
@@ -824,12 +882,85 @@ We've now got a dataset with the selected census data estimated for each of the 
 #| tbl-cap: "Water System Demographics"
 #| tbl-cap-location: top
 
-# water_systems_sac_demographics %>%
-#     kable(caption = 'A Caption') %>% 
-#     scroll_box(height = "400px")
+water_system_demographics %>%
+    kable(caption = 'A Caption') %>%
+    scroll_box(height = "400px")
 ```
 
 <br>
+
+#### Transform Results to Long Format {#sec-results-transform-long}
+
+For further analysis and exploration / visualization of the results, it will help to convert the results from wide to long format, and edit the group names so that they can be used as titles.
+
+```{r}
+
+# pivot from wide to long format
+water_system_demographics_long <- water_system_demographics %>% 
+    # select(WATER_SY_1, starts_with('percent_')) %>% # select only the fields with percentages, and the water system name/id
+    # convert to long format
+    # st_drop_geometry() %>% 
+    pivot_longer(cols = !c(WATER_SY_1, geometry), 
+                 names_to = 'variable', 
+                 values_to = 'value')
+
+# clean variable names and add grouping fields (type, group_type)
+water_system_demographics_long <- water_system_demographics_long %>% 
+    mutate(variable = variable %>% 
+               # str_remove_all(pattern = 'percent_') %>% 
+               str_replace_all(pattern = '_', replacement = ' ') %>% 
+               str_replace_all(pattern = ' or ', replacement = ' / ') %>% 
+               str_to_title(.) %>% 
+               str_remove_all(pattern = ' / Alaska Native')) %>% 
+    mutate(type = case_when(
+        str_detect(variable, pattern = 'Count') ~ 'Count',
+        str_detect(variable, pattern = 'Percent') ~ 'Percent',
+        str_detect(variable, pattern = 'Pop Weighted') ~ 'Pop Weighted',
+        str_detect(variable, pattern = 'Hh Weighted') ~ 'Hh Weighted',
+        .default = NA), 
+        .after = variable) %>% 
+    mutate(group_type = case_when(
+        str_detect(variable, pattern ='Population') ~ 'Population',
+        str_detect(variable, pattern = 'Households') ~ 'Households',
+        str_detect(variable, pattern = 'Average Household Size Hh Weighted') ~ 'Household Weighted', 
+        str_detect(variable, pattern = 'Median Household Income Hh Weighted') ~ 'Household Weighted',
+        str_detect(variable, pattern = 'Per Capita Income Pop Weighted') ~ 'Population Weighted',
+        str_detect(variable, pattern = 'Poverty') ~ 'Population'),
+        .after = type) %>% 
+    mutate(variable = case_when(
+        str_detect(variable, pattern = 'Households Count') ~ 'Households Total',
+        .default = str_remove_all(variable, pattern = 'Households'))) %>% 
+    mutate(variable = case_when(
+        str_detect(variable, 'Population Total Count') ~ 'Population Total',
+        .default = str_remove_all(variable, 'Population'))) %>%
+    mutate(variable = str_remove_all(variable, 
+                                     pattern = 'Count')) %>% 
+    mutate(variable = str_remove_all(variable, 
+                                     pattern = 'Percent')) %>% 
+    mutate(variable = str_remove_all(variable, 
+                                     pattern = ' Hh Weighted')) %>% 
+    mutate(variable = str_remove_all(variable, 
+                                     pattern = ' Pop Weighted')) %>% 
+    mutate(variable = str_replace_all(variable, 
+                                      pattern = 'Over30pct', 
+                                      replacement = 'Over 30% Income')) %>% 
+    mutate(variable = str_replace_all(variable, 
+                                      pattern = 'Over50pct', 
+                                      replacement = 'Over 50% Income')) %>% 
+    mutate(variable = str_trim(variable)) %>%
+    mutate(variable = str_replace_all(variable,
+                                      pattern = 'k ',
+                                      replacement = 'k-')) %>%
+    mutate(variable = str_replace_all(variable,
+                                      pattern = '0 ',
+                                      replacement = '0-'))
+```
+
+Here's a view of the structure of the reformatted data:
+
+```{r}
+glimpse(water_system_demographics_long)
+```
 
 ### Save Results {#sec-results-save}
 
@@ -842,39 +973,47 @@ The chunk of code below (which is hidden by default), just tests to see whether 
 #| warning: false
 #| message: false
 
-# # compute hash for datasets to be saved (i.e., a unique identifier for each dataset), and compare against previous versions
-# 
-# ## define file that stores hash (unique identifier for dataset)
-# hash_file <- here('03_data_results', 
-#                   'dataset_hash.csv')
-# 
-# ## compute hashes (unique identifier for datasets)
-# hash_current <- digest(object = water_systems_sac_demographics, 
-#                        algo = 'md5')
-# hash_current_long <- digest(object = water_systems_sac_demographics_long, 
-#                             algo = 'md5')
-# hash_table_current <- tibble(dataset = c('water_systems_sac_demographics', 'water_systems_sac_demographics_long'),
-#                              hash = c(hash_current, hash_current_long))
-# 
-# ## get the previous hashes from file (if it exists), else create a new file to store the hashes
-# if (file.exists(hash_file)) {
-#     hash_table_previous <- read_csv(file = hash_file)
-# } else {
-#     file.create(hash_file)
-#     hash_table_previous <- tibble(dataset = c('water_systems_sac_demographics', 'water_systems_sac_demographics_long'),
-#                              hash = c('missing', 'missing'))
-# }
-# 
-# ## if new hash is different from previous hash, set flag to update the output file (i.e., write a new version of the file)
-# file_update <- !identical(hash_table_current %>% filter(dataset == 'water_systems_sac_demographics') %>% pull(hash),
-#                           hash_table_previous %>% filter(dataset == 'water_systems_sac_demographics') %>% pull(hash))
-# file_update_long <- !identical(hash_table_current %>% filter(dataset == 'water_systems_sac_demographics_long') %>% pull(hash),
-#                                hash_table_previous %>% filter(dataset == 'water_systems_sac_demographics_long') %>% pull(hash))
-# 
-# ## write current hashes to file (for comparison with future versions)
-# write_csv(x = hash_table_current, 
-#           file = hash_file, 
-#           append = FALSE)
+# compute hash for datasets to be saved (i.e., a unique identifier for each dataset), and compare against previous versions
+
+## define file that stores hash (unique identifier for dataset)
+hash_file <- here('03_data_results',
+                  'dataset_hash.csv')
+
+## compute hashes (unique identifier for datasets)
+hash_current <- digest(object = water_system_demographics,
+                       algo = 'md5')
+hash_current_long <- digest(object = water_system_demographics_long,
+                            algo = 'md5')
+hash_table_current <- tibble(dataset = c('water_system_demographics', 'water_system_demographics_long'),
+                             hash = c(hash_current, hash_current_long))
+
+## get the previous hashes from file (if it exists), else create a new file to store the hashes
+if (file.exists(hash_file)) {
+    hash_table_previous <- read_csv(file = hash_file)
+} else {
+    file.create(hash_file)
+    hash_table_previous <- tibble(dataset = c('water_system_demographics', 'water_system_demographics_long'),
+                             hash = c('missing', 'missing'))
+}
+
+## if new hash is different from previous hash, set flag to update the output file (i.e., write a new version of the file)
+file_update <- !identical(hash_table_current %>% 
+                              filter(dataset == 'water_system_demographics') %>% 
+                              pull(hash),
+                          hash_table_previous %>% 
+                              filter(dataset == 'water_system_demographics') %>% 
+                              pull(hash))
+file_update_long <- !identical(hash_table_current %>% 
+                                   filter(dataset == 'water_system_demographics_long') %>% 
+                                   pull(hash),
+                               hash_table_previous %>% 
+                                   filter(dataset == 'water_system_demographics_long') %>% 
+                                   pull(hash))
+
+## write current hashes to file (for comparison with future versions)
+write_csv(x = hash_table_current,
+          file = hash_file,
+          append = FALSE)
 ```
 
 #### Tabular Dataset {#sec-results-save-tabular}
@@ -884,30 +1023,30 @@ The code below saves the tabular results to a csv file -- note that this dataset
 ```{r}
 #| cache: false
 
-# if (file_update == TRUE) {
-#     write_csv(water_systems_sac_demographics %>% 
-#                   st_drop_geometry(), # drop the spatial data since this is a tabular format
-#               file = here('03_data_results',
-#                           'water_system_demographics_sac.csv'))   
-# }
+if (file_update == TRUE) {
+    write_csv(water_system_demographics %>%
+                  st_drop_geometry(), # drop the spatial data since this is a tabular format
+              file = here('03_data_results',
+                          'water_system_demographics_sac.csv'))
+}
 ```
 
-For the tabular data, it might also be useful to save the data in the long/tidy format we developed above when making plots:
+We can also save the data in the long/tidy format we developed above:
 
 ```{r}
 #| cache: false
 
-# if (file_update_long == TRUE) {
-#     write_csv(water_systems_sac_demographics_long %>% 
-#                   st_drop_geometry(), # drop the spatial data since this is a tabular format
-#               file = here('03_data_results',
-#                           'water_system_demographics_sac_long.csv'))
-# }
+if (file_update_long == TRUE) {
+    write_csv(water_system_demographics_long %>%
+                  st_drop_geometry(), # drop the spatial data since this is a tabular format
+              file = here('03_data_results',
+                          'water_system_demographics_sac_long.csv'))
+}
 ```
 
 #### Spatial Dataset {#sec-results-save-spatial}
 
-To save the output in a geospatial format, it may be best to save the data in a wide format, so that all of the attribute data for each *target* area (water system) is in a single row along with its spatial data (i.e. the system boundary information). The code below saves the results -- in wide format -- to a geopackage file, which is a spatial file format that is similar to a shapefile.
+To save the output in a geospatial format, it may be best to save the data in a wide format, so that all of the attribute data for each *target* area (water system) is in a single row along with its spatial data (i.e. the system boundary information) (saving in long format may create a very large file). The code below saves the results -- in wide format -- to a geopackage file, which is a spatial file format that is similar to a shapefile.
 
 ```{r}
 #| message: false
@@ -915,25 +1054,48 @@ To save the output in a geospatial format, it may be best to save the data in a 
 #| results: hide
 #| cache: false
 
-# if (file_update == TRUE) {
-#     st_write(water_systems_sac_demographics, 
-#              here('03_data_results',
-#                   'water_system_demographics_sac.gpkg'), 
-#              append = FALSE)  
-# }
+if (file_update == TRUE) {
+    st_write(water_system_demographics,
+             here('03_data_results',
+                  'water_system_demographics_sac.gpkg'),
+             append = FALSE)
+}
 ```
 
 ## Explore and Visualize Results {#sec-results-explore}
 
-For simplicity, this section will focus on presenting estimated demographics for the largest water suppliers in the Sacramento county region. Results for small water systems may not be very accurate and should be used with some caution (because the water system may encompass only a small portion of one or a few census units, and the entire census unit(s) may not be representative of the small portion(s)), especially those in rural environments (where population densities are lower, population centers tend to be spread out, and census units tend to be larger).
+::: callout-warning
+This section is in progress...
+:::
 
-## Check - Estimated vs Reported Population Estimates
+For simplicity, this section will focus on presenting estimated demographics for some of the largest water suppliers in the Sacramento county region (results for small water systems may not be very accurate and should be used with some caution - see @sec-check-pop-estimated-reported and @sec-small-area-estimates for more investigation of the results for small systems).
 
-\[Create map\]
+\[TO DO: add visualizations\]
+
+## Check - Estimated vs Reported Population Estimates {#sec-check-pop-estimated-reported}
+
+\[TO DO: Create map\]
 
 Based on the map above, it's apparent that it will be difficult to obtain reasonable estimates for some suppliers, such as the suppliers with very small service areas in the southern portion of the county where the block groups are very large (and the supplier's service are is only a small fraction of the total area of the block group). These issues are explored further in @sec-small-area-estimates.
 
 Note that there are a number of reasons why the estimated population values are likely to differ from the population numbers in the water system dataset (e.g., the depicted boundaries may not be correct or exact, the supplier may have used different methods to count/estimate the population they serve, the time frames for the estimates may be different, etc.). But, there may also be some cases where the numbers differ significantly -- depending on the actual analysis being performed, this may mean that further work is needed for certain areas, or could mean that this method may not be sufficient and different methods are needed.
+
+As a check, we can add a column to the interpolated dataset (which we'll call `population_percent_difference`) to compute the difference between the estimated total population (in the `population_total` field) and the total population listed in the `POPULATION` field (the reported value from the water system dataset).
+
+```{r}
+
+water_system_demographics <- water_system_demographics %>% 
+    left_join(water_systems_sac %>% 
+                  st_drop_geometry() %>% 
+                  select(WATER_SY_1, POPULATION),
+              by = 'WATER_SY_1')
+
+water_system_demographics <- water_system_demographics %>%
+    mutate(population_percent_difference =
+               round(100 * (population_total_count - POPULATION) / POPULATION, 
+                     2), 
+           .after = POPULATION)
+```
 
 For water systems with a small population and/or service area, the estimated demographics may not match the population numbers in the original water system dataset very well. You can see this in @tbl-pop-est-small by comparing the `POPULATION` field, which contains the total population values from the water supplier dataset, with the `population_total` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `population_percent_difference` field. This probably indicates that, for small areas, some adjustments and/or further analysis may be needed, and the preliminary estimated values should be treated with some caution/skepticism.
 
@@ -943,12 +1105,12 @@ Note: See @sec-small-area-estimates below for some more investigation into water
 #| label: tbl-pop-est-small
 #| tbl-cap: "10 Smallest Water Systems by Population"
 
-# water_systems_sac_demographics %>% 
-#     arrange(POPULATION) %>% 
-#     slice(1:10) %>% 
-#     select(WATER_SY_1, POPULATION, population_total, population_percent_difference) %>% 
-#     st_drop_geometry() %>% 
-#     kable()
+water_system_demographics %>%
+    arrange(POPULATION) %>%
+    slice(1:10) %>%
+    select(WATER_SY_1, POPULATION, population_total_count, population_percent_difference) %>%
+    st_drop_geometry() %>%
+    kable()
 ```
 
 But for larger water systems, the estimated population values seem to be more in line with the population numbers in the original dataset. You can see this in @tbl-pop-est-large by, as above, comparing the `POPULATION` field, which contains the total population values from the water supplier dataset, with the `population_total` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `population_percent_difference` field.
@@ -957,13 +1119,25 @@ But for larger water systems, the estimated population values seem to be more in
 #| label: tbl-pop-est-large
 #| tbl-cap: "10 Largest Water Systems by Population"
 
-# water_systems_sac_demographics %>% 
-#     arrange(desc(POPULATION)) %>% 
-#     slice(1:10) %>% 
-#     select(WATER_SY_1, POPULATION, population_total, population_percent_difference) %>% 
-#     st_drop_geometry() %>% 
-#     kable()
+water_system_demographics %>%
+    arrange(desc(POPULATION)) %>%
+    slice(1:10) %>%
+    select(WATER_SY_1, POPULATION, population_total_count, population_percent_difference) %>%
+    st_drop_geometry() %>%
+    kable()
 ```
+
+## Considerations for Detailed Population Estimates {#sec-detailed-pop-estimates}
+
+::: callout-warning
+This section is in progress...
+:::
+
+If you're primarily only interested in population estimates (possibly including population by race/ethnicity, age, gender, etc.) and need an estimate that's as geographically accurate as possible, it may make more sense to use the block-level population data from the decennial census rather than block group level population data from the ACS. However, since the decennial census only occurs once every 10 years, those estimates won't reflect recent population changes (and will get especially less accurate as we get farther from the last decennial census). But keep in mind that even the 5-year ACS is an average that encompasses previous years' estimates, so it's not necessarily temporally precise either.
+
+It's also possible to use the block-level decennial population data as a weighing factor for ACS population data (to allocate the population within block-group level ACS data).
+
+\[TO DO: add example\]
 
 ## Considerations for Small / Rural Area Estimates {#sec-small-area-estimates}
 
@@ -973,67 +1147,115 @@ This section is in progress...
 
 For some water systems, the estimated population using the areal interpolation above (@sec-areal-interp) was at or near zero, and it may be useful to look at an example to see what's going on with one of those cases.
 
-From the maps above, you can see that the service area reported for some systems are very small, only covering a small fraction of a single census unit, resulting in a population estimate that is very low. In these cases, it could be that the system area was drawn incorrectly (i.e., maybe it doesn't really depict the entire service area), in which case the reported service area should be revised. Or, it's possible that the population within the given census unit is very un-evenly distributed and instead there's a relatively high density population cluster in the depicted service area, in which case a more sophisticated method than an area-weighted average should be used (e.g., maybe consider the density of buildings, roads, and/or other features associated with inhabited areas).
+(because the water system may encompass only a small portion of one or a few census units, and the entire census unit(s) may not be representative of the small portion(s)), especially those in rural environments (where population densities are lower, population centers tend to be spread out, and census units tend to be larger).
 
-## Alternative Computation Methods
+\[TO DO: insert map\]
+
+From the map above \[TO DO: insert map\], you can see that the service area reported for some systems are very small, only covering a small fraction of a single census unit, resulting in a population estimate that is very low. In these cases, it could be that the system area was drawn incorrectly (i.e., maybe it doesn't really depict the entire service area), in which case the reported service area should be revised. Or, it's possible that the population within the given census unit is very un-evenly distributed and instead there's a relatively high density population cluster in the depicted service area, in which case a more sophisticated method than an area-weighted average should be used (e.g., maybe consider the density of buildings, roads, and/or other features associated with inhabited areas).
+
+## Alternative Computation Methods {#sec-alternative-methods}
 
 ::: callout-warning
 This section is in progress...
 :::
 
-### Population Weighted Interpolation {#sec-interpolate_pw}
+### Population Weighted Interpolation {#sec-alternative-interpolate_pw}
 
-Can also use the [`interpolate_pw`](https://walker-data.com/tidycensus/reference/interpolate_pw.html) function from the `tidycensus` package - uses a somewhat different methodology than applied above in @sec-pop-interp.
+The `tidycensus` package also has a function for population weighted interpolation, [`interpolate_pw`](https://walker-data.com/tidycensus/reference/interpolate_pw.html), but it uses a somewhat different methodology than the population weighted interpolation procedure applied above in @sec-pop-interp.
 
-Use 2020 census population by census block from above (not strictly necessary, but this is the most spatially granular census population data available).
+Note that some water systems may not get an estimated value using this method, even if `NA` values are removed from the source data first (TO DO: check whether this depends on which type of boundary dataset is used - i.e., tigris with cb = FALSE or TRUE).
 
-Note that some water systems may not get an estimated value using this method (even if `NA` values are removed from the source data) -- may need to check which type of boundary dataset is used (i.e., tigris with cb = FALSE or TRUE).
+Using original `census_data_acs` variable gives multiple `NA`s - it looks like those are small areas:
 
 ```{r}
-# DELETE THIS CHUNK
-# get census data
-# census_data_blocks <- get_decennial(geography = 'block', # can be 'block', 'block group', 'tract', 'county', etc.
-#                                     state = 'CA', 
-#                                     county = counties_list,
-#                                     year = 2020,
-#                                     variables = c(
-#                                         'population_total' = 'P2_001N'
-#                                     ),
-#                                     output = 'wide', # can be 'wide' or 'tidy'
-#                                     geometry = TRUE,
-#                                     cache_table = TRUE) 
+results_interpolate_pw <- interpolate_pw(from = census_data_acs %>%
+                                             filter(!is.na(population_total_count)) %>% # population_total_count  median_household_income
+                                             select(population_total_count),
+                                         to = water_systems_sac,
+                                         to_id = 'WATER_SY_1',
+                                         extensive = TRUE, # use FALSE for median_household_income
+                                         weights = census_data_decennial,
+                                         # weight_placement = 'surface',
+                                         weight_column = 'population_total_count') %>%
+    # rename(median_household_income_interpolate_pw = median_household_income) # rename results field
+    rename(population_total_count_interpolate_pw = population_total_count) %>% 
+    mutate(population_total_count_interpolate_pw = round(population_total_count_interpolate_pw, 0))
+
+# sum(is.na(results_interpolate_pw$median_household_income_interpolate_pw))
+sum(is.na(results_interpolate_pw$population_total_count_interpolate_pw))
 ```
 
-```{r}
-# results_interp_popwt <- interpolate_pw(from = census_data_filter %>% 
-#                                            st_transform(crs_projected) %>% 
-#                                            filter(!is.na(median_household_income)) %>% 
-#                                            select(median_household_income), 
-#                                        to = water_systems_sac %>% 
-#                                            st_transform(crs_projected), 
-#                                        to_id = 'WATER_SY_1', 
-#                                        extensive = FALSE, 
-#                                        weights = census_data_blocks %>% 
-#                                            st_transform(crs_projected), 
-#                                        # weight_placement = 'surface',
-#                                        weight_column = 'population_total') %>% 
-#     rename(median_household_income_popwt = median_household_income) # rename results field
-```
+Using detailed block group geometry - looks like the same results?:
 
 ```{r}
-# results_interp_popwt <- results_interp_popwt %>% 
-#     left_join(water_systems_sac %>% 
-#                   st_drop_geometry() %>% 
-#                   select(SERVICE_CO, POPULATION, WATER_SY_1), 
-#               by = 'WATER_SY_1')
+#| warning: false
+
+# # get detailed block group geometry
+# block_groups_detailed <- block_groups(state = 'CA',
+#                                       county = 'Sacramento',
+#                                       cb = FALSE,
+#                                       year = acs_year) %>%
+#     st_transform(crs_projected)
+# block_groups_detailed <- block_groups_detailed %>%
+#     st_filter(water_systems_sac) %>%
+#     select(GEOID)
 # 
-# glimpse(results_interp_popwt)
+# block_groups_detailed <- block_groups_detailed %>%
+#     left_join(census_data_acs %>%
+#                   st_drop_geometry() %>%
+#                   select(GEOID, population_total_count, median_household_income),
+#               by = 'GEOID')
+# 
+# # interpolate
+# results_interpolate_pw_detailed <- interpolate_pw(from = block_groups_detailed %>%
+#                                                       filter(!is.na(population_total_count)) %>% # population_total_count median_household_income
+#                                                       select(population_total_count),
+#                                                   to = water_systems_sac,
+#                                                   to_id = 'WATER_SY_1',
+#                                                   extensive = TRUE, # use FALSE for median_household_income
+#                                                   weights = census_data_decennial,
+#                                                   weight_placement = 'surface',
+#                                                   weight_column = 'population_total_count') %>%
+#     # rename(median_household_income_interpolate_pw = median_household_income) # rename results field
+#     rename(population_total_count_interpolate_pw = population_total_count)
+# 
+# # sum(is.na(results_interpolate_pw_detailed$median_household_income_interpolate_pw))
+# sum(is.na(results_interpolate_pw_detailed$population_total_count_interpolate_pw))
 ```
 
-## Working with Other Source Datasets
+Compare results using `interpolate_pw` to reported population counts:
+
+```{r}
+results_interpolate_pw <- results_interpolate_pw %>%
+    left_join(water_systems_sac %>%
+                  st_drop_geometry() %>%
+                  select(SERVICE_CO, POPULATION, WATER_SY_1),
+              by = 'WATER_SY_1') %>% 
+    relocate(POPULATION, .after = population_total_count_interpolate_pw)
+```
+
+View results:
+
+```{r}
+glimpse(results_interpolate_pw)
+```
+
+## Working with Other Source Datasets {#sec-other-sources}
 
 ::: callout-warning
 This section is in progress...
 :::
 
-### CalEnviroScreen
+In addition to using census data, it's possible to use other datasets to compute characteristics of custom *target* areas like water systems. The process is generally likely to be similar to the processes shown above using census data, but each dataset may require unique considerations (e.g., to handle missing values, uncertain boundaries, etc.).
+
+### CalEnviroScreen {#sec-calenviroscreen}
+
+\[TO DO: compute population weighted average scores, using interpolated population estimates - (1) first compute interpolated populations by clipping ACS tracts to CES boundaries, then (2) clip those boundaries to water systems and compute populations, then (3) calculate population weighted averages (using areal-weighted populations from step 2)?\]
+
+Notes to consider:
+
+-   Some census tracts are missing CES scores (overall and/or for certain indicators), and have to deal with those missing values somehow.
+
+-   CES 4.0 is tract-level data, and uses 2010 census boundaries (so boundaries won't match current ACS boundaries)
+
+<br>
