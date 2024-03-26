@@ -1097,7 +1097,7 @@ water_system_demographics <- water_system_demographics %>%
            .after = POPULATION)
 ```
 
-For water systems with a small population and/or service area, the estimated demographics may not match the population numbers in the original water system dataset very well. You can see this in @tbl-pop-est-small by comparing the `POPULATION` field, which contains the total population values from the water supplier dataset, with the `population_total` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `population_percent_difference` field. This probably indicates that, for small areas, some adjustments and/or further analysis may be needed, and the preliminary estimated values should be treated with some caution/skepticism.
+For water systems with a small population and/or service area, the estimated demographics may not match the reported population numbers in the water system dataset very well. You can see this in @tbl-pop-est-small by comparing the `population_reported` field, which contains the total population values from the water supplier dataset, with the `population_estimated` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `population_percent_difference` field. This probably indicates that, for small areas, some adjustments and/or further analysis may be needed, and the preliminary estimated values should be treated with some caution/skepticism.
 
 Note: See @sec-small-area-estimates below for some more investigation into water systems whose estimated population is at or near zero.
 
@@ -1108,12 +1108,14 @@ Note: See @sec-small-area-estimates below for some more investigation into water
 water_system_demographics %>%
     arrange(POPULATION) %>%
     slice(1:10) %>%
-    select(WATER_SY_1, POPULATION, population_total_count, population_percent_difference) %>%
+    select(WATER_SY_1, population_reported = POPULATION, 
+           population_estimated = population_total_count, 
+           population_percent_difference) %>%
     st_drop_geometry() %>%
     kable()
 ```
 
-But for larger water systems, the estimated population values seem to be more in line with the population numbers in the original dataset. You can see this in @tbl-pop-est-large by, as above, comparing the `POPULATION` field, which contains the total population values from the water supplier dataset, with the `population_total` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `population_percent_difference` field.
+But for larger water systems, the estimated population values seem to be more in line with the population numbers in the original dataset. You can see this in @tbl-pop-est-large by, as above, comparing the `population_reported` field, which contains the total population values from the water supplier dataset, with the `population_estimated` field, which contains the total population estimated from the census data; the difference between the two is summarized in the `population_percent_difference` field.
 
 ```{r}
 #| label: tbl-pop-est-large
@@ -1122,7 +1124,9 @@ But for larger water systems, the estimated population values seem to be more in
 water_system_demographics %>%
     arrange(desc(POPULATION)) %>%
     slice(1:10) %>%
-    select(WATER_SY_1, POPULATION, population_total_count, population_percent_difference) %>%
+    select(WATER_SY_1, population_reported = POPULATION, 
+           population_estimated = population_total_count, 
+           population_percent_difference) %>%
     st_drop_geometry() %>%
     kable()
 ```
