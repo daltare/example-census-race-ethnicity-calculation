@@ -25,7 +25,7 @@ For comments, suggestions, corrections, or questions on anything below, contact 
 :::
 
 ::: callout-warning
-This document is a work in progress, and may change significantly.
+This is a draft / work in progress – some parts are still under development, and existing parts may change.
 :::
 
 This document provides an example of how to use tools available from the [R programming language](https://www.R-project.org/) [@R] to estimate characteristics of any given *target* spatial area(s) (e.g., neighborhoods, project boundaries, water supplier service areas, etc.) based on data from a *source* dataset containing the characteristic data of interest (e.g., census data, CalEnvrioScreen scores, etc.), especially when the boundaries of the *source* and *target* areas overlap but don't necessarily align with each other. It also provides some brief background on the various types of data available from the U.S Census Bureau, and links to a few places to find more in-depth information.
@@ -1129,7 +1129,7 @@ systems_top_n <- water_system_demographics %>%
     pull(WATER_SY_1)
 ```
 
-### Bivariate Map
+### Income & Relative Housing Costs
 
 This section uses the [biscale](https://chris-prener.github.io/biscale/) R package [@biscale] to create bivariate choropleth maps that show how two variables vary together spatially.
 
@@ -1457,12 +1457,14 @@ In addition to using census data, it's possible to use other types of *source* d
 
 ### CalEnviroScreen {#sec-calenviroscreen}
 
-\[TO DO: compute population weighted average scores, using interpolated population estimates - (1) first compute interpolated populations by clipping ACS tracts to CES boundaries, then (2) clip those boundaries to water systems and compute populations, then (3) calculate population weighted averages (using areal-weighted populations from step 2)?\]
+\[TO DO: example computation of weighted average CES scores\]
 
 Notes to consider:
 
 -   Some census tracts are missing CES scores (overall and/or for certain indicators), and have to deal with those missing values somehow
 
--   CES 4.0 is tract-level data, and uses 2010 census boundaries (so boundaries won't match current ACS boundaries)
+-   CES 4.0 is tract-level data, and uses 2010 census boundaries (so boundaries won't match current ACS or decennial boundaries)
+
+-   CES 4.0 boundaries are simplified, and boundaries between tracts are not consistent – for some types of analysis (especially when looking at point data - e.g., facilities), it may be better to use the original TIGER dataset (available from either the `tidycensus` or `tigris` R packages)
 
 <br>
