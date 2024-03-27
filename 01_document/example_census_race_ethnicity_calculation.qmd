@@ -1262,7 +1262,7 @@ biscale_dim <- 3
 biscale_data <- bi_class(water_system_demographics %>% 
                              filter(water_system_name %in% systems_top_n) %>% 
                              filter(!is.na(median_household_income_hh_weighted)), 
-                         x = households_housing_costs_over30pct_percent, 
+                         x = households_all_housing_costs_over30pct_percent, 
                          y = median_household_income_hh_weighted, 
                          style = "quantile", 
                          dim = biscale_dim)
@@ -1333,10 +1333,10 @@ biscale_pal_system <- 'BlueOr' # 'GrPink' # 'DkViolet2'
 biscale_dim_system <- 3
 
 # create classes
-biscale_data_system <- bi_class(census_data_clip %>% 
+biscale_data_system <- bi_class(census_data_interpolate %>% 
                                     filter(water_system_name == system_plot) %>% 
                                     filter(!is.na(median_household_income)), 
-                                x = households_housing_costs_over30pct_percent, 
+                                x = households_all_housing_costs_over30pct_percent, 
                                 y = median_household_income, 
                                 style = "quantile", 
                                 dim = biscale_dim_system)
@@ -1357,7 +1357,7 @@ biscale_map_system  <- ggplot() +
         # caption = "% Housing cost shows the percent of households paying more than 30% of their income towards housing costs \nIncome shows median household income (yellow = missing)"#,
     ) +
     # add the missing polygons back in
-    geom_sf(data = census_data_clip %>% 
+    geom_sf(data = census_data_interpolate %>% 
                 filter(water_system_name == system_plot) %>% 
                 filter(is.na(median_household_income)),
             color = "white",
@@ -1395,13 +1395,13 @@ As a check, we can add a column to the interpolated dataset (which we'll call `p
 
 ```{r}
 
-water_system_demographics <- water_system_demographics %>% 
+water_system_demographics_check <- water_system_demographics %>% 
     left_join(water_systems_sac %>% 
                   st_drop_geometry() %>% 
                   select(water_system_name, water_system_population_reported),
               by = 'water_system_name')
 
-water_system_demographics <- water_system_demographics %>%
+water_system_demographics_check <- water_system_demographics_check %>%
     mutate(population_percent_difference =
                round(100 * (population_total_count - water_system_population_reported) / water_system_population_reported, 
                      2), 
@@ -1416,7 +1416,7 @@ Note: See @sec-small-area-estimates below for some more investigation into water
 #| label: tbl-pop-est-small
 #| tbl-cap: "10 Smallest Water Systems by Population"
 
-water_system_demographics %>%
+water_system_demographics_check %>%
     arrange(water_system_population_reported) %>%
     slice(1:10) %>%
     select(water_system_name, 
@@ -1433,7 +1433,7 @@ But for larger water systems, the estimated population values seem to be more in
 #| label: tbl-pop-est-large
 #| tbl-cap: "10 Largest Water Systems by Population"
 
-water_system_demographics %>%
+water_system_demographics_check %>%
     arrange(desc(water_system_population_reported)) %>%
     slice(1:10) %>%
     select(water_system_name, 
