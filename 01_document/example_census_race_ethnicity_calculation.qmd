@@ -1131,7 +1131,7 @@ systems_top_n <- water_system_demographics %>%
 
 ### Bivariate Map
 
-This section uses the [@biscale] R package to create bivariate choropleth maps that show how two variables vary together spatially.
+This section uses the [biscale](https://chris-prener.github.io/biscale/) R package [@biscale] to create bivariate choropleth maps that show how two variables vary together spatially.
 
 @fig-bivariate-all shows the relationship between relative housing costs and income – using the estimated data – for the top `{r} n_systems` systems by estimated population in Sacramento.
 
