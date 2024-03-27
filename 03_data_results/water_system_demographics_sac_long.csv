@@ -1,4 +1,4 @@
-WATER_SY_1,variable,type,group_type,value
+water_system_name,variable,variable_type,variable_group_type,value
 B & W RESORT MARINA,Population Total,Count,Population,0
 B & W RESORT MARINA,Hispanic / Latino,Count,Population,0
 B & W RESORT MARINA,White,Count,Population,0
@@ -50,11 +50,11 @@ B & W RESORT MARINA,No Mortgage Over 50% Income,Count,Households,0
 B & W RESORT MARINA,Rent Total,Count,Households,0
 B & W RESORT MARINA,Rent Over 30% Income,Count,Households,0
 B & W RESORT MARINA,Rent Over 50% Income,Count,Households,0
+B & W RESORT MARINA,All Housing Costs Over 30% Income,Percent,Households,40.53
+B & W RESORT MARINA,All Housing Costs Over 50% Income,Percent,Households,21.84
 B & W RESORT MARINA,Average Household Size,Hh Weighted,Household Weighted,2.03
 B & W RESORT MARINA,Median Household Income,Hh Weighted,Household Weighted,51977
 B & W RESORT MARINA,Per Capita Income,Pop Weighted,Population Weighted,40522
-B & W RESORT MARINA,Housing Costs Over 30% Income,Percent,Households,40.53
-B & W RESORT MARINA,Housing Costs Over 50% Income,Percent,Households,21.84
 CAL AM FRUITRIDGE VISTA,Population Total,Count,Population,22603
 CAL AM FRUITRIDGE VISTA,Hispanic / Latino,Count,Population,10939
 CAL AM FRUITRIDGE VISTA,White,Count,Population,3504
@@ -106,11 +106,11 @@ CAL AM FRUITRIDGE VISTA,No Mortgage Over 50% Income,Count,Households,58
 CAL AM FRUITRIDGE VISTA,Rent Total,Count,Households,4044
 CAL AM FRUITRIDGE VISTA,Rent Over 30% Income,Count,Households,2131
 CAL AM FRUITRIDGE VISTA,Rent Over 50% Income,Count,Households,1059
+CAL AM FRUITRIDGE VISTA,All Housing Costs Over 30% Income,Percent,Households,43.06
+CAL AM FRUITRIDGE VISTA,All Housing Costs Over 50% Income,Percent,Households,21.18
 CAL AM FRUITRIDGE VISTA,Average Household Size,Hh Weighted,Household Weighted,3.2578059416417346
 CAL AM FRUITRIDGE VISTA,Median Household Income,Hh Weighted,Household Weighted,53040.44113156888
 CAL AM FRUITRIDGE VISTA,Per Capita Income,Pop Weighted,Population Weighted,20519.569076441432
-CAL AM FRUITRIDGE VISTA,Housing Costs Over 30% Income,Percent,Households,43.06
-CAL AM FRUITRIDGE VISTA,Housing Costs Over 50% Income,Percent,Households,21.18
 CALAM - ANTELOPE,Population Total,Count,Population,33120
 CALAM - ANTELOPE,Hispanic / Latino,Count,Population,5245
 CALAM - ANTELOPE,White,Count,Population,19456
@@ -162,11 +162,11 @@ CALAM - ANTELOPE,No Mortgage Over 50% Income,Count,Households,106
 CALAM - ANTELOPE,Rent Total,Count,Households,3238
 CALAM - ANTELOPE,Rent Over 30% Income,Count,Households,1678
 CALAM - ANTELOPE,Rent Over 50% Income,Count,Households,649
+CALAM - ANTELOPE,All Housing Costs Over 30% Income,Percent,Households,35.36
+CALAM - ANTELOPE,All Housing Costs Over 50% Income,Percent,Households,13.07
 CALAM - ANTELOPE,Average Household Size,Hh Weighted,Household Weighted,3.1345302087117366
 CALAM - ANTELOPE,Median Household Income,Hh Weighted,Household Weighted,93741.54894285185
 CALAM - ANTELOPE,Per Capita Income,Pop Weighted,Population Weighted,34660.43709201826
-CALAM - ANTELOPE,Housing Costs Over 30% Income,Percent,Households,35.36
-CALAM - ANTELOPE,Housing Costs Over 50% Income,Percent,Households,13.07
 CALAM - ARDEN,Population Total,Count,Population,10112
 CALAM - ARDEN,Hispanic / Latino,Count,Population,3433
 CALAM - ARDEN,White,Count,Population,2392
@@ -218,11 +218,11 @@ CALAM - ARDEN,No Mortgage Over 50% Income,Count,Households,3
 CALAM - ARDEN,Rent Total,Count,Households,3426
 CALAM - ARDEN,Rent Over 30% Income,Count,Households,2124
 CALAM - ARDEN,Rent Over 50% Income,Count,Households,1170
+CALAM - ARDEN,All Housing Costs Over 30% Income,Percent,Households,57.97
+CALAM - ARDEN,All Housing Costs Over 50% Income,Percent,Households,31.87
 CALAM - ARDEN,Average Household Size,Hh Weighted,Household Weighted,2.6236426838601012
 CALAM - ARDEN,Median Household Income,Hh Weighted,Household Weighted,49624.62015306522
 CALAM - ARDEN,Per Capita Income,Pop Weighted,Population Weighted,22770.82157980776
-CALAM - ARDEN,Housing Costs Over 30% Income,Percent,Households,57.97
-CALAM - ARDEN,Housing Costs Over 50% Income,Percent,Households,31.87
 CALAM - ISLETON,Population Total,Count,Population,34
 CALAM - ISLETON,Hispanic / Latino,Count,Population,14
 CALAM - ISLETON,White,Count,Population,17
@@ -274,11 +274,11 @@ CALAM - ISLETON,No Mortgage Over 50% Income,Count,Households,2
 CALAM - ISLETON,Rent Total,Count,Households,4
 CALAM - ISLETON,Rent Over 30% Income,Count,Households,1
 CALAM - ISLETON,Rent Over 50% Income,Count,Households,1
+CALAM - ISLETON,All Housing Costs Over 30% Income,Percent,Households,39.45
+CALAM - ISLETON,All Housing Costs Over 50% Income,Percent,Households,20.68
 CALAM - ISLETON,Average Household Size,Hh Weighted,Household Weighted,2.0789934965188213
 CALAM - ISLETON,Median Household Income,Hh Weighted,Household Weighted,57361.758044022434
 CALAM - ISLETON,Per Capita Income,Pop Weighted,Population Weighted,40672.21234441078
-CALAM - ISLETON,Housing Costs Over 30% Income,Percent,Households,39.45
-CALAM - ISLETON,Housing Costs Over 50% Income,Percent,Households,20.68
 CALAM - LINCOLN OAKS,Population Total,Count,Population,42916
 CALAM - LINCOLN OAKS,Hispanic / Latino,Count,Population,9056
 CALAM - LINCOLN OAKS,White,Count,Population,26529
@@ -330,11 +330,11 @@ CALAM - LINCOLN OAKS,No Mortgage Over 50% Income,Count,Households,298
 CALAM - LINCOLN OAKS,Rent Total,Count,Households,4900
 CALAM - LINCOLN OAKS,Rent Over 30% Income,Count,Households,2523
 CALAM - LINCOLN OAKS,Rent Over 50% Income,Count,Households,1302
+CALAM - LINCOLN OAKS,All Housing Costs Over 30% Income,Percent,Households,36.46
+CALAM - LINCOLN OAKS,All Housing Costs Over 50% Income,Percent,Households,16.13
 CALAM - LINCOLN OAKS,Average Household Size,Hh Weighted,Household Weighted,2.7302804909283616
 CALAM - LINCOLN OAKS,Median Household Income,Hh Weighted,Household Weighted,82035.52088760637
 CALAM - LINCOLN OAKS,Per Capita Income,Pop Weighted,Population Weighted,33728.94235778291
-CALAM - LINCOLN OAKS,Housing Costs Over 30% Income,Percent,Households,36.46
-CALAM - LINCOLN OAKS,Housing Costs Over 50% Income,Percent,Households,16.13
 CALAM - PARKWAY,Population Total,Count,Population,58635
 CALAM - PARKWAY,Hispanic / Latino,Count,Population,18665
 CALAM - PARKWAY,White,Count,Population,8921
@@ -386,11 +386,11 @@ CALAM - PARKWAY,No Mortgage Over 50% Income,Count,Households,383
 CALAM - PARKWAY,Rent Total,Count,Households,7086
 CALAM - PARKWAY,Rent Over 30% Income,Count,Households,3517
 CALAM - PARKWAY,Rent Over 50% Income,Count,Households,1917
+CALAM - PARKWAY,All Housing Costs Over 30% Income,Percent,Households,38.96
+CALAM - PARKWAY,All Housing Costs Over 50% Income,Percent,Households,18.96
 CALAM - PARKWAY,Average Household Size,Hh Weighted,Household Weighted,3.284607556891153
 CALAM - PARKWAY,Median Household Income,Hh Weighted,Household Weighted,72938.51439696936
 CALAM - PARKWAY,Per Capita Income,Pop Weighted,Population Weighted,26938.13941161509
-CALAM - PARKWAY,Housing Costs Over 30% Income,Percent,Households,38.96
-CALAM - PARKWAY,Housing Costs Over 50% Income,Percent,Households,18.96
 CALAM - SUBURBAN ROSEMONT,Population Total,Count,Population,57897
 CALAM - SUBURBAN ROSEMONT,Hispanic / Latino,Count,Population,13791
 CALAM - SUBURBAN ROSEMONT,White,Count,Population,25062
@@ -442,11 +442,11 @@ CALAM - SUBURBAN ROSEMONT,No Mortgage Over 50% Income,Count,Households,271
 CALAM - SUBURBAN ROSEMONT,Rent Total,Count,Households,9358
 CALAM - SUBURBAN ROSEMONT,Rent Over 30% Income,Count,Households,4521
 CALAM - SUBURBAN ROSEMONT,Rent Over 50% Income,Count,Households,2320
+CALAM - SUBURBAN ROSEMONT,All Housing Costs Over 30% Income,Percent,Households,34.31
+CALAM - SUBURBAN ROSEMONT,All Housing Costs Over 50% Income,Percent,Households,15.78
 CALAM - SUBURBAN ROSEMONT,Average Household Size,Hh Weighted,Household Weighted,2.7269365676013217
 CALAM - SUBURBAN ROSEMONT,Median Household Income,Hh Weighted,Household Weighted,81229.87090779487
 CALAM - SUBURBAN ROSEMONT,Per Capita Income,Pop Weighted,Population Weighted,34497.37344907046
-CALAM - SUBURBAN ROSEMONT,Housing Costs Over 30% Income,Percent,Households,34.31
-CALAM - SUBURBAN ROSEMONT,Housing Costs Over 50% Income,Percent,Households,15.78
 CALAM - WALNUT GROVE,Population Total,Count,Population,12
 CALAM - WALNUT GROVE,Hispanic / Latino,Count,Population,5
 CALAM - WALNUT GROVE,White,Count,Population,5
@@ -498,11 +498,11 @@ CALAM - WALNUT GROVE,No Mortgage Over 50% Income,Count,Households,0
 CALAM - WALNUT GROVE,Rent Total,Count,Households,2
 CALAM - WALNUT GROVE,Rent Over 30% Income,Count,Households,1
 CALAM - WALNUT GROVE,Rent Over 50% Income,Count,Households,0
+CALAM - WALNUT GROVE,All Housing Costs Over 30% Income,Percent,Households,24.49
+CALAM - WALNUT GROVE,All Housing Costs Over 50% Income,Percent,Households,14.65
 CALAM - WALNUT GROVE,Average Household Size,Hh Weighted,Household Weighted,2.49
 CALAM - WALNUT GROVE,Median Household Income,Hh Weighted,Household Weighted,68248
 CALAM - WALNUT GROVE,Per Capita Income,Pop Weighted,Population Weighted,38950
-CALAM - WALNUT GROVE,Housing Costs Over 30% Income,Percent,Households,24.49
-CALAM - WALNUT GROVE,Housing Costs Over 50% Income,Percent,Households,14.65
 CALIFORNIA STATE FAIR,Population Total,Count,Population,532
 CALIFORNIA STATE FAIR,Hispanic / Latino,Count,Population,78
 CALIFORNIA STATE FAIR,White,Count,Population,262
@@ -554,11 +554,11 @@ CALIFORNIA STATE FAIR,No Mortgage Over 50% Income,Count,Households,0
 CALIFORNIA STATE FAIR,Rent Total,Count,Households,285
 CALIFORNIA STATE FAIR,Rent Over 30% Income,Count,Households,177
 CALIFORNIA STATE FAIR,Rent Over 50% Income,Count,Households,95
+CALIFORNIA STATE FAIR,All Housing Costs Over 30% Income,Percent,Households,62.11
+CALIFORNIA STATE FAIR,All Housing Costs Over 50% Income,Percent,Households,33.45
 CALIFORNIA STATE FAIR,Average Household Size,Hh Weighted,Household Weighted,1.82
 CALIFORNIA STATE FAIR,Median Household Income,Hh Weighted,Household Weighted,52886
 CALIFORNIA STATE FAIR,Per Capita Income,Pop Weighted,Population Weighted,33141
-CALIFORNIA STATE FAIR,Housing Costs Over 30% Income,Percent,Households,62.11
-CALIFORNIA STATE FAIR,Housing Costs Over 50% Income,Percent,Households,33.45
 CARMICHAEL WATER DISTRICT,Population Total,Count,Population,39253
 CARMICHAEL WATER DISTRICT,Hispanic / Latino,Count,Population,6192
 CARMICHAEL WATER DISTRICT,White,Count,Population,25026
@@ -610,11 +610,11 @@ CARMICHAEL WATER DISTRICT,No Mortgage Over 50% Income,Count,Households,177
 CARMICHAEL WATER DISTRICT,Rent Total,Count,Households,7534
 CARMICHAEL WATER DISTRICT,Rent Over 30% Income,Count,Households,4056
 CARMICHAEL WATER DISTRICT,Rent Over 50% Income,Count,Households,2068
+CARMICHAEL WATER DISTRICT,All Housing Costs Over 30% Income,Percent,Households,36.48
+CARMICHAEL WATER DISTRICT,All Housing Costs Over 50% Income,Percent,Households,18.29
 CARMICHAEL WATER DISTRICT,Average Household Size,Hh Weighted,Household Weighted,2.405914184458731
 CARMICHAEL WATER DISTRICT,Median Household Income,Hh Weighted,Household Weighted,96967.64494126133
 CARMICHAEL WATER DISTRICT,Per Capita Income,Pop Weighted,Population Weighted,46901.802443947105
-CARMICHAEL WATER DISTRICT,Housing Costs Over 30% Income,Percent,Households,36.48
-CARMICHAEL WATER DISTRICT,Housing Costs Over 50% Income,Percent,Households,18.29
 CITRUS HEIGHTS WATER DISTRICT,Population Total,Count,Population,68912
 CITRUS HEIGHTS WATER DISTRICT,Hispanic / Latino,Count,Population,12380
 CITRUS HEIGHTS WATER DISTRICT,White,Count,Population,48148
@@ -666,11 +666,11 @@ CITRUS HEIGHTS WATER DISTRICT,No Mortgage Over 50% Income,Count,Households,286
 CITRUS HEIGHTS WATER DISTRICT,Rent Total,Count,Households,10996
 CITRUS HEIGHTS WATER DISTRICT,Rent Over 30% Income,Count,Households,5759
 CITRUS HEIGHTS WATER DISTRICT,Rent Over 50% Income,Count,Households,2620
+CITRUS HEIGHTS WATER DISTRICT,All Housing Costs Over 30% Income,Percent,Households,38.49
+CITRUS HEIGHTS WATER DISTRICT,All Housing Costs Over 50% Income,Percent,Households,16.72
 CITRUS HEIGHTS WATER DISTRICT,Average Household Size,Hh Weighted,Household Weighted,2.653808184173017
 CITRUS HEIGHTS WATER DISTRICT,Median Household Income,Hh Weighted,Household Weighted,82960.7829472826
 CITRUS HEIGHTS WATER DISTRICT,Per Capita Income,Pop Weighted,Population Weighted,37323.17430154909
-CITRUS HEIGHTS WATER DISTRICT,Housing Costs Over 30% Income,Percent,Households,38.49
-CITRUS HEIGHTS WATER DISTRICT,Housing Costs Over 50% Income,Percent,Households,16.72
 CITY OF SACRAMENTO MAIN,Population Total,Count,Population,516189
 CITY OF SACRAMENTO MAIN,Hispanic / Latino,Count,Population,151211
 CITY OF SACRAMENTO MAIN,White,Count,Population,159508
@@ -722,11 +722,11 @@ CITY OF SACRAMENTO MAIN,No Mortgage Over 50% Income,Count,Households,1805
 CITY OF SACRAMENTO MAIN,Rent Total,Count,Households,96708
 CITY OF SACRAMENTO MAIN,Rent Over 30% Income,Count,Households,47510
 CITY OF SACRAMENTO MAIN,Rent Over 50% Income,Count,Households,24524
+CITY OF SACRAMENTO MAIN,All Housing Costs Over 30% Income,Percent,Households,37.5
+CITY OF SACRAMENTO MAIN,All Housing Costs Over 50% Income,Percent,Households,17.81
 CITY OF SACRAMENTO MAIN,Average Household Size,Hh Weighted,Household Weighted,2.6095944008555163
 CITY OF SACRAMENTO MAIN,Median Household Income,Hh Weighted,Household Weighted,84694.01855912723
 CITY OF SACRAMENTO MAIN,Per Capita Income,Pop Weighted,Population Weighted,39105.608740826385
-CITY OF SACRAMENTO MAIN,Housing Costs Over 30% Income,Percent,Households,37.5
-CITY OF SACRAMENTO MAIN,Housing Costs Over 50% Income,Percent,Households,17.81
 DEL PASO MANOR COUNTY WATER DI,Population Total,Count,Population,5592
 DEL PASO MANOR COUNTY WATER DI,Hispanic / Latino,Count,Population,687
 DEL PASO MANOR COUNTY WATER DI,White,Count,Population,3967
@@ -778,11 +778,11 @@ DEL PASO MANOR COUNTY WATER DI,No Mortgage Over 50% Income,Count,Households,68
 DEL PASO MANOR COUNTY WATER DI,Rent Total,Count,Households,729
 DEL PASO MANOR COUNTY WATER DI,Rent Over 30% Income,Count,Households,509
 DEL PASO MANOR COUNTY WATER DI,Rent Over 50% Income,Count,Households,114
+DEL PASO MANOR COUNTY WATER DI,All Housing Costs Over 30% Income,Percent,Households,42.59
+DEL PASO MANOR COUNTY WATER DI,All Housing Costs Over 50% Income,Percent,Households,16.67
 DEL PASO MANOR COUNTY WATER DI,Average Household Size,Hh Weighted,Household Weighted,2.5168950080102928
 DEL PASO MANOR COUNTY WATER DI,Median Household Income,Hh Weighted,Household Weighted,90374.38264756008
 DEL PASO MANOR COUNTY WATER DI,Per Capita Income,Pop Weighted,Population Weighted,40254.832685705536
-DEL PASO MANOR COUNTY WATER DI,Housing Costs Over 30% Income,Percent,Households,42.59
-DEL PASO MANOR COUNTY WATER DI,Housing Costs Over 50% Income,Percent,Households,16.67
 DELTA CROSSING MHP,Population Total,Count,Population,0
 DELTA CROSSING MHP,Hispanic / Latino,Count,Population,0
 DELTA CROSSING MHP,White,Count,Population,0
@@ -834,11 +834,11 @@ DELTA CROSSING MHP,No Mortgage Over 50% Income,Count,Households,0
 DELTA CROSSING MHP,Rent Total,Count,Households,0
 DELTA CROSSING MHP,Rent Over 30% Income,Count,Households,0
 DELTA CROSSING MHP,Rent Over 50% Income,Count,Households,0
+DELTA CROSSING MHP,All Housing Costs Over 30% Income,Percent,Households,45.66
+DELTA CROSSING MHP,All Housing Costs Over 50% Income,Percent,Households,25.57
 DELTA CROSSING MHP,Average Household Size,Hh Weighted,Household Weighted,2.55
 DELTA CROSSING MHP,Median Household Income,Hh Weighted,Household Weighted,56250
 DELTA CROSSING MHP,Per Capita Income,Pop Weighted,Population Weighted,23510
-DELTA CROSSING MHP,Housing Costs Over 30% Income,Percent,Households,45.66
-DELTA CROSSING MHP,Housing Costs Over 50% Income,Percent,Households,25.57
 EAST WALNUT GROVE [SWS],Population Total,Count,Population,3
 EAST WALNUT GROVE [SWS],Hispanic / Latino,Count,Population,2
 EAST WALNUT GROVE [SWS],White,Count,Population,2
@@ -890,11 +890,11 @@ EAST WALNUT GROVE [SWS],No Mortgage Over 50% Income,Count,Households,0
 EAST WALNUT GROVE [SWS],Rent Total,Count,Households,1
 EAST WALNUT GROVE [SWS],Rent Over 30% Income,Count,Households,0
 EAST WALNUT GROVE [SWS],Rent Over 50% Income,Count,Households,0
+EAST WALNUT GROVE [SWS],All Housing Costs Over 30% Income,Percent,Households,24.49
+EAST WALNUT GROVE [SWS],All Housing Costs Over 50% Income,Percent,Households,14.65
 EAST WALNUT GROVE [SWS],Average Household Size,Hh Weighted,Household Weighted,2.49
 EAST WALNUT GROVE [SWS],Median Household Income,Hh Weighted,Household Weighted,68248
 EAST WALNUT GROVE [SWS],Per Capita Income,Pop Weighted,Population Weighted,38950
-EAST WALNUT GROVE [SWS],Housing Costs Over 30% Income,Percent,Households,24.49
-EAST WALNUT GROVE [SWS],Housing Costs Over 50% Income,Percent,Households,14.65
 EDGEWATER MOBILE HOME PARK,Population Total,Count,Population,0
 EDGEWATER MOBILE HOME PARK,Hispanic / Latino,Count,Population,0
 EDGEWATER MOBILE HOME PARK,White,Count,Population,0
@@ -946,11 +946,11 @@ EDGEWATER MOBILE HOME PARK,No Mortgage Over 50% Income,Count,Households,0
 EDGEWATER MOBILE HOME PARK,Rent Total,Count,Households,0
 EDGEWATER MOBILE HOME PARK,Rent Over 30% Income,Count,Households,0
 EDGEWATER MOBILE HOME PARK,Rent Over 50% Income,Count,Households,0
+EDGEWATER MOBILE HOME PARK,All Housing Costs Over 30% Income,Percent,Households,28.02
+EDGEWATER MOBILE HOME PARK,All Housing Costs Over 50% Income,Percent,Households,23.19
 EDGEWATER MOBILE HOME PARK,Average Household Size,Hh Weighted,Household Weighted,1.79
 EDGEWATER MOBILE HOME PARK,Median Household Income,Hh Weighted,Household Weighted,38125
 EDGEWATER MOBILE HOME PARK,Per Capita Income,Pop Weighted,Population Weighted,33103
-EDGEWATER MOBILE HOME PARK,Housing Costs Over 30% Income,Percent,Households,28.02
-EDGEWATER MOBILE HOME PARK,Housing Costs Over 50% Income,Percent,Households,23.19
 EL DORADO MOBILE HOME PARK,Population Total,Count,Population,139
 EL DORADO MOBILE HOME PARK,Hispanic / Latino,Count,Population,84
 EL DORADO MOBILE HOME PARK,White,Count,Population,11
@@ -1002,11 +1002,11 @@ EL DORADO MOBILE HOME PARK,No Mortgage Over 50% Income,Count,Households,5
 EL DORADO MOBILE HOME PARK,Rent Total,Count,Households,35
 EL DORADO MOBILE HOME PARK,Rent Over 30% Income,Count,Households,17
 EL DORADO MOBILE HOME PARK,Rent Over 50% Income,Count,Households,10
+EL DORADO MOBILE HOME PARK,All Housing Costs Over 30% Income,Percent,Households,46.7
+EL DORADO MOBILE HOME PARK,All Housing Costs Over 50% Income,Percent,Households,31.09
 EL DORADO MOBILE HOME PARK,Average Household Size,Hh Weighted,Household Weighted,2.71
 EL DORADO MOBILE HOME PARK,Median Household Income,Hh Weighted,Household Weighted,29468
 EL DORADO MOBILE HOME PARK,Per Capita Income,Pop Weighted,Population Weighted,17394
-EL DORADO MOBILE HOME PARK,Housing Costs Over 30% Income,Percent,Households,46.7
-EL DORADO MOBILE HOME PARK,Housing Costs Over 50% Income,Percent,Households,31.09
 EL DORADO WEST MHP,Population Total,Count,Population,148
 EL DORADO WEST MHP,Hispanic / Latino,Count,Population,89
 EL DORADO WEST MHP,White,Count,Population,12
@@ -1058,11 +1058,11 @@ EL DORADO WEST MHP,No Mortgage Over 50% Income,Count,Households,6
 EL DORADO WEST MHP,Rent Total,Count,Households,38
 EL DORADO WEST MHP,Rent Over 30% Income,Count,Households,18
 EL DORADO WEST MHP,Rent Over 50% Income,Count,Households,10
+EL DORADO WEST MHP,All Housing Costs Over 30% Income,Percent,Households,46.7
+EL DORADO WEST MHP,All Housing Costs Over 50% Income,Percent,Households,31.09
 EL DORADO WEST MHP,Average Household Size,Hh Weighted,Household Weighted,2.7099999999999995
 EL DORADO WEST MHP,Median Household Income,Hh Weighted,Household Weighted,29468.000000000004
 EL DORADO WEST MHP,Per Capita Income,Pop Weighted,Population Weighted,17394
-EL DORADO WEST MHP,Housing Costs Over 30% Income,Percent,Households,46.7
-EL DORADO WEST MHP,Housing Costs Over 50% Income,Percent,Households,31.09
 ELEVEN OAKS MOBILE HOME COMMUNITY,Population Total,Count,Population,233
 ELEVEN OAKS MOBILE HOME COMMUNITY,Hispanic / Latino,Count,Population,45
 ELEVEN OAKS MOBILE HOME COMMUNITY,White,Count,Population,94
@@ -1114,11 +1114,11 @@ ELEVEN OAKS MOBILE HOME COMMUNITY,No Mortgage Over 50% Income,Count,Households,1
 ELEVEN OAKS MOBILE HOME COMMUNITY,Rent Total,Count,Households,42
 ELEVEN OAKS MOBILE HOME COMMUNITY,Rent Over 30% Income,Count,Households,29
 ELEVEN OAKS MOBILE HOME COMMUNITY,Rent Over 50% Income,Count,Households,23
+ELEVEN OAKS MOBILE HOME COMMUNITY,All Housing Costs Over 30% Income,Percent,Households,46.85
+ELEVEN OAKS MOBILE HOME COMMUNITY,All Housing Costs Over 50% Income,Percent,Households,35.36
 ELEVEN OAKS MOBILE HOME COMMUNITY,Average Household Size,Hh Weighted,Household Weighted,3.28
 ELEVEN OAKS MOBILE HOME COMMUNITY,Median Household Income,Hh Weighted,Household Weighted,60521
 ELEVEN OAKS MOBILE HOME COMMUNITY,Per Capita Income,Pop Weighted,Population Weighted,18213
-ELEVEN OAKS MOBILE HOME COMMUNITY,Housing Costs Over 30% Income,Percent,Households,46.85
-ELEVEN OAKS MOBILE HOME COMMUNITY,Housing Costs Over 50% Income,Percent,Households,35.36
 ELK GROVE WATER SERVICE,Population Total,Count,Population,42647
 ELK GROVE WATER SERVICE,Hispanic / Latino,Count,Population,7656
 ELK GROVE WATER SERVICE,White,Count,Population,19550
@@ -1170,11 +1170,11 @@ ELK GROVE WATER SERVICE,No Mortgage Over 50% Income,Count,Households,113
 ELK GROVE WATER SERVICE,Rent Total,Count,Households,2826
 ELK GROVE WATER SERVICE,Rent Over 30% Income,Count,Households,1595
 ELK GROVE WATER SERVICE,Rent Over 50% Income,Count,Households,864
+ELK GROVE WATER SERVICE,All Housing Costs Over 30% Income,Percent,Households,28.55
+ELK GROVE WATER SERVICE,All Housing Costs Over 50% Income,Percent,Households,12.12
 ELK GROVE WATER SERVICE,Average Household Size,Hh Weighted,Household Weighted,3.179068135170295
 ELK GROVE WATER SERVICE,Median Household Income,Hh Weighted,Household Weighted,122770.99741351404
 ELK GROVE WATER SERVICE,Per Capita Income,Pop Weighted,Population Weighted,43429.03313732531
-ELK GROVE WATER SERVICE,Housing Costs Over 30% Income,Percent,Households,28.55
-ELK GROVE WATER SERVICE,Housing Costs Over 50% Income,Percent,Households,12.12
 FAIR OAKS WATER DISTRICT,Population Total,Count,Population,36003
 FAIR OAKS WATER DISTRICT,Hispanic / Latino,Count,Population,4655
 FAIR OAKS WATER DISTRICT,White,Count,Population,27050
@@ -1226,11 +1226,11 @@ FAIR OAKS WATER DISTRICT,No Mortgage Over 50% Income,Count,Households,108
 FAIR OAKS WATER DISTRICT,Rent Total,Count,Households,4051
 FAIR OAKS WATER DISTRICT,Rent Over 30% Income,Count,Households,1844
 FAIR OAKS WATER DISTRICT,Rent Over 50% Income,Count,Households,768
+FAIR OAKS WATER DISTRICT,All Housing Costs Over 30% Income,Percent,Households,27.94
+FAIR OAKS WATER DISTRICT,All Housing Costs Over 50% Income,Percent,Households,12.09
 FAIR OAKS WATER DISTRICT,Average Household Size,Hh Weighted,Household Weighted,2.4802167837955067
 FAIR OAKS WATER DISTRICT,Median Household Income,Hh Weighted,Household Weighted,107985.74325851546
 FAIR OAKS WATER DISTRICT,Per Capita Income,Pop Weighted,Population Weighted,54435.00970487184
-FAIR OAKS WATER DISTRICT,Housing Costs Over 30% Income,Percent,Households,27.94
-FAIR OAKS WATER DISTRICT,Housing Costs Over 50% Income,Percent,Households,12.09
 FLORIN COUNTY WATER DISTRICT,Population Total,Count,Population,9951
 FLORIN COUNTY WATER DISTRICT,Hispanic / Latino,Count,Population,2963
 FLORIN COUNTY WATER DISTRICT,White,Count,Population,1548
@@ -1282,11 +1282,11 @@ FLORIN COUNTY WATER DISTRICT,No Mortgage Over 50% Income,Count,Households,28
 FLORIN COUNTY WATER DISTRICT,Rent Total,Count,Households,1100
 FLORIN COUNTY WATER DISTRICT,Rent Over 30% Income,Count,Households,476
 FLORIN COUNTY WATER DISTRICT,Rent Over 50% Income,Count,Households,260
+FLORIN COUNTY WATER DISTRICT,All Housing Costs Over 30% Income,Percent,Households,34.48
+FLORIN COUNTY WATER DISTRICT,All Housing Costs Over 50% Income,Percent,Households,13.7
 FLORIN COUNTY WATER DISTRICT,Average Household Size,Hh Weighted,Household Weighted,3.573005180660505
 FLORIN COUNTY WATER DISTRICT,Median Household Income,Hh Weighted,Household Weighted,67048.12268615587
 FLORIN COUNTY WATER DISTRICT,Per Capita Income,Pop Weighted,Population Weighted,24517.639859299343
-FLORIN COUNTY WATER DISTRICT,Housing Costs Over 30% Income,Percent,Households,34.48
-FLORIN COUNTY WATER DISTRICT,Housing Costs Over 50% Income,Percent,Households,13.7
 FOLSOM STATE PRISON,Population Total,Count,Population,3536
 FOLSOM STATE PRISON,Hispanic / Latino,Count,Population,1257
 FOLSOM STATE PRISON,White,Count,Population,652
@@ -1338,11 +1338,11 @@ FOLSOM STATE PRISON,No Mortgage Over 50% Income,Count,Households,0
 FOLSOM STATE PRISON,Rent Total,Count,Households,19
 FOLSOM STATE PRISON,Rent Over 30% Income,Count,Households,0
 FOLSOM STATE PRISON,Rent Over 50% Income,Count,Households,0
+FOLSOM STATE PRISON,All Housing Costs Over 30% Income,Percent,Households,4.67
+FOLSOM STATE PRISON,All Housing Costs Over 50% Income,Percent,Households,0.53
 FOLSOM STATE PRISON,Average Household Size,Hh Weighted,Household Weighted,2.726311489407616
 FOLSOM STATE PRISON,Median Household Income,Hh Weighted,Household Weighted,161047.2164545734
 FOLSOM STATE PRISON,Per Capita Income,Pop Weighted,Population Weighted,2271.2201161818602
-FOLSOM STATE PRISON,Housing Costs Over 30% Income,Percent,Households,4.67
-FOLSOM STATE PRISON,Housing Costs Over 50% Income,Percent,Households,0.53
 "FOLSOM, CITY OF - ASHLAND",Population Total,Count,Population,3845
 "FOLSOM, CITY OF - ASHLAND",Hispanic / Latino,Count,Population,318
 "FOLSOM, CITY OF - ASHLAND",White,Count,Population,2934
@@ -1394,11 +1394,11 @@ FOLSOM STATE PRISON,Housing Costs Over 50% Income,Percent,Households,0.53
 "FOLSOM, CITY OF - ASHLAND",Rent Total,Count,Households,358
 "FOLSOM, CITY OF - ASHLAND",Rent Over 30% Income,Count,Households,196
 "FOLSOM, CITY OF - ASHLAND",Rent Over 50% Income,Count,Households,74
+"FOLSOM, CITY OF - ASHLAND",All Housing Costs Over 30% Income,Percent,Households,40.42
+"FOLSOM, CITY OF - ASHLAND",All Housing Costs Over 50% Income,Percent,Households,13.7
 "FOLSOM, CITY OF - ASHLAND",Average Household Size,Hh Weighted,Household Weighted,2.087285536960886
 "FOLSOM, CITY OF - ASHLAND",Median Household Income,Hh Weighted,Household Weighted,76810.17111631615
 "FOLSOM, CITY OF - ASHLAND",Per Capita Income,Pop Weighted,Population Weighted,56773.973812166274
-"FOLSOM, CITY OF - ASHLAND",Housing Costs Over 30% Income,Percent,Households,40.42
-"FOLSOM, CITY OF - ASHLAND",Housing Costs Over 50% Income,Percent,Households,13.7
 "FOLSOM, CITY OF - MAIN",Population Total,Count,Population,62462
 "FOLSOM, CITY OF - MAIN",Hispanic / Latino,Count,Population,8433
 "FOLSOM, CITY OF - MAIN",White,Count,Population,35222
@@ -1450,11 +1450,11 @@ FOLSOM STATE PRISON,Housing Costs Over 50% Income,Percent,Households,0.53
 "FOLSOM, CITY OF - MAIN",Rent Total,Count,Households,7328
 "FOLSOM, CITY OF - MAIN",Rent Over 30% Income,Count,Households,3010
 "FOLSOM, CITY OF - MAIN",Rent Over 50% Income,Count,Households,1321
+"FOLSOM, CITY OF - MAIN",All Housing Costs Over 30% Income,Percent,Households,26.66
+"FOLSOM, CITY OF - MAIN",All Housing Costs Over 50% Income,Percent,Households,11.81
 "FOLSOM, CITY OF - MAIN",Average Household Size,Hh Weighted,Household Weighted,2.7693559569400805
 "FOLSOM, CITY OF - MAIN",Median Household Income,Hh Weighted,Household Weighted,141856.37152396925
 "FOLSOM, CITY OF - MAIN",Per Capita Income,Pop Weighted,Population Weighted,58469.34569630441
-"FOLSOM, CITY OF - MAIN",Housing Costs Over 30% Income,Percent,Households,26.66
-"FOLSOM, CITY OF - MAIN",Housing Costs Over 50% Income,Percent,Households,11.81
 FREEPORT MARINA,Population Total,Count,Population,3
 FREEPORT MARINA,Hispanic / Latino,Count,Population,2
 FREEPORT MARINA,White,Count,Population,1
@@ -1506,11 +1506,11 @@ FREEPORT MARINA,No Mortgage Over 50% Income,Count,Households,0
 FREEPORT MARINA,Rent Total,Count,Households,0
 FREEPORT MARINA,Rent Over 30% Income,Count,Households,0
 FREEPORT MARINA,Rent Over 50% Income,Count,Households,0
+FREEPORT MARINA,All Housing Costs Over 30% Income,Percent,Households,45.66
+FREEPORT MARINA,All Housing Costs Over 50% Income,Percent,Households,25.57
 FREEPORT MARINA,Average Household Size,Hh Weighted,Household Weighted,2.55
 FREEPORT MARINA,Median Household Income,Hh Weighted,Household Weighted,56250
 FREEPORT MARINA,Per Capita Income,Pop Weighted,Population Weighted,23510
-FREEPORT MARINA,Housing Costs Over 30% Income,Percent,Households,45.66
-FREEPORT MARINA,Housing Costs Over 50% Income,Percent,Households,25.57
 "GALT, CITY OF",Population Total,Count,Population,21490
 "GALT, CITY OF",Hispanic / Latino,Count,Population,9314
 "GALT, CITY OF",White,Count,Population,9952
@@ -1562,11 +1562,11 @@ FREEPORT MARINA,Housing Costs Over 50% Income,Percent,Households,25.57
 "GALT, CITY OF",Rent Total,Count,Households,1809
 "GALT, CITY OF",Rent Over 30% Income,Count,Households,906
 "GALT, CITY OF",Rent Over 50% Income,Count,Households,414
+"GALT, CITY OF",All Housing Costs Over 30% Income,Percent,Households,27.52
+"GALT, CITY OF",All Housing Costs Over 50% Income,Percent,Households,14.05
 "GALT, CITY OF",Average Household Size,Hh Weighted,Household Weighted,3.048248495417214
 "GALT, CITY OF",Median Household Income,Hh Weighted,Household Weighted,90632.9331221346
 "GALT, CITY OF",Per Capita Income,Pop Weighted,Population Weighted,33685.541351256594
-"GALT, CITY OF",Housing Costs Over 30% Income,Percent,Households,27.52
-"GALT, CITY OF",Housing Costs Over 50% Income,Percent,Households,14.05
 GOLDEN STATE WATER CO - ARDEN WATER SERV,Population Total,Count,Population,6556
 GOLDEN STATE WATER CO - ARDEN WATER SERV,Hispanic / Latino,Count,Population,1706
 GOLDEN STATE WATER CO - ARDEN WATER SERV,White,Count,Population,2887
@@ -1618,11 +1618,11 @@ GOLDEN STATE WATER CO - ARDEN WATER SERV,No Mortgage Over 50% Income,Count,House
 GOLDEN STATE WATER CO - ARDEN WATER SERV,Rent Total,Count,Households,1315
 GOLDEN STATE WATER CO - ARDEN WATER SERV,Rent Over 30% Income,Count,Households,599
 GOLDEN STATE WATER CO - ARDEN WATER SERV,Rent Over 50% Income,Count,Households,335
+GOLDEN STATE WATER CO - ARDEN WATER SERV,All Housing Costs Over 30% Income,Percent,Households,38.56
+GOLDEN STATE WATER CO - ARDEN WATER SERV,All Housing Costs Over 50% Income,Percent,Households,21.09
 GOLDEN STATE WATER CO - ARDEN WATER SERV,Average Household Size,Hh Weighted,Household Weighted,2.8977160737987506
 GOLDEN STATE WATER CO - ARDEN WATER SERV,Median Household Income,Hh Weighted,Household Weighted,66579.356425836
 GOLDEN STATE WATER CO - ARDEN WATER SERV,Per Capita Income,Pop Weighted,Population Weighted,30417.362367453836
-GOLDEN STATE WATER CO - ARDEN WATER SERV,Housing Costs Over 30% Income,Percent,Households,38.56
-GOLDEN STATE WATER CO - ARDEN WATER SERV,Housing Costs Over 50% Income,Percent,Households,21.09
 GOLDEN STATE WATER CO. - CORDOVA,Population Total,Count,Population,48115
 GOLDEN STATE WATER CO. - CORDOVA,Hispanic / Latino,Count,Population,9009
 GOLDEN STATE WATER CO. - CORDOVA,White,Count,Population,26042
@@ -1674,11 +1674,11 @@ GOLDEN STATE WATER CO. - CORDOVA,No Mortgage Over 50% Income,Count,Households,20
 GOLDEN STATE WATER CO. - CORDOVA,Rent Total,Count,Households,7137
 GOLDEN STATE WATER CO. - CORDOVA,Rent Over 30% Income,Count,Households,2744
 GOLDEN STATE WATER CO. - CORDOVA,Rent Over 50% Income,Count,Households,1410
+GOLDEN STATE WATER CO. - CORDOVA,All Housing Costs Over 30% Income,Percent,Households,29.31
+GOLDEN STATE WATER CO. - CORDOVA,All Housing Costs Over 50% Income,Percent,Households,13.58
 GOLDEN STATE WATER CO. - CORDOVA,Average Household Size,Hh Weighted,Household Weighted,2.6507166775240423
 GOLDEN STATE WATER CO. - CORDOVA,Median Household Income,Hh Weighted,Household Weighted,96697.06109071148
 GOLDEN STATE WATER CO. - CORDOVA,Per Capita Income,Pop Weighted,Population Weighted,42695.412199827406
-GOLDEN STATE WATER CO. - CORDOVA,Housing Costs Over 30% Income,Percent,Households,29.31
-GOLDEN STATE WATER CO. - CORDOVA,Housing Costs Over 50% Income,Percent,Households,13.58
 HAPPY HARBOR (SWS),Population Total,Count,Population,0
 HAPPY HARBOR (SWS),Hispanic / Latino,Count,Population,0
 HAPPY HARBOR (SWS),White,Count,Population,0
@@ -1730,11 +1730,11 @@ HAPPY HARBOR (SWS),No Mortgage Over 50% Income,Count,Households,0
 HAPPY HARBOR (SWS),Rent Total,Count,Households,0
 HAPPY HARBOR (SWS),Rent Over 30% Income,Count,Households,0
 HAPPY HARBOR (SWS),Rent Over 50% Income,Count,Households,0
+HAPPY HARBOR (SWS),All Housing Costs Over 30% Income,Percent,Households,28.02
+HAPPY HARBOR (SWS),All Housing Costs Over 50% Income,Percent,Households,23.19
 HAPPY HARBOR (SWS),Average Household Size,Hh Weighted,Household Weighted,1.79
 HAPPY HARBOR (SWS),Median Household Income,Hh Weighted,Household Weighted,38125
 HAPPY HARBOR (SWS),Per Capita Income,Pop Weighted,Population Weighted,33103
-HAPPY HARBOR (SWS),Housing Costs Over 30% Income,Percent,Households,28.02
-HAPPY HARBOR (SWS),Housing Costs Over 50% Income,Percent,Households,23.19
 HOLIDAY MOBILE VILLAGE,Population Total,Count,Population,46
 HOLIDAY MOBILE VILLAGE,Hispanic / Latino,Count,Population,18
 HOLIDAY MOBILE VILLAGE,White,Count,Population,7
@@ -1786,11 +1786,11 @@ HOLIDAY MOBILE VILLAGE,No Mortgage Over 50% Income,Count,Households,1
 HOLIDAY MOBILE VILLAGE,Rent Total,Count,Households,12
 HOLIDAY MOBILE VILLAGE,Rent Over 30% Income,Count,Households,6
 HOLIDAY MOBILE VILLAGE,Rent Over 50% Income,Count,Households,4
+HOLIDAY MOBILE VILLAGE,All Housing Costs Over 30% Income,Percent,Households,44.88
+HOLIDAY MOBILE VILLAGE,All Housing Costs Over 50% Income,Percent,Households,28.55
 HOLIDAY MOBILE VILLAGE,Average Household Size,Hh Weighted,Household Weighted,2.86
 HOLIDAY MOBILE VILLAGE,Median Household Income,Hh Weighted,Household Weighted,38491
 HOLIDAY MOBILE VILLAGE,Per Capita Income,Pop Weighted,Population Weighted,16707
-HOLIDAY MOBILE VILLAGE,Housing Costs Over 30% Income,Percent,Households,44.88
-HOLIDAY MOBILE VILLAGE,Housing Costs Over 50% Income,Percent,Households,28.55
 HOOD WATER MAINTENCE DIST [SWS],Population Total,Count,Population,1
 HOOD WATER MAINTENCE DIST [SWS],Hispanic / Latino,Count,Population,1
 HOOD WATER MAINTENCE DIST [SWS],White,Count,Population,0
@@ -1842,11 +1842,11 @@ HOOD WATER MAINTENCE DIST [SWS],No Mortgage Over 50% Income,Count,Households,0
 HOOD WATER MAINTENCE DIST [SWS],Rent Total,Count,Households,0
 HOOD WATER MAINTENCE DIST [SWS],Rent Over 30% Income,Count,Households,0
 HOOD WATER MAINTENCE DIST [SWS],Rent Over 50% Income,Count,Households,0
+HOOD WATER MAINTENCE DIST [SWS],All Housing Costs Over 30% Income,Percent,Households,45.66
+HOOD WATER MAINTENCE DIST [SWS],All Housing Costs Over 50% Income,Percent,Households,25.57
 HOOD WATER MAINTENCE DIST [SWS],Average Household Size,Hh Weighted,Household Weighted,2.55
 HOOD WATER MAINTENCE DIST [SWS],Median Household Income,Hh Weighted,Household Weighted,56250
 HOOD WATER MAINTENCE DIST [SWS],Per Capita Income,Pop Weighted,Population Weighted,23510
-HOOD WATER MAINTENCE DIST [SWS],Housing Costs Over 30% Income,Percent,Households,45.66
-HOOD WATER MAINTENCE DIST [SWS],Housing Costs Over 50% Income,Percent,Households,25.57
 IMPERIAL MANOR MOBILEHOME COMMUNITY,Population Total,Count,Population,209
 IMPERIAL MANOR MOBILEHOME COMMUNITY,Hispanic / Latino,Count,Population,52
 IMPERIAL MANOR MOBILEHOME COMMUNITY,White,Count,Population,129
@@ -1898,11 +1898,11 @@ IMPERIAL MANOR MOBILEHOME COMMUNITY,No Mortgage Over 50% Income,Count,Households
 IMPERIAL MANOR MOBILEHOME COMMUNITY,Rent Total,Count,Households,27
 IMPERIAL MANOR MOBILEHOME COMMUNITY,Rent Over 30% Income,Count,Households,27
 IMPERIAL MANOR MOBILEHOME COMMUNITY,Rent Over 50% Income,Count,Households,22
+IMPERIAL MANOR MOBILEHOME COMMUNITY,All Housing Costs Over 30% Income,Percent,Households,50.97
+IMPERIAL MANOR MOBILEHOME COMMUNITY,All Housing Costs Over 50% Income,Percent,Households,45.07
 IMPERIAL MANOR MOBILEHOME COMMUNITY,Average Household Size,Hh Weighted,Household Weighted,1.6803625908618791
 IMPERIAL MANOR MOBILEHOME COMMUNITY,Median Household Income,Hh Weighted,Household Weighted,31831.837612603995
 IMPERIAL MANOR MOBILEHOME COMMUNITY,Per Capita Income,Pop Weighted,Population Weighted,32878.16681958172
-IMPERIAL MANOR MOBILEHOME COMMUNITY,Housing Costs Over 30% Income,Percent,Households,50.97
-IMPERIAL MANOR MOBILEHOME COMMUNITY,Housing Costs Over 50% Income,Percent,Households,45.07
 KORTHS PIRATES LAIR,Population Total,Count,Population,0
 KORTHS PIRATES LAIR,Hispanic / Latino,Count,Population,0
 KORTHS PIRATES LAIR,White,Count,Population,0
@@ -1954,11 +1954,11 @@ KORTHS PIRATES LAIR,No Mortgage Over 50% Income,Count,Households,0
 KORTHS PIRATES LAIR,Rent Total,Count,Households,0
 KORTHS PIRATES LAIR,Rent Over 30% Income,Count,Households,0
 KORTHS PIRATES LAIR,Rent Over 50% Income,Count,Households,0
+KORTHS PIRATES LAIR,All Housing Costs Over 30% Income,Percent,Households,28.02
+KORTHS PIRATES LAIR,All Housing Costs Over 50% Income,Percent,Households,23.19
 KORTHS PIRATES LAIR,Average Household Size,Hh Weighted,Household Weighted,1.79
 KORTHS PIRATES LAIR,Median Household Income,Hh Weighted,Household Weighted,38125
 KORTHS PIRATES LAIR,Per Capita Income,Pop Weighted,Population Weighted,33103
-KORTHS PIRATES LAIR,Housing Costs Over 30% Income,Percent,Households,28.02
-KORTHS PIRATES LAIR,Housing Costs Over 50% Income,Percent,Households,23.19
 LAGUNA DEL SOL INC,Population Total,Count,Population,24
 LAGUNA DEL SOL INC,Hispanic / Latino,Count,Population,5
 LAGUNA DEL SOL INC,White,Count,Population,18
@@ -2010,11 +2010,11 @@ LAGUNA DEL SOL INC,No Mortgage Over 50% Income,Count,Households,0
 LAGUNA DEL SOL INC,Rent Total,Count,Households,2
 LAGUNA DEL SOL INC,Rent Over 30% Income,Count,Households,0
 LAGUNA DEL SOL INC,Rent Over 50% Income,Count,Households,0
+LAGUNA DEL SOL INC,All Housing Costs Over 30% Income,Percent,Households,23.37
+LAGUNA DEL SOL INC,All Housing Costs Over 50% Income,Percent,Households,23.37
 LAGUNA DEL SOL INC,Average Household Size,Hh Weighted,Household Weighted,2.64
 LAGUNA DEL SOL INC,Median Household Income,Hh Weighted,Household Weighted,95227
 LAGUNA DEL SOL INC,Per Capita Income,Pop Weighted,Population Weighted,50793
-LAGUNA DEL SOL INC,Housing Costs Over 30% Income,Percent,Households,23.37
-LAGUNA DEL SOL INC,Housing Costs Over 50% Income,Percent,Households,23.37
 LAGUNA VILLAGE RV PARK,Population Total,Count,Population,20
 LAGUNA VILLAGE RV PARK,Hispanic / Latino,Count,Population,3
 LAGUNA VILLAGE RV PARK,White,Count,Population,2
@@ -2066,11 +2066,11 @@ LAGUNA VILLAGE RV PARK,No Mortgage Over 50% Income,Count,Households,0
 LAGUNA VILLAGE RV PARK,Rent Total,Count,Households,3
 LAGUNA VILLAGE RV PARK,Rent Over 30% Income,Count,Households,1
 LAGUNA VILLAGE RV PARK,Rent Over 50% Income,Count,Households,0
+LAGUNA VILLAGE RV PARK,All Housing Costs Over 30% Income,Percent,Households,32.52
+LAGUNA VILLAGE RV PARK,All Housing Costs Over 50% Income,Percent,Households,12.26
 LAGUNA VILLAGE RV PARK,Average Household Size,Hh Weighted,Household Weighted,3.03
 LAGUNA VILLAGE RV PARK,Median Household Income,Hh Weighted,Household Weighted,84332
 LAGUNA VILLAGE RV PARK,Per Capita Income,Pop Weighted,Population Weighted,32668
-LAGUNA VILLAGE RV PARK,Housing Costs Over 30% Income,Percent,Households,32.52
-LAGUNA VILLAGE RV PARK,Housing Costs Over 50% Income,Percent,Households,12.26
 LINCOLN CHAN-HOME RANCH,Population Total,Count,Population,4
 LINCOLN CHAN-HOME RANCH,Hispanic / Latino,Count,Population,2
 LINCOLN CHAN-HOME RANCH,White,Count,Population,2
@@ -2122,11 +2122,11 @@ LINCOLN CHAN-HOME RANCH,No Mortgage Over 50% Income,Count,Households,0
 LINCOLN CHAN-HOME RANCH,Rent Total,Count,Households,1
 LINCOLN CHAN-HOME RANCH,Rent Over 30% Income,Count,Households,0
 LINCOLN CHAN-HOME RANCH,Rent Over 50% Income,Count,Households,0
+LINCOLN CHAN-HOME RANCH,All Housing Costs Over 30% Income,Percent,Households,24.49
+LINCOLN CHAN-HOME RANCH,All Housing Costs Over 50% Income,Percent,Households,14.65
 LINCOLN CHAN-HOME RANCH,Average Household Size,Hh Weighted,Household Weighted,2.49
 LINCOLN CHAN-HOME RANCH,Median Household Income,Hh Weighted,Household Weighted,68248
 LINCOLN CHAN-HOME RANCH,Per Capita Income,Pop Weighted,Population Weighted,38950
-LINCOLN CHAN-HOME RANCH,Housing Costs Over 30% Income,Percent,Households,24.49
-LINCOLN CHAN-HOME RANCH,Housing Costs Over 50% Income,Percent,Households,14.65
 LOCKE WATER WORKS CO [SWS],Population Total,Count,Population,1
 LOCKE WATER WORKS CO [SWS],Hispanic / Latino,Count,Population,0
 LOCKE WATER WORKS CO [SWS],White,Count,Population,0
@@ -2178,11 +2178,11 @@ LOCKE WATER WORKS CO [SWS],No Mortgage Over 50% Income,Count,Households,0
 LOCKE WATER WORKS CO [SWS],Rent Total,Count,Households,0
 LOCKE WATER WORKS CO [SWS],Rent Over 30% Income,Count,Households,0
 LOCKE WATER WORKS CO [SWS],Rent Over 50% Income,Count,Households,0
+LOCKE WATER WORKS CO [SWS],All Housing Costs Over 30% Income,Percent,Households,24.49
+LOCKE WATER WORKS CO [SWS],All Housing Costs Over 50% Income,Percent,Households,14.65
 LOCKE WATER WORKS CO [SWS],Average Household Size,Hh Weighted,Household Weighted,2.49
 LOCKE WATER WORKS CO [SWS],Median Household Income,Hh Weighted,Household Weighted,68248
 LOCKE WATER WORKS CO [SWS],Per Capita Income,Pop Weighted,Population Weighted,38950
-LOCKE WATER WORKS CO [SWS],Housing Costs Over 30% Income,Percent,Households,24.49
-LOCKE WATER WORKS CO [SWS],Housing Costs Over 50% Income,Percent,Households,14.65
 MAGNOLIA MUTUAL WATER,Population Total,Count,Population,1
 MAGNOLIA MUTUAL WATER,Hispanic / Latino,Count,Population,0
 MAGNOLIA MUTUAL WATER,White,Count,Population,0
@@ -2234,11 +2234,11 @@ MAGNOLIA MUTUAL WATER,No Mortgage Over 50% Income,Count,Households,0
 MAGNOLIA MUTUAL WATER,Rent Total,Count,Households,0
 MAGNOLIA MUTUAL WATER,Rent Over 30% Income,Count,Households,0
 MAGNOLIA MUTUAL WATER,Rent Over 50% Income,Count,Households,0
+MAGNOLIA MUTUAL WATER,All Housing Costs Over 30% Income,Percent,Households,24.49
+MAGNOLIA MUTUAL WATER,All Housing Costs Over 50% Income,Percent,Households,14.65
 MAGNOLIA MUTUAL WATER,Average Household Size,Hh Weighted,Household Weighted,2.49
 MAGNOLIA MUTUAL WATER,Median Household Income,Hh Weighted,Household Weighted,68248
 MAGNOLIA MUTUAL WATER,Per Capita Income,Pop Weighted,Population Weighted,38950
-MAGNOLIA MUTUAL WATER,Housing Costs Over 30% Income,Percent,Households,24.49
-MAGNOLIA MUTUAL WATER,Housing Costs Over 50% Income,Percent,Households,14.65
 MC CLELLAN MHP,Population Total,Count,Population,269
 MC CLELLAN MHP,Hispanic / Latino,Count,Population,52
 MC CLELLAN MHP,White,Count,Population,108
@@ -2290,11 +2290,11 @@ MC CLELLAN MHP,No Mortgage Over 50% Income,Count,Households,1
 MC CLELLAN MHP,Rent Total,Count,Households,48
 MC CLELLAN MHP,Rent Over 30% Income,Count,Households,34
 MC CLELLAN MHP,Rent Over 50% Income,Count,Households,27
+MC CLELLAN MHP,All Housing Costs Over 30% Income,Percent,Households,46.85
+MC CLELLAN MHP,All Housing Costs Over 50% Income,Percent,Households,35.36
 MC CLELLAN MHP,Average Household Size,Hh Weighted,Household Weighted,3.28
 MC CLELLAN MHP,Median Household Income,Hh Weighted,Household Weighted,60521
 MC CLELLAN MHP,Per Capita Income,Pop Weighted,Population Weighted,18213
-MC CLELLAN MHP,Housing Costs Over 30% Income,Percent,Households,46.85
-MC CLELLAN MHP,Housing Costs Over 50% Income,Percent,Households,35.36
 OLYMPIA MOBILODGE,Population Total,Count,Population,290
 OLYMPIA MOBILODGE,Hispanic / Latino,Count,Population,70
 OLYMPIA MOBILODGE,White,Count,Population,81
@@ -2346,11 +2346,11 @@ OLYMPIA MOBILODGE,No Mortgage Over 50% Income,Count,Households,10
 OLYMPIA MOBILODGE,Rent Total,Count,Households,33
 OLYMPIA MOBILODGE,Rent Over 30% Income,Count,Households,9
 OLYMPIA MOBILODGE,Rent Over 50% Income,Count,Households,7
+OLYMPIA MOBILODGE,All Housing Costs Over 30% Income,Percent,Households,37.35
+OLYMPIA MOBILODGE,All Housing Costs Over 50% Income,Percent,Households,23.74
 OLYMPIA MOBILODGE,Average Household Size,Hh Weighted,Household Weighted,2.5100000000000002
 OLYMPIA MOBILODGE,Median Household Income,Hh Weighted,Household Weighted,53786
 OLYMPIA MOBILODGE,Per Capita Income,Pop Weighted,Population Weighted,29451
-OLYMPIA MOBILODGE,Housing Costs Over 30% Income,Percent,Households,37.35
-OLYMPIA MOBILODGE,Housing Costs Over 50% Income,Percent,Households,23.74
 ORANGE VALE WATER COMPANY,Population Total,Count,Population,17387
 ORANGE VALE WATER COMPANY,Hispanic / Latino,Count,Population,2658
 ORANGE VALE WATER COMPANY,White,Count,Population,12308
@@ -2402,11 +2402,11 @@ ORANGE VALE WATER COMPANY,No Mortgage Over 50% Income,Count,Households,185
 ORANGE VALE WATER COMPANY,Rent Total,Count,Households,1663
 ORANGE VALE WATER COMPANY,Rent Over 30% Income,Count,Households,693
 ORANGE VALE WATER COMPANY,Rent Over 50% Income,Count,Households,305
+ORANGE VALE WATER COMPANY,All Housing Costs Over 30% Income,Percent,Households,30.77
+ORANGE VALE WATER COMPANY,All Housing Costs Over 50% Income,Percent,Households,14.29
 ORANGE VALE WATER COMPANY,Average Household Size,Hh Weighted,Household Weighted,2.608348457768683
 ORANGE VALE WATER COMPANY,Median Household Income,Hh Weighted,Household Weighted,92693.71491876646
 ORANGE VALE WATER COMPANY,Per Capita Income,Pop Weighted,Population Weighted,42509.89363050402
-ORANGE VALE WATER COMPANY,Housing Costs Over 30% Income,Percent,Households,30.77
-ORANGE VALE WATER COMPANY,Housing Costs Over 50% Income,Percent,Households,14.29
 PLANTATION MOBILE HOME PARK,Population Total,Count,Population,10
 PLANTATION MOBILE HOME PARK,Hispanic / Latino,Count,Population,4
 PLANTATION MOBILE HOME PARK,White,Count,Population,1
@@ -2458,11 +2458,11 @@ PLANTATION MOBILE HOME PARK,No Mortgage Over 50% Income,Count,Households,0
 PLANTATION MOBILE HOME PARK,Rent Total,Count,Households,2
 PLANTATION MOBILE HOME PARK,Rent Over 30% Income,Count,Households,1
 PLANTATION MOBILE HOME PARK,Rent Over 50% Income,Count,Households,1
+PLANTATION MOBILE HOME PARK,All Housing Costs Over 30% Income,Percent,Households,44.88
+PLANTATION MOBILE HOME PARK,All Housing Costs Over 50% Income,Percent,Households,28.55
 PLANTATION MOBILE HOME PARK,Average Household Size,Hh Weighted,Household Weighted,2.86
 PLANTATION MOBILE HOME PARK,Median Household Income,Hh Weighted,Household Weighted,38491
 PLANTATION MOBILE HOME PARK,Per Capita Income,Pop Weighted,Population Weighted,16707
-PLANTATION MOBILE HOME PARK,Housing Costs Over 30% Income,Percent,Households,44.88
-PLANTATION MOBILE HOME PARK,Housing Costs Over 50% Income,Percent,Households,28.55
 RANCHO MARINA,Population Total,Count,Population,0
 RANCHO MARINA,Hispanic / Latino,Count,Population,0
 RANCHO MARINA,White,Count,Population,0
@@ -2514,11 +2514,11 @@ RANCHO MARINA,No Mortgage Over 50% Income,Count,Households,0
 RANCHO MARINA,Rent Total,Count,Households,0
 RANCHO MARINA,Rent Over 30% Income,Count,Households,0
 RANCHO MARINA,Rent Over 50% Income,Count,Households,0
+RANCHO MARINA,All Housing Costs Over 30% Income,Percent,Households,28.02
+RANCHO MARINA,All Housing Costs Over 50% Income,Percent,Households,23.19
 RANCHO MARINA,Average Household Size,Hh Weighted,Household Weighted,1.79
 RANCHO MARINA,Median Household Income,Hh Weighted,Household Weighted,38125
 RANCHO MARINA,Per Capita Income,Pop Weighted,Population Weighted,33103
-RANCHO MARINA,Housing Costs Over 30% Income,Percent,Households,28.02
-RANCHO MARINA,Housing Costs Over 50% Income,Percent,Households,23.19
 RANCHO MURIETA COMMUNITY SERVI,Population Total,Count,Population,3239
 RANCHO MURIETA COMMUNITY SERVI,Hispanic / Latino,Count,Population,661
 RANCHO MURIETA COMMUNITY SERVI,White,Count,Population,2157
@@ -2570,11 +2570,11 @@ RANCHO MURIETA COMMUNITY SERVI,No Mortgage Over 50% Income,Count,Households,57
 RANCHO MURIETA COMMUNITY SERVI,Rent Total,Count,Households,103
 RANCHO MURIETA COMMUNITY SERVI,Rent Over 30% Income,Count,Households,41
 RANCHO MURIETA COMMUNITY SERVI,Rent Over 50% Income,Count,Households,40
+RANCHO MURIETA COMMUNITY SERVI,All Housing Costs Over 30% Income,Percent,Households,22.02
+RANCHO MURIETA COMMUNITY SERVI,All Housing Costs Over 50% Income,Percent,Households,14.3
 RANCHO MURIETA COMMUNITY SERVI,Average Household Size,Hh Weighted,Household Weighted,2.307704065813508
 RANCHO MURIETA COMMUNITY SERVI,Median Household Income,Hh Weighted,Household Weighted,144993.80707581018
 RANCHO MURIETA COMMUNITY SERVI,Per Capita Income,Pop Weighted,Population Weighted,66451.34059033732
-RANCHO MURIETA COMMUNITY SERVI,Housing Costs Over 30% Income,Percent,Households,22.02
-RANCHO MURIETA COMMUNITY SERVI,Housing Costs Over 50% Income,Percent,Households,14.3
 RIO COSUMNES CORRECTIONAL CENTER [SWS],Population Total,Count,Population,22
 RIO COSUMNES CORRECTIONAL CENTER [SWS],Hispanic / Latino,Count,Population,6
 RIO COSUMNES CORRECTIONAL CENTER [SWS],White,Count,Population,8
@@ -2626,11 +2626,11 @@ RIO COSUMNES CORRECTIONAL CENTER [SWS],No Mortgage Over 50% Income,Count,Househo
 RIO COSUMNES CORRECTIONAL CENTER [SWS],Rent Total,Count,Households,0
 RIO COSUMNES CORRECTIONAL CENTER [SWS],Rent Over 30% Income,Count,Households,0
 RIO COSUMNES CORRECTIONAL CENTER [SWS],Rent Over 50% Income,Count,Households,0
+RIO COSUMNES CORRECTIONAL CENTER [SWS],All Housing Costs Over 30% Income,Percent,Households,23.75
+RIO COSUMNES CORRECTIONAL CENTER [SWS],All Housing Costs Over 50% Income,Percent,Households,0
 RIO COSUMNES CORRECTIONAL CENTER [SWS],Average Household Size,Hh Weighted,Household Weighted,3.45
 RIO COSUMNES CORRECTIONAL CENTER [SWS],Median Household Income,Hh Weighted,Household Weighted,115897.00000000001
 RIO COSUMNES CORRECTIONAL CENTER [SWS],Per Capita Income,Pop Weighted,Population Weighted,11095
-RIO COSUMNES CORRECTIONAL CENTER [SWS],Housing Costs Over 30% Income,Percent,Households,23.75
-RIO COSUMNES CORRECTIONAL CENTER [SWS],Housing Costs Over 50% Income,Percent,Households,0
 RIO LINDA/ELVERTA COMMUNITY WATER DIST,Population Total,Count,Population,11831
 RIO LINDA/ELVERTA COMMUNITY WATER DIST,Hispanic / Latino,Count,Population,2585
 RIO LINDA/ELVERTA COMMUNITY WATER DIST,White,Count,Population,7595
@@ -2682,11 +2682,11 @@ RIO LINDA/ELVERTA COMMUNITY WATER DIST,No Mortgage Over 50% Income,Count,Househo
 RIO LINDA/ELVERTA COMMUNITY WATER DIST,Rent Total,Count,Households,1070
 RIO LINDA/ELVERTA COMMUNITY WATER DIST,Rent Over 30% Income,Count,Households,519
 RIO LINDA/ELVERTA COMMUNITY WATER DIST,Rent Over 50% Income,Count,Households,340
+RIO LINDA/ELVERTA COMMUNITY WATER DIST,All Housing Costs Over 30% Income,Percent,Households,32.07
+RIO LINDA/ELVERTA COMMUNITY WATER DIST,All Housing Costs Over 50% Income,Percent,Households,14.49
 RIO LINDA/ELVERTA COMMUNITY WATER DIST,Average Household Size,Hh Weighted,Household Weighted,3.1230123203938827
 RIO LINDA/ELVERTA COMMUNITY WATER DIST,Median Household Income,Hh Weighted,Household Weighted,83603.04124462775
 RIO LINDA/ELVERTA COMMUNITY WATER DIST,Per Capita Income,Pop Weighted,Population Weighted,33734.48719704626
-RIO LINDA/ELVERTA COMMUNITY WATER DIST,Housing Costs Over 30% Income,Percent,Households,32.07
-RIO LINDA/ELVERTA COMMUNITY WATER DIST,Housing Costs Over 50% Income,Percent,Households,14.49
 RIVER'S EDGE MARINA & RESORT,Population Total,Count,Population,0
 RIVER'S EDGE MARINA & RESORT,Hispanic / Latino,Count,Population,0
 RIVER'S EDGE MARINA & RESORT,White,Count,Population,0
@@ -2738,11 +2738,11 @@ RIVER'S EDGE MARINA & RESORT,No Mortgage Over 50% Income,Count,Households,0
 RIVER'S EDGE MARINA & RESORT,Rent Total,Count,Households,0
 RIVER'S EDGE MARINA & RESORT,Rent Over 30% Income,Count,Households,0
 RIVER'S EDGE MARINA & RESORT,Rent Over 50% Income,Count,Households,0
+RIVER'S EDGE MARINA & RESORT,All Housing Costs Over 30% Income,Percent,Households,28.02
+RIVER'S EDGE MARINA & RESORT,All Housing Costs Over 50% Income,Percent,Households,23.19
 RIVER'S EDGE MARINA & RESORT,Average Household Size,Hh Weighted,Household Weighted,1.79
 RIVER'S EDGE MARINA & RESORT,Median Household Income,Hh Weighted,Household Weighted,38125
 RIVER'S EDGE MARINA & RESORT,Per Capita Income,Pop Weighted,Population Weighted,33103
-RIVER'S EDGE MARINA & RESORT,Housing Costs Over 30% Income,Percent,Households,28.02
-RIVER'S EDGE MARINA & RESORT,Housing Costs Over 50% Income,Percent,Households,23.19
 SAC CITY MOBILE HOME COMMUNITY LP,Population Total,Count,Population,229
 SAC CITY MOBILE HOME COMMUNITY LP,Hispanic / Latino,Count,Population,82
 SAC CITY MOBILE HOME COMMUNITY LP,White,Count,Population,17
@@ -2794,11 +2794,11 @@ SAC CITY MOBILE HOME COMMUNITY LP,No Mortgage Over 50% Income,Count,Households,0
 SAC CITY MOBILE HOME COMMUNITY LP,Rent Total,Count,Households,71
 SAC CITY MOBILE HOME COMMUNITY LP,Rent Over 30% Income,Count,Households,41
 SAC CITY MOBILE HOME COMMUNITY LP,Rent Over 50% Income,Count,Households,30
+SAC CITY MOBILE HOME COMMUNITY LP,All Housing Costs Over 30% Income,Percent,Households,48.95
+SAC CITY MOBILE HOME COMMUNITY LP,All Housing Costs Over 50% Income,Percent,Households,35.43
 SAC CITY MOBILE HOME COMMUNITY LP,Average Household Size,Hh Weighted,Household Weighted,2.53
 SAC CITY MOBILE HOME COMMUNITY LP,Median Household Income,Hh Weighted,Household Weighted,22380
 SAC CITY MOBILE HOME COMMUNITY LP,Per Capita Income,Pop Weighted,Population Weighted,16689
-SAC CITY MOBILE HOME COMMUNITY LP,Housing Costs Over 30% Income,Percent,Households,48.95
-SAC CITY MOBILE HOME COMMUNITY LP,Housing Costs Over 50% Income,Percent,Households,35.43
 SACRAMENTO SUBURBAN WATER DISTRICT,Population Total,Count,Population,193126
 SACRAMENTO SUBURBAN WATER DISTRICT,Hispanic / Latino,Count,Population,43047
 SACRAMENTO SUBURBAN WATER DISTRICT,White,Count,Population,97872
@@ -2850,11 +2850,11 @@ SACRAMENTO SUBURBAN WATER DISTRICT,No Mortgage Over 50% Income,Count,Households,
 SACRAMENTO SUBURBAN WATER DISTRICT,Rent Total,Count,Households,37001
 SACRAMENTO SUBURBAN WATER DISTRICT,Rent Over 30% Income,Count,Households,21072
 SACRAMENTO SUBURBAN WATER DISTRICT,Rent Over 50% Income,Count,Households,10274
+SACRAMENTO SUBURBAN WATER DISTRICT,All Housing Costs Over 30% Income,Percent,Households,41.88
+SACRAMENTO SUBURBAN WATER DISTRICT,All Housing Costs Over 50% Income,Percent,Households,19.68
 SACRAMENTO SUBURBAN WATER DISTRICT,Average Household Size,Hh Weighted,Household Weighted,2.635470822506937
 SACRAMENTO SUBURBAN WATER DISTRICT,Median Household Income,Hh Weighted,Household Weighted,73746.51448559026
 SACRAMENTO SUBURBAN WATER DISTRICT,Per Capita Income,Pop Weighted,Population Weighted,35321.17943972356
-SACRAMENTO SUBURBAN WATER DISTRICT,Housing Costs Over 30% Income,Percent,Households,41.88
-SACRAMENTO SUBURBAN WATER DISTRICT,Housing Costs Over 50% Income,Percent,Households,19.68
 SAN JUAN WATER DISTRICT,Population Total,Count,Population,30122
 SAN JUAN WATER DISTRICT,Hispanic / Latino,Count,Population,3409
 SAN JUAN WATER DISTRICT,White,Count,Population,21349
@@ -2906,11 +2906,11 @@ SAN JUAN WATER DISTRICT,No Mortgage Over 50% Income,Count,Households,357
 SAN JUAN WATER DISTRICT,Rent Total,Count,Households,1658
 SAN JUAN WATER DISTRICT,Rent Over 30% Income,Count,Households,726
 SAN JUAN WATER DISTRICT,Rent Over 50% Income,Count,Households,339
+SAN JUAN WATER DISTRICT,All Housing Costs Over 30% Income,Percent,Households,27.98
+SAN JUAN WATER DISTRICT,All Housing Costs Over 50% Income,Percent,Households,13.21
 SAN JUAN WATER DISTRICT,Average Household Size,Hh Weighted,Household Weighted,2.7838582261197615
 SAN JUAN WATER DISTRICT,Median Household Income,Hh Weighted,Household Weighted,160696.10105741228
 SAN JUAN WATER DISTRICT,Per Capita Income,Pop Weighted,Population Weighted,72978.42336271124
-SAN JUAN WATER DISTRICT,Housing Costs Over 30% Income,Percent,Households,27.98
-SAN JUAN WATER DISTRICT,Housing Costs Over 50% Income,Percent,Households,13.21
 SCWA - ARDEN PARK VISTA,Population Total,Count,Population,8086
 SCWA - ARDEN PARK VISTA,Hispanic / Latino,Count,Population,990
 SCWA - ARDEN PARK VISTA,White,Count,Population,6016
@@ -2962,11 +2962,11 @@ SCWA - ARDEN PARK VISTA,No Mortgage Over 50% Income,Count,Households,23
 SCWA - ARDEN PARK VISTA,Rent Total,Count,Households,807
 SCWA - ARDEN PARK VISTA,Rent Over 30% Income,Count,Households,384
 SCWA - ARDEN PARK VISTA,Rent Over 50% Income,Count,Households,225
+SCWA - ARDEN PARK VISTA,All Housing Costs Over 30% Income,Percent,Households,29.69
+SCWA - ARDEN PARK VISTA,All Housing Costs Over 50% Income,Percent,Households,10.9
 SCWA - ARDEN PARK VISTA,Average Household Size,Hh Weighted,Household Weighted,2.424845516612799
 SCWA - ARDEN PARK VISTA,Median Household Income,Hh Weighted,Household Weighted,139081.65196802403
 SCWA - ARDEN PARK VISTA,Per Capita Income,Pop Weighted,Population Weighted,84548.46138496802
-SCWA - ARDEN PARK VISTA,Housing Costs Over 30% Income,Percent,Households,29.69
-SCWA - ARDEN PARK VISTA,Housing Costs Over 50% Income,Percent,Households,10.9
 SCWA - LAGUNA/VINEYARD,Population Total,Count,Population,145495
 SCWA - LAGUNA/VINEYARD,Hispanic / Latino,Count,Population,27502
 SCWA - LAGUNA/VINEYARD,White,Count,Population,38496
@@ -3018,11 +3018,11 @@ SCWA - LAGUNA/VINEYARD,No Mortgage Over 50% Income,Count,Households,471
 SCWA - LAGUNA/VINEYARD,Rent Total,Count,Households,12677
 SCWA - LAGUNA/VINEYARD,Rent Over 30% Income,Count,Households,6368
 SCWA - LAGUNA/VINEYARD,Rent Over 50% Income,Count,Households,3337
+SCWA - LAGUNA/VINEYARD,All Housing Costs Over 30% Income,Percent,Households,32.04
+SCWA - LAGUNA/VINEYARD,All Housing Costs Over 50% Income,Percent,Households,14.9
 SCWA - LAGUNA/VINEYARD,Average Household Size,Hh Weighted,Household Weighted,3.2074469367308294
 SCWA - LAGUNA/VINEYARD,Median Household Income,Hh Weighted,Household Weighted,114494.03008793297
 SCWA - LAGUNA/VINEYARD,Per Capita Income,Pop Weighted,Population Weighted,41415.71495309661
-SCWA - LAGUNA/VINEYARD,Housing Costs Over 30% Income,Percent,Households,32.04
-SCWA - LAGUNA/VINEYARD,Housing Costs Over 50% Income,Percent,Households,14.9
 SCWA MATHER-SUNRISE,Population Total,Count,Population,18249
 SCWA MATHER-SUNRISE,Hispanic / Latino,Count,Population,2708
 SCWA MATHER-SUNRISE,White,Count,Population,8114
@@ -3074,11 +3074,11 @@ SCWA MATHER-SUNRISE,No Mortgage Over 50% Income,Count,Households,43
 SCWA MATHER-SUNRISE,Rent Total,Count,Households,893
 SCWA MATHER-SUNRISE,Rent Over 30% Income,Count,Households,318
 SCWA MATHER-SUNRISE,Rent Over 50% Income,Count,Households,167
+SCWA MATHER-SUNRISE,All Housing Costs Over 30% Income,Percent,Households,22.89
+SCWA MATHER-SUNRISE,All Housing Costs Over 50% Income,Percent,Households,8.66
 SCWA MATHER-SUNRISE,Average Household Size,Hh Weighted,Household Weighted,3.296327128817464
 SCWA MATHER-SUNRISE,Median Household Income,Hh Weighted,Household Weighted,147818.00762610507
 SCWA MATHER-SUNRISE,Per Capita Income,Pop Weighted,Population Weighted,47448.3691116171
-SCWA MATHER-SUNRISE,Housing Costs Over 30% Income,Percent,Households,22.89
-SCWA MATHER-SUNRISE,Housing Costs Over 50% Income,Percent,Households,8.66
 SEQUOIA WATER ASSOC,Population Total,Count,Population,0
 SEQUOIA WATER ASSOC,Hispanic / Latino,Count,Population,0
 SEQUOIA WATER ASSOC,White,Count,Population,0
@@ -3130,11 +3130,11 @@ SEQUOIA WATER ASSOC,No Mortgage Over 50% Income,Count,Households,0
 SEQUOIA WATER ASSOC,Rent Total,Count,Households,0
 SEQUOIA WATER ASSOC,Rent Over 30% Income,Count,Households,0
 SEQUOIA WATER ASSOC,Rent Over 50% Income,Count,Households,0
+SEQUOIA WATER ASSOC,All Housing Costs Over 30% Income,Percent,Households,24.49
+SEQUOIA WATER ASSOC,All Housing Costs Over 50% Income,Percent,Households,14.65
 SEQUOIA WATER ASSOC,Average Household Size,Hh Weighted,Household Weighted,2.49
 SEQUOIA WATER ASSOC,Median Household Income,Hh Weighted,Household Weighted,68248
 SEQUOIA WATER ASSOC,Per Capita Income,Pop Weighted,Population Weighted,38950
-SEQUOIA WATER ASSOC,Housing Costs Over 30% Income,Percent,Households,24.49
-SEQUOIA WATER ASSOC,Housing Costs Over 50% Income,Percent,Households,14.65
 SOUTHWEST TRACT W M D [SWS],Population Total,Count,Population,174
 SOUTHWEST TRACT W M D [SWS],Hispanic / Latino,Count,Population,29
 SOUTHWEST TRACT W M D [SWS],White,Count,Population,42
@@ -3186,11 +3186,11 @@ SOUTHWEST TRACT W M D [SWS],No Mortgage Over 50% Income,Count,Households,0
 SOUTHWEST TRACT W M D [SWS],Rent Total,Count,Households,45
 SOUTHWEST TRACT W M D [SWS],Rent Over 30% Income,Count,Households,29
 SOUTHWEST TRACT W M D [SWS],Rent Over 50% Income,Count,Households,7
+SOUTHWEST TRACT W M D [SWS],All Housing Costs Over 30% Income,Percent,Households,52.53
+SOUTHWEST TRACT W M D [SWS],All Housing Costs Over 50% Income,Percent,Households,12.4
 SOUTHWEST TRACT W M D [SWS],Average Household Size,Hh Weighted,Household Weighted,3.04
 SOUTHWEST TRACT W M D [SWS],Median Household Income,Hh Weighted,Household Weighted,45671
 SOUTHWEST TRACT W M D [SWS],Per Capita Income,Pop Weighted,Population Weighted,36348
-SOUTHWEST TRACT W M D [SWS],Housing Costs Over 30% Income,Percent,Households,52.53
-SOUTHWEST TRACT W M D [SWS],Housing Costs Over 50% Income,Percent,Households,12.4
 SPINDRIFT MARINA,Population Total,Count,Population,0
 SPINDRIFT MARINA,Hispanic / Latino,Count,Population,0
 SPINDRIFT MARINA,White,Count,Population,0
@@ -3242,11 +3242,11 @@ SPINDRIFT MARINA,No Mortgage Over 50% Income,Count,Households,0
 SPINDRIFT MARINA,Rent Total,Count,Households,0
 SPINDRIFT MARINA,Rent Over 30% Income,Count,Households,0
 SPINDRIFT MARINA,Rent Over 50% Income,Count,Households,0
+SPINDRIFT MARINA,All Housing Costs Over 30% Income,Percent,Households,28.02
+SPINDRIFT MARINA,All Housing Costs Over 50% Income,Percent,Households,23.19
 SPINDRIFT MARINA,Average Household Size,Hh Weighted,Household Weighted,1.7899999999999998
 SPINDRIFT MARINA,Median Household Income,Hh Weighted,Household Weighted,38125
 SPINDRIFT MARINA,Per Capita Income,Pop Weighted,Population Weighted,33103
-SPINDRIFT MARINA,Housing Costs Over 30% Income,Percent,Households,28.02
-SPINDRIFT MARINA,Housing Costs Over 50% Income,Percent,Households,23.19
 TOKAY PARK WATER CO,Population Total,Count,Population,652
 TOKAY PARK WATER CO,Hispanic / Latino,Count,Population,214
 TOKAY PARK WATER CO,White,Count,Population,134
@@ -3298,11 +3298,11 @@ TOKAY PARK WATER CO,No Mortgage Over 50% Income,Count,Households,0
 TOKAY PARK WATER CO,Rent Total,Count,Households,48
 TOKAY PARK WATER CO,Rent Over 30% Income,Count,Households,32
 TOKAY PARK WATER CO,Rent Over 50% Income,Count,Households,12
+TOKAY PARK WATER CO,All Housing Costs Over 30% Income,Percent,Households,40.57
+TOKAY PARK WATER CO,All Housing Costs Over 50% Income,Percent,Households,13.58
 TOKAY PARK WATER CO,Average Household Size,Hh Weighted,Household Weighted,3.7579731008260437
 TOKAY PARK WATER CO,Median Household Income,Hh Weighted,Household Weighted,62802.23785121953
 TOKAY PARK WATER CO,Per Capita Income,Pop Weighted,Population Weighted,19400.04804878149
-TOKAY PARK WATER CO,Housing Costs Over 30% Income,Percent,Households,40.57
-TOKAY PARK WATER CO,Housing Costs Over 50% Income,Percent,Households,13.58
 TUNNEL TRAILER PARK,Population Total,Count,Population,0
 TUNNEL TRAILER PARK,Hispanic / Latino,Count,Population,0
 TUNNEL TRAILER PARK,White,Count,Population,0
@@ -3354,11 +3354,11 @@ TUNNEL TRAILER PARK,No Mortgage Over 50% Income,Count,Households,0
 TUNNEL TRAILER PARK,Rent Total,Count,Households,0
 TUNNEL TRAILER PARK,Rent Over 30% Income,Count,Households,0
 TUNNEL TRAILER PARK,Rent Over 50% Income,Count,Households,0
+TUNNEL TRAILER PARK,All Housing Costs Over 30% Income,Percent,Households,20.3
+TUNNEL TRAILER PARK,All Housing Costs Over 50% Income,Percent,Households,0
 TUNNEL TRAILER PARK,Average Household Size,Hh Weighted,Household Weighted,2.95
 TUNNEL TRAILER PARK,Median Household Income,Hh Weighted,Household Weighted,153092
 TUNNEL TRAILER PARK,Per Capita Income,Pop Weighted,Population Weighted,42507
-TUNNEL TRAILER PARK,Housing Costs Over 30% Income,Percent,Households,20.3
-TUNNEL TRAILER PARK,Housing Costs Over 50% Income,Percent,Households,0
 "VIEIRA'S RESORT, INC",Population Total,Count,Population,4
 "VIEIRA'S RESORT, INC",Hispanic / Latino,Count,Population,2
 "VIEIRA'S RESORT, INC",White,Count,Population,2
@@ -3410,11 +3410,11 @@ TUNNEL TRAILER PARK,Housing Costs Over 50% Income,Percent,Households,0
 "VIEIRA'S RESORT, INC",Rent Total,Count,Households,0
 "VIEIRA'S RESORT, INC",Rent Over 30% Income,Count,Households,0
 "VIEIRA'S RESORT, INC",Rent Over 50% Income,Count,Households,0
+"VIEIRA'S RESORT, INC",All Housing Costs Over 30% Income,Percent,Households,40.53
+"VIEIRA'S RESORT, INC",All Housing Costs Over 50% Income,Percent,Households,21.84
 "VIEIRA'S RESORT, INC",Average Household Size,Hh Weighted,Household Weighted,2.03
 "VIEIRA'S RESORT, INC",Median Household Income,Hh Weighted,Household Weighted,51977
 "VIEIRA'S RESORT, INC",Per Capita Income,Pop Weighted,Population Weighted,40522
-"VIEIRA'S RESORT, INC",Housing Costs Over 30% Income,Percent,Households,40.53
-"VIEIRA'S RESORT, INC",Housing Costs Over 50% Income,Percent,Households,21.84
 WESTERNER MOBILE HOME PARK,Population Total,Count,Population,32
 WESTERNER MOBILE HOME PARK,Hispanic / Latino,Count,Population,6
 WESTERNER MOBILE HOME PARK,White,Count,Population,6
@@ -3466,8 +3466,8 @@ WESTERNER MOBILE HOME PARK,No Mortgage Over 50% Income,Count,Households,0
 WESTERNER MOBILE HOME PARK,Rent Total,Count,Households,5
 WESTERNER MOBILE HOME PARK,Rent Over 30% Income,Count,Households,3
 WESTERNER MOBILE HOME PARK,Rent Over 50% Income,Count,Households,2
+WESTERNER MOBILE HOME PARK,All Housing Costs Over 30% Income,Percent,Households,56.87
+WESTERNER MOBILE HOME PARK,All Housing Costs Over 50% Income,Percent,Households,29.49
 WESTERNER MOBILE HOME PARK,Average Household Size,Hh Weighted,Household Weighted,3.16
 WESTERNER MOBILE HOME PARK,Median Household Income,Hh Weighted,Household Weighted,59296.00000000001
 WESTERNER MOBILE HOME PARK,Per Capita Income,Pop Weighted,Population Weighted,23437
-WESTERNER MOBILE HOME PARK,Housing Costs Over 30% Income,Percent,Households,56.87
-WESTERNER MOBILE HOME PARK,Housing Costs Over 50% Income,Percent,Households,29.49

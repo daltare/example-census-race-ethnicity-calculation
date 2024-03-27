@@ -902,7 +902,7 @@ water_system_demographics <- water_system_demographics %>%
                           households_rent_over30pct_count) / 
                households_count, 
            .after = households_rent_over50pct_count) %>% 
-    mutate(households_housing_costs_over50pct_percent = 
+    mutate(households_all_housing_costs_over50pct_percent = 
                100 * (households_mortgage_over50pct_count + 
                           households_no_mortgage_over50pct_count +
                           households_rent_over50pct_count) / 
@@ -1233,9 +1233,37 @@ systems_top_n <- water_system_demographics %>%
     pull(water_system_name)
 ```
 
+### Race / Ethnicity
+
+\[placeholder\]
+
+-   percent by group (bar)
+
+-   dot-density
+
+-   mapview (non-white)
+
 ### Income Distributions
 
-\[TO DO: add visualizations\]
+\[placeholder\]
+
+-   income brackets (50k) (bar)
+
+-   median household income by block group (dots)
+
+-   dot-density (below threshold value)
+
+-   mapview
+
+### Poverty Rates
+
+\[placeholder\]
+
+-   dot plot
+
+-   mapview
+
+-   side-by-side map
 
 ### Income & Relative Housing Costs
 
@@ -1278,7 +1306,7 @@ biscale_map <- ggplot() +
                   dim = biscale_dim) + 
     labs(
         title = "Estimated % of Households Paying More Than 30% of Income Towards Housing Costs \nand Estimated Median Household Income in Sacramento Water Systems",
-        subtitle = glue("Top {n_systems} systems by population"),
+        subtitle = glue("Top {n_systems} Water Systems by Population"),
         caption = glue("Data estimated from {acs_year} 5-year ACS Block Groups")
         # title = "Estimated Housing Cost as % of Household Income and \nEstimated Median Household Income in Sacramento Water Systems", 
         # caption = "% Housing cost shows the percent of households paying more than 30% of their income towards housing costs \nIncome shows median household income (yellow = missing)"
