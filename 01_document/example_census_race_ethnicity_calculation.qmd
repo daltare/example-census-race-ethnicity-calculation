@@ -1170,7 +1170,7 @@ write_csv(x = hash_table_current,
 
 #### Tabular Dataset {#sec-results-save-tabular}
 
-The code below saves the tabular results to a csv file, in both the 'wide' and 'long' formats. The wide format data can also be viewed [here](https://github.com/daltare/example-census-race-ethnicity-calculation/blob/main/03_data_results/water_system_demographics_sac.csv), or downloaded with [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/water_system_demographics_sac.csv). The long format data can be viewed [here](https://github.com/daltare/example-census-race-ethnicity-calculation/blob/main/03_data_results/water_system_demographics_sac_long.csv), or downloaded with [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/water_system_demographics_sac_long.csv).
+The code below saves the tabular results to a csv file, in both the 'wide' and 'long' formats. The wide format data can also be viewed [here](https://github.com/daltare/example-census-race-ethnicity-calculation/blob/main/03_data_results/water_system_demographics_sac.csv), or downloaded with [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/water_system_demographics_sac.csv){download="water_system_demographics_sac.csv"}. The long format data can be viewed [here](https://github.com/daltare/example-census-race-ethnicity-calculation/blob/main/03_data_results/water_system_demographics_sac_long.csv), or downloaded with [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/water_system_demographics_sac_long.csv){download="water_system_demographics_sac_long.csv"}.
 
 ```{r}
 #| cache: false
@@ -1192,7 +1192,7 @@ if (file_update_long == TRUE) {
 }
 ```
 
-And we can save the intermediate data from the interpolation process (i.e., data for clipped block groups) in wide and long format – these files can be downloaded with [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/intermediate_interpolation_data.csv) and [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/intermediate_interpolation_data_long.csv) respectively.
+And we can save the intermediate data from the interpolation process (i.e., data for clipped block groups) in wide and long format – these files can be downloaded with [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/intermediate_interpolation_data.csv){download="intermediate_interpolation_data.csv"} and [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/intermediate_interpolation_data_long.csv){download="intermediate_interpolation_data_long.csv"} respectively.
 
 ```{r}
 #| cache: false
@@ -1216,7 +1216,7 @@ if (file_update_interpolate_long == TRUE) {
 
 #### Spatial Dataset {#sec-results-save-spatial}
 
-To save the output in a geospatial format, it may be best to save the data in a wide format, so that all of the attribute data for each *target* area (water system) is in a single row along with its spatial data (i.e. the system boundary information) (saving in long format may create a very large file). The code below saves the results – in wide format – to a geopackage file, which is a spatial file format that is similar to a shapefile. The final water system demographic data is available to downloaded with [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/water_system_demographics_sac.gpkg), and the data from the intermediate calculations (for clipped block groups) is available to download with [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/intermediate_interpolation_data.gpkg).
+To save the output in a geospatial format, it may be best to save the data in a wide format, so that all of the attribute data for each *target* area (water system) is in a single row along with its spatial data (i.e. the system boundary information) (saving in long format may create a very large file). The code below saves the results – in wide format – to a geopackage file, which is a spatial file format that is similar to a shapefile. The final water system demographic data is available to downloaded with [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/water_system_demographics_sac.gpkg){download="water_system_demographics_sac.gpkg"}, and the data from the intermediate calculations (for clipped block groups) is available to download with [this link](https://github.com/daltare/example-census-race-ethnicity-calculation/raw/main/03_data_results/intermediate_interpolation_data.gpkg){download="intermediate_interpolation_data.gpkg"}.
 
 ```{r}
 #| message: false
