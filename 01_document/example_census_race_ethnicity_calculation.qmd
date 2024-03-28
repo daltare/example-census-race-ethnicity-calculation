@@ -1543,6 +1543,9 @@ In this case, one option could be to use a minimum coverage threshold, where ent
 Here's an example calculation:
 
 ```{r}
+#| warning: false
+#| message: false
+
 # define threshold value
 overlap_threshold <- 0.5
 
