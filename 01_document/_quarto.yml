@@ -1,10 +1,26 @@
 project:
   type: website
-  # output-dir: docs
+website:
+  site-url: "https://daltare.github.io/example-census-race-ethnicity-calculation/example_census_race_ethnicity_calculation.html"
+  repo-url: "https://github.com/daltare/example-census-race-ethnicity-calculation"
+  issue-url: "https://github.com/daltare/example-census-race-ethnicity-calculation/issues"
+  repo-subdir: "01_document"
+  repo-link-target: "_blank"
+  repo-actions: [issue, source]
+  navbar:
+    search: true
+    left:
+      - icon: github
+        href: https://github.com/daltare/example-census-race-ethnicity-calculation
+        aria-label: GitHub
+  # sidebar:
+    # search: true
+    # tools:
+     # - icon: github
+       # href: https://github.com/daltare/example-census-race-ethnicity-calculation 
 format:
   html:
     theme:
-      # - default
       light: flatly
       dark: darkly
 execute:
