@@ -203,11 +203,11 @@ library(arcgislayers)
 url_feature <- 'https://gispublic.waterboards.ca.gov/portalserver/rest/services/Drinking_Water/California_Drinking_water_system_numberem_Area_Boundaries/FeatureServer/0'
 
 # connect to data source
-water_system_numberems_feature_layer <- arc_open(url_feature)
+water_systems_feature_layer <- arc_open(url_feature)
 
 # download and filter data from source
-water_system_numberems_sac <- arc_select(
-    water_system_numberems_feature_layer,
+water_systems_sac <- arc_select(
+    water_systems_feature_layer,
     # apply filters
     where = "COUNTY = 'SACRAMENTO' AND STATE_CLASSIFICATION = 'COMMUNITY'",
     # select fields
@@ -286,6 +286,26 @@ In order to use the `tidycensus` R package, you'll need to obtain a personal API
 Because the boundaries of census units (e.g., tracts, block groups, blocks, etc) can change over time, it's important to make sure that the version (year) of the census data you're retrieving matches the version of the census boundary dataset you're using. The methods shown below retrieve the census boundary dataset together with the census demographic data, which ensures that this won't be a potential problem. However, if you use a different workflow that retrieves the geographic boundaries and demographic data via separate processes, you should ensure that the versions are consistent.
 :::
 
+Before downloading the census data, we can create an object that we can use to filter our requests to the census API so that they will only return census units that overlap with our target areas (the object will be passed to the `filter_by` argument of the `get_decennial` function below). Note that this isn't strictly necessary (you could also apply the filter after making the API request), but may helpful to speed the query and reduce memory usage, especially in the case of large queries.
+
+::: {#nte-filter-by .callout-note}
+At the time of this writing, the `filter_by` argument of the tidycensus `get_decennial` and `get_acs` functions is fairly new, and not yet included in the official documentation.
+
+Also, the `filter_by` argument is optional, and only appears to accept a simple features (sf) object with a single row / feature (e.g., a single water system), and will not accept an sf object with multiple rows / features. The process below attempts to work around this constraint by joining all of the selected water systems into a single multi-part polygon (i.e., an sf object with a single row). However, if you only want to retrieve data for census units that overlap a single target area (e.g., a single water system), you can skip this step.
+:::
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+#| lst-label: lst-filter_obj
+#| lst-cap: Create object for filtering the API query
+
+water_systems_filter <- water_systems_sac %>% 
+    st_union() %>% 
+    st_as_sf()
+```
+
 ### Decennial Census {#sec-census-access-decennial}
 
 This section retrieves census data from the Decennial Census, using the `get_decennial` function from the `tidycensus` package. As of this writing, the most recent version of the decennial census data available is from 2020, and we can set that as a variable below.
@@ -320,27 +340,7 @@ census_vars_decennial <- c(
 )
 ```
 
-Then, we can create an object that we can use to filter our request to the census API so that it will only return census units that overlap with our target areas (the object will be passed to the `filter_by` argument of the `get_decennial` function below). Note that this isn't strictly necessary (you could also apply the filter after making the API request), but may helpful to speed the query and reduce memory usage, especially in the case of large queries.
-
-::: callout-note
-At the time of this writing, the `filter_by` argument of the tidycensus `get_decennial` function is fairly new, and not yet included in the official documentation.
-
-Also, the `filter_by` argument is optional, and only appears to accept a simple features (sf) object with a single row / feature (e.g., a single water system), and will not accept an sf object with multiple rows / features. The process below attempts to work around this constraint by joining all of the selected water systems into a single multi-part polygon (i.e., an sf object with a single row). However, if you only want to retrieve data for census units that overlap a single target area (e.g., a single water system), you can skip this step.
-:::
-
-```{r}
-#| message: false
-#| warning: false
-#| results: hide
-#| lst-label: lst-filter_obj
-#| lst-cap: Create object for filtering the API query
-
-water_system_numberems_filter <- water_systems_sac %>% 
-    st_union() %>% 
-    st_as_sf()
-```
-
-Finally, we can make the data request, using the `get_decennial` function, which accepts several arguments that specify exactly what data to return.
+Now, we can make the data request, using the `get_decennial` function, which accepts several arguments that specify exactly what data to return.
 
 For this example we're getting data at the 'Block' level (with the `geography = 'block'` argument) for the demographic variables defined above in the `census_vars_decennial` object (which is passed to the `variables` argument). As noted above, block-level data is the most granular level of spatial data available, and should provide the best results when estimating demographics for areas whose boundaries don't align with census unit boundaries. However, depending on the use case, it may require too much time and computational resources to use the most granular spatial data, and may not be necessary to obtain a reasonable estimate. Also, keep in mind that block-level data may not be available for all variables, and some variables may only be available at less granular spatial scales (like block groups or tracts).
 
@@ -354,7 +354,7 @@ The `tidycensus` package generally returns the Census Bureau's [cartographic bou
 At the block level, it appears that `tidycensus` only returns the more detailed core TIGER/Line shapefiles (i.e., they are identical to the default block-level geographic data returned by `tigris`). In some cases, that can create minor inconsistencies when working with both blocks and block groups and using the default geographies.
 :::
 
-We also narrow down the search parameters geographically by specifying the state (with `state = 'CA'`) and counties (`county = counties_list`) we're seeking data for.
+We also narrow down the search parameters geographically by specifying the state (with `state = 'CA'`) and counties (`county = counties_list`) we're seeking data for, and provide an object to the `filter_by` argument which filters the data returned so that it only includes census units that overlap with our target areas (see @nte-filter-by above for more information).
 
 ::: callout-note
 Supplying a list of counties may not be strictly necessary, especially in cases where you supply the optional `filter_by` argument. However, especially when working with granular data like blocks, supplying the county argument seems to greatly speed the API request.
@@ -373,7 +373,7 @@ Also, while by default the `tidycensus` package returns data in long/tidy format
 census_data_decennial <- get_decennial(geography = 'block', # can be 'block', 'block group', 'tract', 'county', etc.
                                        state = 'CA', 
                                        county = counties_list,
-                                       filter_by = water_system_numberems_filter,
+                                       filter_by = water_systems_filter,
                                        year = decennial_year,
                                        variables = census_vars_decennial,
                                        output = 'wide', # can be 'wide' or 'tidy'
@@ -401,7 +401,7 @@ To get data from the ACS, you can use the `get_acs()` function, which is very si
 acs_year <- 2022
 ```
 
-However, since the ACS data contains data on a much broader set of socio-economic metrics, the requested data includes a greatly expanded list of variables, defined in the `census_vars_acs` object (see @sec-census-variables for more information about how to discover variables of interest and find their associated codes). As above, we can provide descriptive names associated with each variable code, which makes the data easier to work with later, but isn't strictly necessary (i.e., you could just supply the variable codes alone).
+However, since the ACS data contains data on a much broader set of socio-economic metrics, the requested data includes a greatly expanded list of variables, defined in the `census_vars_acs` object (see @sec-census-variables for more information about how to discover variables of interest and find their associated codes). As above, we can provide descriptive names associated with each variable code, which makes the data easier to work with later, but isn't strictly necessary (i.e., you could just supply the variable codes alone). Note that the use of prefixes (like `population_` or `households_`) and suffixes (like `_count`) is intentional -- those will be used later as part of the calculation process. 
 
 ```{r}
 #| message: false
@@ -467,7 +467,7 @@ census_vars_acs <- c(
 )
 ```
 
-Finally, we can make the data request, using the `get_acs` function, which is very similar to the `get_decennial` function described above ( @sec-census-access-decennial). However, for this example we're getting data at the 'Block Group' level (with the `geography = 'block group'` argument), which is the most granular level of spatial data available for ACS data. But, keep in mind that block group-level data may not be available for all variables, and some variables may only be available at less granular spatial scales (like tracts). Note that the `water_system_numberems_filter` object supplied to the `filter_by` argument was created above in @lst-filter_obj.
+Finally, we can make the data request, using the `get_acs` function, which is very similar to the `get_decennial` function described above ( @sec-census-access-decennial). However, for this example we're getting data at the 'Block Group' level (with the `geography = 'block group'` argument), which is the most granular level of spatial data available for ACS data. But, keep in mind that block group-level data may not be available for all variables, and some variables may only be available at less granular spatial scales (like tracts). Note that the `water_systems_filter` object supplied to the `filter_by` argument was created above in @lst-filter_obj (and see @nte-filter-by above for more information about this argument).
 
 ```{r}
 #| message: false
@@ -480,7 +480,7 @@ Finally, we can make the data request, using the `get_acs` function, which is ve
 census_data_acs <- get_acs(geography = 'block group',
                            state = 'CA', 
                            county = counties_list,
-                           filter_by = water_system_numberems_filter,
+                           filter_by = water_systems_filter,
                            year = acs_year,
                            survey = 'acs5',
                            variables = census_vars_acs, 
@@ -499,9 +499,11 @@ glimpse(census_data_acs[,1:20])
 Note that the dataset that's returned includes fields corresponding to Margin of Error (MOE) for each variable we've requested (these are the fields that end with two digits and an M – e.g., "001M"), since, as noted above in @sec-census-datasets , the ACS is based on a sample of the population and reports estimated values.
 
 ::: callout-tip
-It is possible to calculate MOEs for derived estimates – e.g., when aggregating groups of census units – and in many cases it may be worthwhile to do that to provide extra context to the data. However, it may be difficult to do for more complex aggregations, such as the areal interpolation shown below. For guidance on how calculate MOEs for some types of derived estimates, see [this document](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_general_handbook_2020_ch08.pdf).
+It is possible to calculate MOEs for derived estimates – e.g., when aggregating groups of census units – and in many cases it may be worthwhile to do that to provide extra context to the data. However, it may not be possible (or may be difficult) to do for more complex aggregations, such as the areal interpolation shown below – more research may be needed.
 
-`tidycensus` also has functions for calculating derives margins of error based on Census-supplied formulas, including [`moe_sum()`](https://walker-data.com/tidycensus/reference/moe_sum.html), [`moe_product()`](https://walker-data.com/tidycensus/reference/moe_product.html), [`moe_ratio()`](https://walker-data.com/tidycensus/reference/moe_ratio.html), and [`moe_prop()`](https://walker-data.com/tidycensus/reference/moe_prop.html).
+For guidance on how calculate MOEs for some types of derived estimates, see [this document](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_general_handbook_2020_ch08.pdf).
+
+For an alternative, simplified approach to estimating census demographics for target areas which includes MOEs for the derived estimates, see @sec-alternative-simplified.
 :::
 
 Because we won't be incorporating those MOEs into the analysis below, we can drop them for this example, then clean up the field names.
@@ -559,8 +561,6 @@ system_plot <- 'SACRAMENTO SUBURBAN WATER DISTRICT'
 ::: {#fig-suppliers-census-map}
 ```{r}
 #| warning: false
-# label: fig-suppliers-census-map
-# fig-cap: "Water system (filled polygon) and boundaries of census units (light blue) that will be used to estimate water system demographics."
 
 mapview(water_systems_sac %>% 
             filter(water_system_name == system_plot), 
@@ -1530,13 +1530,207 @@ From the map above \[TO DO: insert map\], you can see that the service area repo
 This section is in progress.
 :::
 
+### Simplified Method With MOE Estimates {#sec-alternative-simplified}
+
+As noted above, determining the margin of error (MOE) for estimates computed using areal weighted interpolation to aggregate portions of census units that overlap the target area of interest may not be possible (more research may be needed). If it's necessary to compute MOEs for your aggregated values, and/or it's preferable to use a simpler approach that doesn't apply areal interpolation to assign fractional portions of census units to the target area, then a simplified method could be applied.
+
+In this case, one option could be to use a minimum coverage threshold, where entire census units whose portion of area that overlaps the target area is greater than the threshold are treated as part of the target area, and any census units whose portion of area that overlaps the target area is less than the threshold are not treated as part of the target area. Because this approach operates on entire census units, the census bureau's recommended approach for aggregating MOEs can be applied to produce an aggregated MOE. (However, keep in mind that the aggregated MOE applies to the uncertainty in the estimate for the census units included in the aggregation, and not may not necessarily capture the uncertainty in the estimate of the target area, since the two areas are now different – i.e., there is an additional unquantified element of uncertainty/error which is not reflected in the MOE due to this mismatch. In general, any estimate which attempts to compute census demographics for areas that don't align with the census boundaries may have some element on un-quantifiable error – more research/input may be needed.)
+
+::: callout-tip
+`tidycensus` has functions for calculating MOEs for derived estimates based on Census-supplied formulas, including [`moe_sum()`](https://walker-data.com/tidycensus/reference/moe_sum.html), [`moe_product()`](https://walker-data.com/tidycensus/reference/moe_product.html), [`moe_ratio()`](https://walker-data.com/tidycensus/reference/moe_ratio.html), and [`moe_prop()`](https://walker-data.com/tidycensus/reference/moe_prop.html).
+:::
+
+Here's an example calculation:
+
+```{r}
+# define threshold value
+overlap_threshold <- 0.5
+
+# get census data (with MOEs)
+census_data_acs_moe <- get_acs(geography = 'block group',
+                           state = 'CA', 
+                           county = counties_list,
+                           filter_by = water_systems_filter,
+                           year = acs_year,
+                           survey = 'acs5',
+                           variables = census_vars_acs, 
+                           output = 'wide', # can be 'wide' or 'tidy'
+                           geometry = TRUE,
+                           cache_table = TRUE) %>% 
+    st_transform(crs_projected) # convert to common coordinate system
+
+# compute area of overlap for each census unit
+simplified_calc <- census_data_acs_moe %>%
+    mutate(census_unit_area = st_area(.)) %>% 
+    st_intersection(water_systems_sac %>% 
+                        select(water_system_name)) %>%
+    mutate(clipped_area = st_area(.)) %>% 
+    mutate(overlap_portion = drop_units(clipped_area / census_unit_area)) %>% 
+    mutate(geoid_system = paste(GEOID, water_system_name, sep = '|')) %>% 
+    st_drop_geometry()
+
+# determine which census units to include, based on threshold value
+simplified_calc <- simplified_calc %>% 
+    mutate(above_threshold = overlap_portion >= overlap_threshold)
+
+# account for water systems with no census units that meet the threshold value
+## get list of systems with at least 1 census unit above threshold
+simplified_systems_above_threshold <- simplified_calc %>% 
+    filter(above_threshold == TRUE) %>% 
+    pull(water_system_name) %>% 
+    unique()
+## get list of systems with no census units above threshold    
+simplified_systems_below_threshold <- water_systems_sac %>% 
+    filter(!water_system_name %in% simplified_systems_above_threshold) %>% 
+    pull(water_system_name)
+
+## select the 1 census unit per system with the greatest overlap 
+simplified_systems_below_threshold_keep <- simplified_calc %>% 
+    filter(water_system_name %in% simplified_systems_below_threshold) %>% 
+    group_by(water_system_name) %>%
+    slice_max(order_by = overlap_portion, n = 1) %>%
+    ungroup()
+
+# filter census units based on threshold value (and account for water systems with no census units that meet the threshold value)
+geoid_system_keep_above_threshold <- simplified_calc %>% 
+               filter(above_threshold == TRUE) %>% 
+               pull(geoid_system)
+geoid_system_keep_below_threshold <- simplified_systems_below_threshold_keep %>% 
+    pull(geoid_system)
+
+census_data_acs_moe <- census_data_acs_moe %>% 
+    st_join(water_systems_sac %>% select(water_system_name)) %>% 
+    mutate(geoid_system = paste(GEOID, water_system_name, sep = '|')) %>% 
+    filter(geoid_system %in% c(geoid_system_keep_above_threshold, geoid_system_keep_below_threshold))
+
+# aggregate
+# [TO DO: compute aggregated values]
+# simplified_calc_aggregate <- simplified_calc %>% 
+#     group_by(water_system_name, water_systems_filter) %>% 
+#     {.} %>% 
+#     ungroup()
+
+# compute MOEs
+# [TO DO - use tidycensus functions to calculate MOEs]
+
+```
+
+@fig-simplified-calc-map shows the census units used in this simplified method to estimate demographics for `{r} str_to_title(system_plot)`.
+
+::: {#fig-simplified-calc-map}
+```{r}
+#| warning: false
+#| code-fold: true
+
+mapview(census_data_acs_moe %>% 
+            filter(water_system_name == system_plot), 
+        alpha.regions = 0.8, 
+        col.regions = 'grey60',
+        color = 'cyan',
+        # lwd = 1.3, 
+        label = 'NAME',  
+        layer.name = 'ACS Data', 
+        legend = FALSE) + #  zcol = 'NAME'    
+    mapview(water_systems_sac %>% 
+                filter(water_system_name == system_plot), 
+            alpha.regions = 0.3, 
+            col.regions = 'darkblue',
+            color = 'black',
+            lwd = 1.3, 
+            zcol = 'water_system_name',
+            # label = 'water_system_name',
+            layer.name = 'Water System Boundary', 
+            legend = FALSE)
+```
+
+Water system `{r} str_to_title(system_plot)` (light blue fill) and boundaries of census units (grey fill) that will be used to estimate water system demographics for the simplified approach.
+:::
+
+While this approach may work well for relatively large water systems (where the size of the system is significantly greater than the census units used for the analysis), for smaller water systems this method might be somewhat more problematic, as show in @fig-simplified-calc-map-small-system.
+
+::: {#fig-simplified-calc-map-small-system}
+```{r}
+#| warning: false
+#| code-fold: true
+
+system_plot_small <- 'RIO LINDA/ELVERTA COMMUNITY WATER DIST'
+
+mapview(census_data_acs_moe %>% 
+            filter(water_system_name == system_plot_small), 
+        alpha.regions = 0.8, 
+        col.regions = 'grey60',
+        color = 'cyan',
+        # lwd = 1.3, 
+        label = 'NAME',  
+        layer.name = 'ACS Data', 
+        legend = FALSE) + #  zcol = 'NAME'    
+    mapview(water_systems_sac %>% 
+                filter(water_system_name == system_plot_small), 
+            alpha.regions = 0.3, 
+            col.regions = 'darkblue',
+            color = 'black',
+            lwd = 1.3, 
+            zcol = 'water_system_name',
+            # label = 'water_system_name',
+            layer.name = 'Water System Boundary', 
+            legend = FALSE)
+
+```
+
+Water system `{r} str_to_title(system_plot_small)` (light blue fill) and boundaries of census units (grey fill) that will be used to estimate water system demographics for the simplified approach.
+:::
+
+@fig-simplified-calc-map-small-system shows another example of a small system surrounded by large (rural) block groups.
+
+::: {#fig-simplified-calc-map-small-system}
+```{r}
+#| warning: false
+#| code-fold: true
+
+system_plot_small <- 'RANCHO MURIETA COMMUNITY SERVI' # 'RIO LINDA/ELVERTA COMMUNITY WATER DIST'
+
+mapview(census_data_acs %>% 
+            st_filter(water_systems_sac %>% 
+                          filter(water_system_name == system_plot_small)) %>% 
+            filter(!GEOID %in% (census_data_acs_moe %>% 
+                       filter(water_system_name == system_plot_small) %>% 
+                       pull(GEOID))), 
+        alpha.regions = 0.3, 
+        col.regions = 'grey80',
+        color = 'grey',
+        # lwd = 1.3, 
+        label = 'NAME',  
+        layer.name = 'ACS Data - Not Used', 
+        legend = FALSE) + #  zcol = 'NAME' 
+mapview(census_data_acs_moe %>% 
+            filter(water_system_name == system_plot_small), 
+        alpha.regions = 0.8, 
+        col.regions = 'grey60',
+        color = 'cyan',
+        # lwd = 1.3, 
+        label = 'NAME',  
+        layer.name = 'ACS Data - Used', 
+        legend = FALSE) + #  zcol = 'NAME'    
+    mapview(water_systems_sac %>% 
+                filter(water_system_name == system_plot_small), 
+            alpha.regions = 0.3, 
+            col.regions = 'darkblue',
+            color = 'black',
+            lwd = 1.3, 
+            zcol = 'water_system_name',
+            # label = 'water_system_name',
+            layer.name = 'Water System Boundary', 
+            legend = FALSE)
+```
+
+Water system `{r} str_to_title(system_plot_small)` (light blue fill) and boundaries of census units (grey fill) that will be used to estimate water system demographics for the simplified approach.
+:::
+
 ### Population Weighted Interpolation {#sec-alternative-interpolate_pw}
 
 The `tidycensus` package also has a function for population weighted interpolation, [`interpolate_pw`](https://walker-data.com/tidycensus/reference/interpolate_pw.html), but it uses a somewhat different methodology than the population weighted interpolation procedure applied above in @sec-pop-interp.
 
-Note that some water systems may not get an estimated value using this method, even if `NA` values are removed from the source data first (TO DO: check whether this depends on which type of boundary dataset is used - i.e., tigris with cb = FALSE or TRUE).
-
-Using original `census_data_acs` variable gives multiple `NA`s - it looks like those are small areas:
+Note that some water systems may not get an estimated value using this method, even if `NA` values are removed from the source data first.
 
 ```{r}
 results_interpolate_pw <- interpolate_pw(from = census_data_acs %>%
@@ -1553,62 +1747,24 @@ results_interpolate_pw <- interpolate_pw(from = census_data_acs %>%
     mutate(population_total_count_interpolate_pw = round(population_total_count_interpolate_pw, 0))
 
 # sum(is.na(results_interpolate_pw$median_household_income_interpolate_pw))
-sum(is.na(results_interpolate_pw$population_total_count_interpolate_pw))
+# sum(is.na(results_interpolate_pw$population_total_count_interpolate_pw))
 ```
 
-Using detailed block group geometry - looks like the same results?:
+This returns `{r} sum(is.na(results_interpolate_pw$population_total_count_interpolate_pw))` `NA`s (it looks like those are small areas). @tbl-interpolate-pw-compare shows a comparison of the system populations estimated using `interpolate_pw` and the reported system populations:
 
 ```{r}
-#| warning: false
+#| label: tbl-interpolate-pw-compare
+#| tbl-cap: "Results Comparison - estimated population with interpolate_pw() vs. reported population"
+#| tbl-cap-location: top
 
-# # get detailed block group geometry
-# block_groups_detailed <- block_groups(state = 'CA',
-#                                       county = 'Sacramento',
-#                                       cb = FALSE,
-#                                       year = acs_year) %>%
-#     st_transform(crs_projected)
-# block_groups_detailed <- block_groups_detailed %>%
-#     st_filter(water_systems_sac) %>%
-#     select(GEOID)
-# 
-# block_groups_detailed <- block_groups_detailed %>%
-#     left_join(census_data_acs %>%
-#                   st_drop_geometry() %>%
-#                   select(GEOID, population_total_count, median_household_income),
-#               by = 'GEOID')
-# 
-# # interpolate
-# results_interpolate_pw_detailed <- interpolate_pw(from = block_groups_detailed %>%
-#                                                       filter(!is.na(population_total_count)) %>% # population_total_count median_household_income
-#                                                       select(population_total_count),
-#                                                   to = water_systems_sac,
-#                                                   to_id = 'water_system_name',
-#                                                   extensive = TRUE, # use FALSE for median_household_income
-#                                                   weights = census_data_decennial,
-#                                                   weight_placement = 'surface',
-#                                                   weight_column = 'population_total_count') %>%
-#     # rename(median_household_income_interpolate_pw = median_household_income) # rename results field
-#     rename(population_total_count_interpolate_pw = population_total_count)
-# 
-# # sum(is.na(results_interpolate_pw_detailed$median_household_income_interpolate_pw))
-# sum(is.na(results_interpolate_pw_detailed$population_total_count_interpolate_pw))
-```
-
-Compare results using `interpolate_pw` to reported population counts:
-
-```{r}
-results_interpolate_pw <- results_interpolate_pw %>%
+results_interpolate_pw %>%
     left_join(water_systems_sac %>%
                   st_drop_geometry() %>%
                   select(water_system_service_connections, water_system_population_reported, water_system_name),
               by = 'water_system_name') %>% 
-    relocate(water_system_population_reported, .after = population_total_count_interpolate_pw)
-```
-
-View results:
-
-```{r}
-glimpse(results_interpolate_pw)
+    relocate(water_system_population_reported, .after = population_total_count_interpolate_pw) %>% 
+    kable(caption = 'A Caption') %>%
+    scroll_box(height = "400px")
 ```
 
 ## Working with Other Source Datasets {#sec-other-sources}
