@@ -498,33 +498,6 @@ glimpse(census_data_acs[,1:20])
 
 Note that the dataset that's returned includes fields corresponding to Margin of Error (MOE) for each variable we've requested (these are the fields that end with two digits and an M – e.g., "001M"), since, as noted above in @sec-census-datasets , the ACS is based on a sample of the population and reports estimated values.
 
-::: callout-tip
-It is possible to calculate MOEs for derived estimates – e.g., when aggregating groups of census units – and in many cases it may be worthwhile to do that to provide extra context to the data. However, it may not be possible (or may be difficult) to do for more complex aggregations, such as the areal interpolation shown below – more research may be needed.
-
-For guidance on how calculate MOEs for some types of derived estimates, see [this document](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_general_handbook_2020_ch08.pdf).
-
-For an alternative, simplified approach to estimating census demographics for target areas which includes MOEs for the derived estimates, see @sec-alternative-simplified.
-:::
-
-Because we won't be incorporating those MOEs into the analysis below, we can drop them for this example, then clean up the field names.
-
-```{r}
-# drop MOE fields
-census_data_acs <- census_data_acs %>% 
-     select(-matches('M$')) # the $ specifies "ends with"
-
-# clean names
-names(census_data_acs) <- names(census_data_acs) %>% 
-    str_remove('E$') %>% # remove 'E' (estimate) from field names
-    str_replace('NAM', 'NAME') # add 'E' back to NAME field
-```
-
-Here's a view of the contents and structure of the revised `r acs_year` 5-year ACS dataset (only the first few fields are shown):
-
-```{r}
-glimpse(census_data_acs[,1:20])
-```
-
 For further analysis, we may want to get the statewide data as a baseline for comparison (this could also be done for other scales, like the county level). We can use a similar process to get that data and clean/format it to match the more detailed data obtained above. Note that in this case we're also using the 5-year ACS (even though the 1-year ACS is also available at the statewide level, and would provide more up-to-date data) so that the statewide data will be directly comparable to the block group level data obtained above.
 
 ```{r}
@@ -609,7 +582,34 @@ Although it's possible to use areal interpolation to aggregate these variables a
 
 Note that we already transformed the `r acs_year` 5-year ACS dataset into the common projected coordinate reference system used for this example immediately after we downloaded the data using the `get_acs()` function (see @lst-get_acs). This allows us to work with the water system data and the census data together in a common coordinate system.
 
-Before calculating demographics for the *target* areas, we can do a bit of additional transformation to prepare the census data if needed. For example, we can combine the 'other' and 'multiple' racial/ethnic groupings into one 'other or multiple' racial/ethnic group.
+Before calculating demographics for the *target* areas, we can do a bit of additional transformation to prepare the census data. First, because we won't be incorporating the margin of error (MOE) into the analysis below, we can drop them for this example, then clean up the field names.
+
+::: callout-tip
+It is possible to calculate MOEs for derived estimates – e.g., when aggregating groups of census units – and in many cases it may be worthwhile to do that to provide extra context to the data. However, it may not be possible (or may be very difficult) to calculate MOEs for data estimated using more complex aggregations, such as the areal interpolation shown below – more research on that may be needed.
+
+For guidance on how calculate MOEs for some types of derived estimates, see [this document](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_general_handbook_2020_ch08.pdf).
+
+For an alternative, simplified approach to estimating census demographics for target areas which includes MOEs for the derived estimates, see @sec-alternative-simplified.
+:::
+
+```{r}
+# drop MOE fields
+census_data_acs <- census_data_acs %>% 
+     select(-matches('M$')) # the $ specifies "ends with"
+
+# clean names
+names(census_data_acs) <- names(census_data_acs) %>% 
+    str_remove('E$') %>% # remove 'E' (estimate) from field names
+    str_replace('NAM', 'NAME') # add 'E' back to NAME field
+```
+
+Here's a view of the contents and structure of the revised `r acs_year` 5-year ACS dataset (only the first few fields are shown):
+
+```{r}
+glimpse(census_data_acs[,1:20])
+```
+
+We can also do some other transformations to simplify the data. For example, we can combine the 'other' and 'multiple' racial/ethnic groupings into one 'other or multiple' racial/ethnic group.
 
 ```{r edit_census_data}
 ## combine other and multiple
@@ -619,7 +619,7 @@ census_data_acs <- census_data_acs %>%
     select(-c(population_other_count, population_multiple_count))
 ```
 
-We can also calculate the poverty rate for each census unit (which may be useful for presenting results later).
+And we can calculate the poverty rate for each census unit (which may be useful for presenting results later).
 
 ```{r}
 census_data_acs <- census_data_acs %>% 
@@ -628,14 +628,6 @@ census_data_acs <- census_data_acs %>%
         .default = 100 * poverty_below_level_count / poverty_total_assessed_count
     ), 
     .after = poverty_above_level_count)
-```
-
-```{r}
-# We can also drop census units with zero population, since they won't contribute anything to our calculations.
-
-## drop census units with zero population
-# census_data_acs <- census_data_acs %>% 
-#     filter(population_total > 0)
 ```
 
 ### Interpolation Step 1: Areal Interpolation (for Count Variables) {#sec-areal-interp}
@@ -1532,9 +1524,15 @@ This section is in progress.
 
 ### Simplified Method With MOE Estimates {#sec-alternative-simplified}
 
-As noted above, determining the margin of error (MOE) for estimates computed using areal weighted interpolation to aggregate portions of census units that overlap the target area of interest may not be possible (more research may be needed). If it's necessary to compute MOEs for your aggregated values, and/or it's preferable to use a simpler approach that doesn't apply areal interpolation to assign fractional portions of census units to the target area, then a simplified method could be applied.
+As noted above, determining the margin of error (MOE) for estimates computed using areal weighted interpolation to aggregate portions of census units that overlap the target area of interest may not be possible (more research may be needed). If it's necessary to compute MOEs for your aggregated values, and/or it's preferable to use a simpler approach that doesn't apply areal interpolation to assign fractional portions of census units to the target area, then a simplified method could be applied. 
 
-In this case, one option could be to use a minimum coverage threshold, where entire census units whose portion of area that overlaps the target area is greater than the threshold are treated as part of the target area, and any census units whose portion of area that overlaps the target area is less than the threshold are not treated as part of the target area. Because this approach operates on entire census units, the census bureau's recommended approach for aggregating MOEs can be applied to produce an aggregated MOE. (However, keep in mind that the aggregated MOE applies to the uncertainty in the estimate for the census units included in the aggregation, and not may not necessarily capture the uncertainty in the estimate of the target area, since the two areas are now different – i.e., there is an additional unquantified element of uncertainty/error which is not reflected in the MOE due to this mismatch. In general, any estimate which attempts to compute census demographics for areas that don't align with the census boundaries may have some element on un-quantifiable error – more research/input may be needed.)
+::: callout-tip
+For guidance on how calculate MOEs for some types of derived estimates, see [this document](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_general_handbook_2020_ch08.pdf).
+:::
+
+In this case, one option could be to use a minimum coverage threshold, where entire census units whose portion of area that overlaps the target area is greater than the threshold are treated as part of the target area, and any census units whose portion of area that overlaps the target area is less than the threshold are not treated as part of the target area. But, when using a minimum coverage threshold, some water systems may not have any census units that meet the coverage threshold, so they may need to be accountetd for separately (e.g., by selecting the overlapping census unit that has the greatest portion of overlap, as is done below), or those systems could be excluded from the calculation.
+
+Because this approach operates on entire census units, the census bureau's recommended approach for aggregating MOEs can be applied to produce an aggregated MOE. (However, keep in mind that the aggregated MOE applies to the uncertainty in the estimate for the census units included in the aggregation, and not may not necessarily capture the uncertainty in the estimate of the target area, since the two areas are now different – i.e., there is an additional unquantified element of uncertainty/error which is not reflected in the MOE due to this mismatch. In general, any estimate which attempts to compute census demographics for areas that don't align with the census boundaries may have some element on un-quantifiable error – more research/input may be needed.)
 
 ::: callout-tip
 `tidycensus` has functions for calculating MOEs for derived estimates based on Census-supplied formulas, including [`moe_sum()`](https://walker-data.com/tidycensus/reference/moe_sum.html), [`moe_product()`](https://walker-data.com/tidycensus/reference/moe_product.html), [`moe_ratio()`](https://walker-data.com/tidycensus/reference/moe_ratio.html), and [`moe_prop()`](https://walker-data.com/tidycensus/reference/moe_prop.html).
