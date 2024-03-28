@@ -1601,11 +1601,12 @@ geoid_system_keep_below_threshold <- simplified_systems_below_threshold_keep %>%
 census_data_acs_moe <- census_data_acs_moe %>% 
     st_join(water_systems_sac %>% select(water_system_name)) %>% 
     mutate(geoid_system = paste(GEOID, water_system_name, sep = '|')) %>% 
-    filter(geoid_system %in% c(geoid_system_keep_above_threshold, geoid_system_keep_below_threshold))
+    filter(geoid_system %in% c(geoid_system_keep_above_threshold, 
+                               geoid_system_keep_below_threshold))
 
 # aggregate
 # [TO DO: compute aggregated values]
-# simplified_calc_aggregate <- simplified_calc %>% 
+# simplified_calc_aggregate <- census_data_acs_moe %>% 
 #     group_by(water_system_name, water_systems_filter) %>% 
 #     {.} %>% 
 #     ungroup()
@@ -1643,10 +1644,10 @@ mapview(census_data_acs_moe %>%
             legend = FALSE)
 ```
 
-Water system `{r} str_to_title(system_plot)` (light blue fill) and boundaries of census units (grey fill) that will be used to estimate water system demographics for the simplified approach.
+Water system `{r} str_to_title(system_plot)` (light blue fill / black border) and boundaries of census units (grey fill / blue border) used to estimate water system demographics for the simplified approach.
 :::
 
-While this approach may work well for relatively large water systems (where the size of the system is significantly greater than the census units used for the analysis), for smaller water systems this method might be somewhat more problematic, as show in @fig-simplified-calc-map-small-system.
+While this approach may work well for relatively large water systems (where the size of the system is significantly greater than the census units used for the analysis), for smaller water systems this method might be somewhat more problematic, as shown in @fig-simplified-calc-map-small-system.
 
 ::: {#fig-simplified-calc-map-small-system}
 ```{r}
@@ -1677,10 +1678,10 @@ mapview(census_data_acs_moe %>%
 
 ```
 
-Water system `{r} str_to_title(system_plot_small)` (light blue fill) and boundaries of census units (grey fill) that will be used to estimate water system demographics for the simplified approach.
+Water system `{r} str_to_title(system_plot_small)` (light blue fill / black border) and boundaries of census units (grey fill / blue border) used to estimate water system demographics for the simplified approach.
 :::
 
-@fig-simplified-calc-map-small-system shows another example of a small system surrounded by large (rural) block groups.
+@fig-simplified-calc-map-small-system shows another example of a small system, in this case surrounded by large (rural) block groups, only a small portion of which only overlap the water system.
 
 ::: {#fig-simplified-calc-map-small-system}
 ```{r}
@@ -1723,7 +1724,7 @@ mapview(census_data_acs_moe %>%
             legend = FALSE)
 ```
 
-Water system `{r} str_to_title(system_plot_small)` (light blue fill) and boundaries of census units (grey fill) that will be used to estimate water system demographics for the simplified approach.
+Water system `{r} str_to_title(system_plot_small)` (light blue fill / black border), boundaries of census units (dark grey fill / blue border) used to estimate water system demographics for the simplified approach, and boundaries of census units overlapping the water system but not included in the demographic estimates (light grey fill).
 :::
 
 ### Population Weighted Interpolation {#sec-alternative-interpolate_pw}
