@@ -496,7 +496,7 @@ As above, the output is an sf object (i.e., a dataframe-like object that also in
 glimpse(census_data_acs[,1:20])
 ```
 
-Note that the dataset that's returned includes fields corresponding to Margin of Error (MOE) for each variable we've requested (these are the fields that end an M – e.g., "population_total_countM"), since, as noted above in @sec-census-datasets , the ACS is based on a sample of the population and reports estimated values.
+Note that the dataset that's returned includes fields corresponding to Margin of Error (MOE) for each variable we've requested (these are the fields that end an M -- e.g., "population_total_countM"), since, as noted above in @sec-census-datasets , the ACS is based on a sample of the population and reports estimated values.
 
 For further analysis, we may want to get the statewide data as a baseline for comparison (this could also be done for other scales, like the county level). We can use a similar process to get that data and clean/format it to match the more detailed data obtained above. Note that in this case we're also using the 5-year ACS (even though the 1-year ACS is also available at the statewide level, and would provide more up-to-date data) so that the statewide data will be directly comparable to the block group level data obtained above.
 
@@ -1236,6 +1236,14 @@ if (file_update_interpolate == TRUE) {
 ::: callout-warning
 This section is in progress.
 :::
+
+[TODO: Insert Shiny App (iframe)]
+
+```{=html}
+<!-- comment
+<iframe width="780" height="500" src="https://cawaterdatadive.shinyapps.io/[app-name]/" title="Estimated Water System Demographics"></iframe>
+end of comment -->
+```
 
 For simplicity, this section will focus on presenting estimated demographics for some of the largest water suppliers in the Sacramento county region (results for small water systems may not be very accurate and should be used with some caution - see @sec-check-pop-estimated-reported and @sec-small-area-estimates for more investigation of the results for small systems).
 
