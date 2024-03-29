@@ -51,7 +51,6 @@ library(areal)
 library(janitor)
 library(here)
 library(units)
-# library(Polychrome)
 library(knitr)
 library(kableExtra)
 library(tmap)
@@ -73,7 +72,8 @@ options(scipen = 999) # turn off scientific notation
 options(tigris_use_cache = TRUE) # use data caching for tigris
 
 # reference system ----
-crs_projected <- 3310 # set a common projected coordinate reference system to be used throughout this analysis - see: https://epsg.io/3310
+## set common projected coordinate reference system used throughout this analysis
+crs_projected <- 3310 # see: https://epsg.io/3310
 ```
 
 ## Census Data Overview {#sec-census-overview}
@@ -213,11 +213,11 @@ water_systems_sac <- arc_select(
     # select fields
     fields = c('WATER_SYSTEM_NAME', 'WATER_SYSTEM_NUMBER', 'GLOBALID',
                'BOUNDARY_TYPE', 'OWNER_TYPE_CODE', 'COUNTY',
-               'REGULATING_AGENCY', 'FEDERAL_CLASSIFICATION', 'STATE_CLASSIFICATION',
-               'SERVICE_CONNECTIONS', 'POPULATION')) %>%
+               'REGULATING_AGENCY', 'FEDERAL_CLASSIFICATION', 
+               'STATE_CLASSIFICATION', 'SERVICE_CONNECTIONS', 'POPULATION')) %>%
     # transform to common coordinate system
     st_transform(crs_projected) %>%
-    # rename fields to match names from the shapefile (which automatically truncates field names)
+    # rename fields
     rename(water_system_name = WATER_SYSTEM_NAME,
            water_system_number = WATER_SYSTEM_NUMBER,
            water_system_id = GLOBALID,
@@ -448,7 +448,7 @@ census_vars_acs <- c(
     'households_income_125k_150k_count' = 'B19001_015', 
     'households_income_150k_200k_count' = 'B19001_016',
     'households_income_above_200k_count' = 'B19001_017', # count of households with income above $200,000
-
+    
     # --- housing costs variables (% of household income) ---
     # Housing Costs as a Percentage of Household Income in the past 12 months - NOTE: THIS TABLE IS NEW FOR THE 2022 ACS, AND WON'T BE AVAILABLE FOR PREVIOUS YEARS - Table B25140 shows the count of households paying more than 30% of their income towards housing costs broken out by three tenure categories (owned with a mortgage, owned without a mortgage, and rented). The table also shows the number of households paying more than 50% of their income toward housing costs.
     # 'households_count' = 'B25140_001', 
@@ -517,7 +517,7 @@ census_data_acs_state <- get_acs(geography = 'state',
     select(-matches('M$')) %>%  # the $ specifies "ends with"
     # clean names (note this is a little different than the way we renamed fields above, either works)
     rename_with(.fn = ~ str_remove(., # remove 'E' (estimate) from field names
-                                    pattern = 'E$')) %>% 
+                                   pattern = 'E$')) %>% 
     rename_with(.fn = ~ str_replace(., # add 'E' back to NAME field
                                     pattern = 'NAM', 
                                     replacement = 'NAME'))
@@ -595,7 +595,7 @@ For an alternative, simplified approach to estimating census demographics for ta
 ```{r}
 # drop MOE fields
 census_data_acs <- census_data_acs %>% 
-     select(-matches('M$')) # the $ specifies "ends with"
+    select(-matches('M$')) # the $ specifies "ends with"
 
 # clean names
 names(census_data_acs) <- names(census_data_acs) %>% 
@@ -614,7 +614,8 @@ We can also do some other transformations to simplify the data. For example, we 
 ```{r edit_census_data}
 ## combine other and multiple
 census_data_acs <- census_data_acs %>% 
-    mutate('population_other_or_multiple_count' = population_other_count + population_multiple_count, 
+    mutate('population_other_or_multiple_count' = 
+               population_other_count + population_multiple_count, 
            .after = population_pacific_islander_count) %>% 
     select(-c(population_other_count, population_multiple_count))
 ```
@@ -722,9 +723,18 @@ First, combine the results by summing all of the count-based variables (derived 
 water_system_demographics <- census_data_interpolate %>% 
     group_by(water_system_name) %>% 
     mutate(
-        average_household_size_denominator = if_else(is.na(average_household_size), 0, households_count),
-        median_household_income_denominator = if_else(is.na(median_household_income), 0, households_count),
-        per_capita_income_denominator = if_else(is.na(per_capita_income), 0, population_total_count)
+        average_household_size_denominator = if_else(
+            is.na(average_household_size), 
+            0, 
+            households_count),
+        median_household_income_denominator = if_else(
+            is.na(median_household_income), 
+            0, 
+            households_count),
+        per_capita_income_denominator = if_else(
+            is.na(per_capita_income), 
+            0, 
+            population_total_count)
     ) %>% 
     summarize(
         across(
@@ -759,8 +769,8 @@ From the `sf` package, we can use the `st_interpolate_aw` function:
 # sf package
 check_sf <- st_interpolate_aw(x = census_data_acs %>% 
                                   select(population_total_count),
-                       to = water_systems_sac,
-                       extensive = TRUE) %>% 
+                              to = water_systems_sac,
+                              extensive = TRUE) %>% 
     bind_cols(water_systems_sac %>% st_drop_geometry)
 
 # check - should be TRUE if results are equivalent
@@ -768,7 +778,7 @@ all(check_sf %>%
         arrange(water_system_name) %>% 
         pull(population_total_count) %>% 
         round(5) ==
-    water_system_demographics %>% 
+        water_system_demographics %>% 
         arrange(water_system_name) %>% 
         pull(population_total_count) %>% 
         round(5)
@@ -796,7 +806,7 @@ all(check_areal %>%
         arrange(water_system_name) %>% 
         pull(population_total_count) %>% 
         round(5) ==
-    water_system_demographics %>% 
+        water_system_demographics %>% 
         arrange(water_system_name) %>% 
         pull(population_total_count) %>% 
         round(5)
@@ -948,12 +958,14 @@ census_data_interpolate <- census_data_interpolate %>%
     mutate(households_all_housing_costs_over30pct_percent = 
                100 * (households_mortgage_housing_costs_over30pct_count + 
                           households_no_mortgage_housing_costs_over30pct_count +                           
-                          households_rent_housing_costs_over30pct_count) / households_count, 
+                          households_rent_housing_costs_over30pct_count) / 
+               households_count, 
            .after = households_rent_housing_costs_over50pct_count) %>%      
     mutate(households_all_housing_costs_over50pct_percent = 
                100 * (households_mortgage_housing_costs_over50pct_count +                            
                           households_no_mortgage_housing_costs_over50pct_count +                           
-                          households_rent_housing_costs_over50pct_count) / households_count,
+                          households_rent_housing_costs_over50pct_count) / 
+               households_count,
            .after = households_all_housing_costs_over30pct_percent)
 
 # drop water system data except name (water_system_name)
@@ -973,7 +985,6 @@ For further analysis and exploration / visualization of the results, it will hel
 
 # pivot from wide to long format
 water_system_demographics_long <- water_system_demographics %>% 
-    # select(water_system_name, starts_with('percent_')) %>% # select only the fields with percentages, and the water system name/id
     # convert to long format
     # st_drop_geometry() %>% 
     pivot_longer(cols = !c(water_system_name, geometry), 
@@ -997,18 +1008,26 @@ water_system_demographics_long <- water_system_demographics_long %>%
         .default = NA), 
         .after = variable) %>% 
     mutate(variable_group_type = case_when(
-        str_detect(variable, pattern ='Population') ~ 'Population',
-        str_detect(variable, pattern = 'Households') ~ 'Households',
-        str_detect(variable, pattern = 'Average Household Size Hh Weighted') ~ 'Household Weighted', 
-        str_detect(variable, pattern = 'Median Household Income Hh Weighted') ~ 'Household Weighted',
-        str_detect(variable, pattern = 'Per Capita Income Pop Weighted') ~ 'Population Weighted',
-        str_detect(variable, pattern = 'Poverty') ~ 'Population'),
+        str_detect(variable, pattern ='Population') ~ 
+            'Population',
+        str_detect(variable, pattern = 'Households') ~ 
+            'Households',
+        str_detect(variable, pattern = 'Average Household Size Hh Weighted') ~ 
+            'Household Weighted', 
+        str_detect(variable, pattern = 'Median Household Income Hh Weighted') ~ 
+            'Household Weighted',
+        str_detect(variable, pattern = 'Per Capita Income Pop Weighted') ~ 
+            'Population Weighted',
+        str_detect(variable, pattern = 'Poverty') ~ 
+            'Population'),
         .after = variable_type) %>% 
     mutate(variable = case_when(
-        str_detect(variable, pattern = 'Households Count') ~ 'Households Total',
+        str_detect(variable, pattern = 'Households Count') ~ 
+            'Households Total',
         .default = str_remove_all(variable, pattern = 'Households'))) %>% 
     mutate(variable = case_when(
-        str_detect(variable, 'Population Total Count') ~ 'Population Total',
+        str_detect(variable, 'Population Total Count') ~ 
+            'Population Total',
         .default = str_remove_all(variable, 'Population'))) %>%
     mutate(variable = str_remove_all(variable, 
                                      pattern = 'Count')) %>% 
@@ -1099,9 +1118,9 @@ hash_current <- digest(object = water_system_demographics,
 hash_current_long <- digest(object = water_system_demographics_long,
                             algo = 'md5')
 hash_interpolate <- digest(object = census_data_interpolate,
-                    algo = 'md5')
+                           algo = 'md5')
 hash_interpolate_long <- digest(object = census_data_interpolate_long, 
-                         algo = 'md5')
+                                algo = 'md5')
 hash_table_current <- tibble(
     dataset = c('water_system_demographics', 
                 'water_system_demographics_long',
@@ -1142,17 +1161,17 @@ file_update_long <- !identical(hash_table_current %>%
                                    filter(dataset == 'water_system_demographics_long') %>% 
                                    pull(hash))
 file_update_interpolate <- !identical(hash_table_current %>% 
-                                   filter(dataset == 'census_data_interpolate') %>% 
-                                   pull(hash),
-                               hash_table_previous %>% 
-                                   filter(dataset == 'census_data_interpolate') %>% 
-                                   pull(hash))
+                                          filter(dataset == 'census_data_interpolate') %>% 
+                                          pull(hash),
+                                      hash_table_previous %>% 
+                                          filter(dataset == 'census_data_interpolate') %>% 
+                                          pull(hash))
 file_update_interpolate_long <- !identical(hash_table_current %>% 
-                                   filter(dataset == 'census_data_interpolate_long') %>% 
-                                   pull(hash),
-                               hash_table_previous %>% 
-                                   filter(dataset == 'census_data_interpolate_long') %>% 
-                                   pull(hash))
+                                               filter(dataset == 'census_data_interpolate_long') %>% 
+                                               pull(hash),
+                                           hash_table_previous %>% 
+                                               filter(dataset == 'census_data_interpolate_long') %>% 
+                                               pull(hash))
 
 ## write current hashes to file (for comparison with future versions)
 write_csv(x = hash_table_current,
@@ -1170,7 +1189,7 @@ The code below saves the tabular results to a csv file, in both the 'wide' and '
 # wide
 if (file_update == TRUE) {
     write_csv(water_system_demographics %>%
-                  st_drop_geometry(), # drop the spatial data since this is a tabular format
+                  st_drop_geometry(), # drop spatial data 
               file = here('03_data_results',
                           'water_system_demographics_sac.csv'))
 }
@@ -1178,7 +1197,7 @@ if (file_update == TRUE) {
 # long
 if (file_update_long == TRUE) {
     write_csv(water_system_demographics_long %>%
-                  st_drop_geometry(), # drop the spatial data since this is a tabular format
+                  st_drop_geometry(), # drop spatial data
               file = here('03_data_results',
                           'water_system_demographics_sac_long.csv'))
 }
@@ -1192,7 +1211,7 @@ And we can save the intermediate data from the interpolation process (i.e., data
 # wide
 if (file_update_interpolate == TRUE) {
     write_csv(census_data_interpolate %>%
-                  st_drop_geometry(), # drop the spatial data since this is a tabular format
+                  st_drop_geometry(), # drop the spatial data 
               file = here('03_data_results',
                           'intermediate_interpolation_data.csv'))
 }
@@ -1200,7 +1219,7 @@ if (file_update_interpolate == TRUE) {
 # long
 if (file_update_interpolate_long == TRUE) {
     write_csv(census_data_interpolate_long %>%
-                  st_drop_geometry(), # drop the spatial data since this is a tabular format
+                  st_drop_geometry(), # drop the spatial data 
               file = here('03_data_results',
                           'intermediate_interpolation_data_long.csv'))
 }
@@ -1306,7 +1325,8 @@ The [biscale](https://chris-prener.github.io/biscale/) R package [@biscale] can 
 #| code-fold: true
 
 # Table B25140 - Housing Costs as a Percentage of Household Income in the past 12 months.
-# Shows the count of households paying more than 30% or 50% of their income towards housing costs broken out by three tenure categories (owned with a mortgage, owned without a mortgage, and rented).
+# Shows the count of households paying more than 30% or 50% of their income towards housing 
+# costs broken out by three tenure categories (owned with a mortgage, owned without a mortgage, and rented).
 
 # set defaults
 biscale_pal <- 'BlueOr' # 'GrPink' # 'DkViolet2'
@@ -1431,8 +1451,8 @@ biscale_legend <- bi_legend(pal = biscale_pal_system,
 
 # construct map
 biscale_plot_system <- ggdraw() +
-  draw_plot(biscale_map_system, 0, 0, 1, 1) +
-  draw_plot(biscale_legend, 0.1, .55, 0.2, 0.2)
+    draw_plot(biscale_map_system, 0, 0, 1, 1) +
+    draw_plot(biscale_legend, 0.1, .55, 0.2, 0.2)
 
 biscale_plot_system
 ```
@@ -1445,7 +1465,7 @@ Based on the map above, it's apparent that it will be difficult to obtain reason
 
 Note that there are a number of reasons why the estimated population values are likely to differ from the population numbers in the water system dataset (e.g., the depicted boundaries may not be correct or exact, the supplier may have used different methods to count/estimate the population they serve, the time frames for the estimates may be different, etc.). But, there may also be some cases where the numbers differ significantly – depending on the actual analysis being performed, this may mean that further work is needed for certain areas, or could mean that this method may not be sufficient and different methods are needed.
 
-As a check, we can add a column to the interpolated dataset (which we'll call `population_percent_difference`) to compute the difference between the estimated total population (in the `population_total` field) and the total population listed in the `water_system_population_reported` field (the reported value from the water system dataset, which is named `POPULATION` in the water supplier dataset).
+As a check, we can add a column to the interpolated dataset (which we'll call `population_percent_difference`) to compute the difference between the estimated total population (in the `population_total` field) and the total population listed in the `water_system_population_reported` field (which is the reported value from the water system dataset).
 
 ```{r}
 
@@ -1457,7 +1477,8 @@ water_system_demographics_check <- water_system_demographics %>%
 
 water_system_demographics_check <- water_system_demographics_check %>%
     mutate(population_percent_difference =
-               round(100 * (population_total_count - water_system_population_reported) / water_system_population_reported, 
+               round(100 * (population_total_count - water_system_population_reported) / 
+                         water_system_population_reported, 
                      2), 
            .after = water_system_population_reported)
 ```
@@ -1557,15 +1578,15 @@ overlap_threshold <- 0.5
 
 # get census data (with MOEs)
 census_data_acs_moe <- get_acs(geography = 'block group',
-                           state = 'CA', 
-                           county = counties_list,
-                           filter_by = water_systems_filter,
-                           year = acs_year,
-                           survey = 'acs5',
-                           variables = census_vars_acs, 
-                           output = 'wide', # can be 'wide' or 'tidy'
-                           geometry = TRUE,
-                           cache_table = TRUE) %>% 
+                               state = 'CA', 
+                               county = counties_list,
+                               filter_by = water_systems_filter,
+                               year = acs_year,
+                               survey = 'acs5',
+                               variables = census_vars_acs, 
+                               output = 'wide', # can be 'wide' or 'tidy'
+                               geometry = TRUE,
+                               cache_table = TRUE) %>% 
     st_transform(crs_projected) # convert to common coordinate system
 
 # compute area of overlap for each census unit
@@ -1600,10 +1621,11 @@ simplified_systems_below_threshold_keep <- simplified_calc %>%
     slice_max(order_by = overlap_portion, n = 1) %>%
     ungroup()
 
-# filter census units based on threshold value (and account for water systems with no census units that meet the threshold value)
+# filter census units based on threshold value (and account for water systems 
+# with no census units that meet the threshold value)
 geoid_system_keep_above_threshold <- simplified_calc %>% 
-               filter(above_threshold == TRUE) %>% 
-               pull(geoid_system)
+    filter(above_threshold == TRUE) %>% 
+    pull(geoid_system)
 geoid_system_keep_below_threshold <- simplified_systems_below_threshold_keep %>% 
     pull(geoid_system)
 
@@ -1690,21 +1712,21 @@ mapview(census_data_acs_moe %>%
 Water system `{r} str_to_title(system_plot_small)` (light blue fill / black border) and boundaries of census units (grey fill / blue border) used to estimate water system demographics for the simplified approach.
 :::
 
-@fig-simplified-calc-map-small-system-2 shows another example of a small system, in this case surrounded by large (rural) block groups, only a small portion of which only overlap the water system.
+@fig-simplified-calc-map-small-system-2 shows another example of a small system -- in this case there are large block groups which the water system only overlaps a small portion of.
 
 ::: {#fig-simplified-calc-map-small-system-2}
 ```{r}
 #| warning: false
 #| code-fold: true
 
-system_plot_small <- 'RANCHO MURIETA COMMUNITY SERVI' # 'RIO LINDA/ELVERTA COMMUNITY WATER DIST'
+system_plot_small <- 'RANCHO MURIETA COMMUNITY SERVI'
 
 mapview(census_data_acs %>% 
             st_filter(water_systems_sac %>% 
                           filter(water_system_name == system_plot_small)) %>% 
             filter(!GEOID %in% (census_data_acs_moe %>% 
-                       filter(water_system_name == system_plot_small) %>% 
-                       pull(GEOID))), 
+                                    filter(water_system_name == system_plot_small) %>% 
+                                    pull(GEOID))), 
         alpha.regions = 0.3, 
         col.regions = 'grey80',
         color = 'grey',
@@ -1712,15 +1734,15 @@ mapview(census_data_acs %>%
         label = 'NAME',  
         layer.name = 'ACS Data - Not Used', 
         legend = FALSE) + #  zcol = 'NAME' 
-mapview(census_data_acs_moe %>% 
-            filter(water_system_name == system_plot_small), 
-        alpha.regions = 0.8, 
-        col.regions = 'grey60',
-        color = 'cyan',
-        # lwd = 1.3, 
-        label = 'NAME',  
-        layer.name = 'ACS Data - Used', 
-        legend = FALSE) + #  zcol = 'NAME'    
+    mapview(census_data_acs_moe %>% 
+                filter(water_system_name == system_plot_small), 
+            alpha.regions = 0.8, 
+            col.regions = 'grey60',
+            color = 'cyan',
+            # lwd = 1.3, 
+            label = 'NAME',  
+            layer.name = 'ACS Data - Used', 
+            legend = FALSE) + #  zcol = 'NAME'    
     mapview(water_systems_sac %>% 
                 filter(water_system_name == system_plot_small), 
             alpha.regions = 0.3, 
@@ -1744,7 +1766,8 @@ Note that some water systems may not get an estimated value using this method, e
 
 ```{r}
 results_interpolate_pw <- interpolate_pw(from = census_data_acs %>%
-                                             filter(!is.na(population_total_count)) %>% # population_total_count  median_household_income
+                                             # population_total_count  median_household_income
+                                             filter(!is.na(population_total_count)) %>% 
                                              select(population_total_count),
                                          to = water_systems_sac,
                                          to_id = 'water_system_name',
@@ -1754,7 +1777,8 @@ results_interpolate_pw <- interpolate_pw(from = census_data_acs %>%
                                          weight_column = 'population_total_count') %>%
     # rename(median_household_income_interpolate_pw = median_household_income) # rename results field
     rename(population_total_count_interpolate_pw = population_total_count) %>% 
-    mutate(population_total_count_interpolate_pw = round(population_total_count_interpolate_pw, 0))
+    mutate(population_total_count_interpolate_pw = round(population_total_count_interpolate_pw, 
+                                                         0))
 
 # sum(is.na(results_interpolate_pw$median_household_income_interpolate_pw))
 # sum(is.na(results_interpolate_pw$population_total_count_interpolate_pw))
@@ -1770,9 +1794,12 @@ This returns `{r} sum(is.na(results_interpolate_pw$population_total_count_interp
 results_interpolate_pw %>%
     left_join(water_systems_sac %>%
                   st_drop_geometry() %>%
-                  select(water_system_service_connections, water_system_population_reported, water_system_name),
+                  select(water_system_service_connections, 
+                         water_system_population_reported, 
+                         water_system_name),
               by = 'water_system_name') %>% 
-    relocate(water_system_population_reported, .after = population_total_count_interpolate_pw) %>% 
+    relocate(water_system_population_reported, 
+             .after = population_total_count_interpolate_pw) %>% 
     kable(caption = 'A Caption') %>%
     scroll_box(height = "400px")
 ```
