@@ -6,20 +6,29 @@ website:
   issue-url: https://github.com/daltare/example-census-race-ethnicity-calculation/issues
   repo-subdir: 01_document
   repo-link-target: _blank
-  repo-actions: [issue, source]
-  # navbar:
-    # search: true
-    # left:
+  # repo-actions: [issue, source]
+  navbar:
+    search: true
+    left:
       # - icon: github
         # href: https://github.com/daltare/example-census-race-ethnicity-calculation
         # aria-label: GitHub
         # target: _blank
-  sidebar:
-    search: true
-    tools:
-     - icon: github
-       href: https://github.com/daltare/example-census-race-ethnicity-calculation 
-       target: _blank
+      - icon: github
+        menu:
+          - text: Report an Issue
+            url:  https://github.com/daltare/example-census-race-ethnicity-calculation/issues          
+          - text: Source Code - Main Repository
+            url:  https://github.com/daltare/example-census-race-ethnicity-calculation
+          - text: Source Code - This Document
+            url: https://github.com/daltare/example-census-race-ethnicity-calculation/blob/main/01_document/example_census_race_ethnicity_calculation.qmd
+        target: _blank
+  # sidebar:
+    # search: true
+    # tools:
+     # - icon: github
+       # href: https://github.com/daltare/example-census-race-ethnicity-calculation 
+       # target: _blank
 format:
   html:
     theme:
