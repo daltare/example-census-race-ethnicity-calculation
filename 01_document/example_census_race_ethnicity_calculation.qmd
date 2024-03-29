@@ -1690,9 +1690,9 @@ mapview(census_data_acs_moe %>%
 Water system `{r} str_to_title(system_plot_small)` (light blue fill / black border) and boundaries of census units (grey fill / blue border) used to estimate water system demographics for the simplified approach.
 :::
 
-@fig-simplified-calc-map-small-system shows another example of a small system, in this case surrounded by large (rural) block groups, only a small portion of which only overlap the water system.
+@fig-simplified-calc-map-small-system-2 shows another example of a small system, in this case surrounded by large (rural) block groups, only a small portion of which only overlap the water system.
 
-::: {#fig-simplified-calc-map-small-system}
+::: {#fig-simplified-calc-map-small-system-2}
 ```{r}
 #| warning: false
 #| code-fold: true
