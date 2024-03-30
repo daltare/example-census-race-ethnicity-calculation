@@ -562,6 +562,8 @@ Now we can perform calculations to estimate demographic characteristics for our 
 -   Total population and population of each racial/ethnic group (using the racial/ethnic categories defined in the census dataset), and each racial/ethnic group's portion of the total service area population
 -   Socio-economic variables like poverty rate, median household income, income distributions, per capita income, and average household size
 
+### Considerations and Alternatives {#sec-estimate-considerations-alternatives}
+
 There are multiple ways this estimation can be done. Which option to pick may depend on multiple factors, such as: 
 
 - Level of precision required (higher precision may require more detailed methods)
@@ -751,11 +753,7 @@ For a discussion of the problem and a proposed solution, see [this document](htt
 
 ### Interpolation Step 3: Aggregate by Water System
 
-Next, we need to combine the weighted values calculated above to produce the estimates for each water system, and can also use those combined values to compute some additional metrics for each system (like rates, income distributions, etc.).
-
-#### Combine Results by Water System
-
-First, combine the results by summing all of the count-based variables (derived from areal interpolation), and calculating weighted averages for all variables computed in step 2 above. Note that we have to first calculate the denominator for each variable calculated with population weighted interpolation, because some of those variables contain missing values for records where the denominator is present (and if we don't remove the missing values, we get an `NA` for any water system that contains a block group with a missing value for that variable). For example, there are block groups where the median household income is missing, but the total household count is available for that block group – in that case, the weighted average should not include the households in that block group in the denominator; otherwise, the true value will be underestimated.
+Next, we need to combine the weighted values calculated above to produce the estimates for each water system. We can do this by summing all of the count-based variables (derived from areal interpolation), and calculating weighted averages for all variables computed in step 2 above. Note that we have to first calculate the denominator for each variable calculated with population weighted interpolation, because some of those variables contain missing values for records where the denominator is present (and if we don't remove the missing values, we get an `NA` for any water system that contains a block group with a missing value for that variable). For example, there are block groups where the median household income is missing, but the total household count is available for that block group – in that case, the weighted average should not include the households in that block group in the denominator; otherwise, the true value will be underestimated.
 
 ```{r}
 water_system_demographics <- census_data_interpolate %>% 
@@ -792,12 +790,13 @@ water_system_demographics <- census_data_interpolate %>%
     ungroup()
 ```
 
-#### Clean & Format Summarized Water System Demographic Data {#sec-results-clean}
+### Clean & Format Summarized Water System Demographic Data {#sec-results-clean}
 
-We could stop here, and save the dataset containing the results to an output file (done below - see @sec-results-save). But, it may be useful to do some additional computations and re-formatting before saving the dataset. For example, in this case it may be useful to calculate the racial/ethnic breakdown of each system's population as percentages of the total population (in addition to the total counts computed above), and calculate other rates / distributions.
+We can now use those combined values to compute some additional metrics for each system (like rates, income distributions, etc.), and also do some re-formatting before analyzing and saving the results.
+
+#### Clean & Format Aggregated Results
 
 First we can add fields with each racial/ethnic group's estimated percent of the total population within each water system's service area:
-
 ```{r}
 water_system_demographics <- water_system_demographics %>%
     mutate(
@@ -810,8 +809,7 @@ water_system_demographics <- water_system_demographics %>%
     select(-population_total_percent) # this always equals 1, not needed
 ```
 
-We can also calculate the estimated poverty rate for each water system's service area.
-
+We can also calculate the estimated poverty rate for each water system's service area:
 ```{r}
 water_system_demographics <- water_system_demographics %>% 
     mutate(poverty_rate_percent = case_when(
@@ -822,7 +820,6 @@ water_system_demographics <- water_system_demographics %>%
 ```
 
 And compute income brackets in 25k increments:
-
 ```{r}
 water_system_demographics <- water_system_demographics %>% 
     mutate(households_income_0_25k_count = 
@@ -844,7 +841,6 @@ water_system_demographics <- water_system_demographics %>%
 ```
 
 And compute income brackets in 50k increments:
-
 ```{r}
 water_system_demographics <- water_system_demographics %>% 
     mutate(households_income_0_50k_count = 
@@ -861,19 +857,16 @@ water_system_demographics <- water_system_demographics %>%
 ```
 
 And compute grouped median household income:
-
 ```{r}
 
 ```
 
 And compute \# and % of households below income thresholds:
-
 ```{r}
 
 ```
 
 And, compute the portion of households paying more than 30% / 50% of their income toward housing costs:
-
 ```{r}
 # portion of households paying more than 30% / 50% of income on housing
 water_system_demographics <- water_system_demographics %>%
@@ -892,7 +885,6 @@ water_system_demographics <- water_system_demographics %>%
 ```
 
 Finally, we can round the estimated values to appropriate levels of precision:
-
 ```{r}
 water_system_demographics <- water_system_demographics %>%
     mutate(
@@ -908,7 +900,6 @@ water_system_demographics <- water_system_demographics %>%
 ```
 
 We now have a dataset with the selected metrics from the census data (*source* data) estimated for each of the water system service areas (*target* geographic features). Here's a view of the contents and structure of the re-formatted dataset (only the first few fields are shown):
-
 ```{r}
 glimpse(water_system_demographics[,1:20])
 ```
@@ -919,6 +910,7 @@ glimpse(water_system_demographics[,1:20])
 #| label: tbl-water-sys-demographics-rev
 #| tbl-cap: "Estimated Water System Demographics"
 #| tbl-cap-location: top
+#| code-fold: true
 
 pct_format <- label_percent(accuracy = 0.01)
 
@@ -939,7 +931,7 @@ water_system_demographics %>%
 
 <br>
 
-#### Clean & Format Intermediate (Clipped) Data
+#### Clean & Format Intermediate (Clipped) Calculation Data
 
 For visualization and exploration, it'll also be useful to apply some additional formatting to the clipped block-group data used in intermediate parts of the interpolation process above.
 
@@ -1519,6 +1511,7 @@ For larger water systems, the estimated population values seem to be roughly in 
 ```{r}
 #| label: tbl-pop-est-large
 #| tbl-cap: "Water Systems Sorted by Reported Population (Largest to Smallest)"
+#| code-fold: true
 
 pct_format <- label_percent(accuracy = 0.01)
 
@@ -1552,6 +1545,7 @@ Note: See @sec-small-area-estimates below for some more investigation into water
 ```{r}
 #| label: tbl-pop-est-small
 #| tbl-cap: "Water Systems Sorted by Reported Population (Smallest to Largest)"
+#| code-fold: true
 
 pct_format <- label_percent(accuracy = 0.01)
 
@@ -1579,9 +1573,7 @@ water_system_demographics_check %>%
 
 ## Alternative Computation Methods {#sec-alternative-methods}
 
-::: callout-warning
-This section is in progress.
-:::
+As noted above in @sec-estimate-considerations-alternatives, in addition to the method described above, there are other methods that could be applied to estimate demographics of target areas (like water systems) from census data. Different methods may have their own strengths / weaknesses and applicable use cases. This section covers some other potential methods (but is not an exhaustive / comprehensive list of alternatives).
 
 ### Simplified Method With MOE Estimates {#sec-alternative-simplified}
 
@@ -1810,14 +1802,18 @@ The `tidycensus` package has a function for performing population weighted areal
 One drawback of using this approach is that it may not work well in cases where the overall area covered by the target area is significantly smaller than the area covered by the source dataset -- for example, small water systems are often not given an estimated value using this method and `NA`s are returned for those areas (even if `NA` values are removed from the source data first). More research / feedback may be needed on how applicable this approach may be for certain use cases.
 :::
 
+First we can interpolate data for the 'extensive' (count) variables:
 ```{r}
-water_system_demographics_interpolate_pw_count <- interpolate_pw(
+#| warning: false
+#| message: false
+
+water_system_demographics_interpolate_pw_extensive <- interpolate_pw(
     from = census_data_acs %>%
         filter(!is.na(population_total_count)) %>% 
         select(ends_with('_count')),
     to = water_systems_sac,
     to_id = 'water_system_name',
-    extensive = TRUE, # use TRUE for count data
+    extensive = TRUE, # use TRUE for count data - returns weighted sums
     weights = census_data_decennial,
     # weight_placement = 'surface',
     weight_column = 'population_total_count') %>%
@@ -1828,18 +1824,54 @@ water_system_demographics_interpolate_pw_count <- interpolate_pw(
     arrange(water_system_name)
 ```
 
-Note that this returns `NA`s for `{r} sum(is.na(water_system_demographics_interpolate_pw_count$population_total_count))` water systems, which generally appear to be relatively smaller systems. 
+Then we can interpolate data for the remaining 'intensive' variables:
+```{r}
+#| warning: false
+#| message: false
 
-@tbl-interpolate-pw-compare shows a comparison of the system populations estimated using `interpolate_pw` and the reported system populations.
+water_system_demographics_interpolate_pw_intensive <- interpolate_pw(
+    from = census_data_acs %>%
+        filter(!is.na(population_total_count)) %>% 
+        select(average_household_size, 
+               median_household_income, 
+               per_capita_income),
+    to = water_systems_sac,
+    to_id = 'water_system_name',
+    extensive = FALSE, # use FALSE to get weighted means
+    weights = census_data_decennial,
+    # weight_placement = 'surface',
+    weight_column = 'population_total_count') %>%
+    mutate(across(
+        .cols = ends_with('_count'),
+        .fns = ~ round(.x, 0)
+    )) %>% 
+    arrange(water_system_name)
+```
+
+Then we can join the datasets with the two types of variables: 
+```{r}
+#| warning: false
+#| message: false
+
+water_system_demographics_interpolate_pw <- water_system_demographics_interpolate_pw_extensive %>% 
+    left_join(water_system_demographics_interpolate_pw_intensive %>% 
+                  st_drop_geometry(), 
+              by = 'water_system_name')
+```
+
+Note that this returns `NA`s for `{r} sum(is.na(water_system_demographics_interpolate_pw_extensive$population_total_count))` water systems, which generally appear to be relatively smaller systems. 
+
+@tbl-interpolate-pw-compare shows a comparison of the water system populations estimated using `interpolate_pw` and the reported system populations.
 
 ```{r}
 #| label: tbl-interpolate-pw-compare
 #| tbl-cap: "Results Comparison - estimated population with interpolate_pw() vs. reported population (Sorted Largest to Smallest by Reported Population)"
 #| tbl-cap-location: top
+#| code-fold: true
 
 pct_format <- label_percent(accuracy = 0.01)
 
-water_system_demographics_interpolate_pw_count %>%
+water_system_demographics_interpolate_pw %>%
     select(water_system_name, population_total_count) %>% 
     st_drop_geometry() %>% 
     left_join(water_systems_sac %>%
@@ -1865,6 +1897,31 @@ water_system_demographics_interpolate_pw_count %>%
            'Percent Difference' = population_percent_difference) %>% 
     kable(align = 'c', 
           format.args = list(big.mark = ',')) %>%
+    scroll_box(height = "400px")
+```
+
+@tbl-water-sys-demographics-interpolate-pw provides a complete view of the water system demographics estimated using the population weighted areal interpolation approach with the tidycensus `interpolate_pw` function.
+
+```{r}
+#| label: tbl-water-sys-demographics-interpolate-pw
+#| tbl-cap: "Estimated Water System Demographics"
+#| tbl-cap-location: top
+#| code-fold: true
+
+pct_format <- label_percent(accuracy = 0.01)
+
+water_system_demographics_interpolate_pw %>%
+    st_drop_geometry() %>% 
+    mutate(across(
+        .cols = ends_with('_percent'),
+        .fns = ~ pct_format(. / 100))
+    ) %>%
+    rename_with(.cols = everything(), 
+                .fn = ~ str_replace_all(., pattern = '_', replacement = ' ') %>% 
+                    str_to_title(.)) %>% 
+    kable(align = 'c', 
+          format.args = list(big.mark = ',')
+    ) %>%
     scroll_box(height = "400px")
 ```
 
@@ -1935,6 +1992,7 @@ glimpse(water_system_population_estimates_blocks)
 #| label: tbl-interpolate-areal-detailed-compare
 #| tbl-cap: "Results Comparison - detailed population estimates with block-level Decennial data vs. reported population (Sorted Largest to Smallest by Reported Population)"
 #| tbl-cap-location: top
+#| code-fold: true
 
 pct_format <- label_percent(accuracy = 0.01)
 
