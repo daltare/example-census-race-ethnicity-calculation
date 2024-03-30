@@ -1455,7 +1455,7 @@ biscale_plot_system
 
 ## Check / Validate Results {#sec-check-validate}
 
-We can apply a few checks to verify whether or not the results estimated above are reasonable.
+We can apply a few additional checks to verify whether or not the calculations above are correct and/or whether the results are reasonable.
 
 ### Check Count Variables Estimated with Areal Interpolation {#sec-check-areal-interp}
 
@@ -1576,66 +1576,6 @@ water_system_demographics_check %>%
           ) %>%
     scroll_box(height = "400px")
 ```
-
-## Considerations for Detailed Population Estimates {#sec-detailed-pop-estimates}
-
-::: callout-warning
-This section is in progress.
-:::
-
-If you're primarily interested in estimates of population/household counts alone (possibly including population by race/ethnicity, age, gender, etc.) as opposed to more detailed socio-economic data (like income or poverty rates), in some cases it may make sense to use the block-level population data from the decennial census rather than block group level population data from the ACS. (Note: it may also be possible to use the block-level decennial population data as a way to estimate the distribution of the population within Census units and apply that information to the ACS data - see @sec-alternative-interpolate_pw and @sec-alternative-modified-pw-areal above for methods which do that).
-
-Since the decennial census only occurs once every 10 years, those estimates won't necessarily reflect recent population changes (and will get generally be less accurate as the time since the last decennial census increases; however, keep in mind that even the 5-year ACS is an average that encompasses previous years' estimates, so it also reflects some element of 'historical' data -- for example, the 2022 5-year ACS reflects an average of data from 2018-2022). To reflect more recent population changes, one option may be to apply population projections or trends from historical records to scale the values calculated with this method. 
-
-Also, these values could simply be used to check the populations estimated from the ACS using any of the methods described above, and could help to flag areas where those methods are insufficient and more close inspection is needed.
-
-As a simple way to compute these estimates, we can use the `aw_interpolate` function from the `areal` package. This is similar to the `st_interpolate_aw` function from the `sf` package (see @sec-check-areal-interp for an example) -- either one works, but the `aw_interpolate` function provides some additional options and documentation (for example, see [here](https://cran.r-project.org/web/packages/areal/vignettes/areal.html) or [here](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html)). 
-
-::: callout-note
-There are some settings that you may need to modify in the `aw_interpolate` function depending on the type of analysis you're doing. In particular, for more information about the `weight` argument – which can be either `sum` or `total` – see [this section of the documentation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#calculating-weights-for-extensive-interpolations). For more information about extensive versus intensive interpolations, see [this section of the documenation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#extensive-and-intensive-interpolations) (as noted above, the approaches described above avoid using areal interpolation to calculate intensive variables when count data associated with those variables that can be used as weighting factors -- e.g. populations, households, etc. -- are known; some of those considerations are discussed [here](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#mixed-interpolations); more research / input may be needed on that issue).
-:::
-
-```{r}
-#| warning: false
-
-# NOTE: it's only necessary to check the estimated values for one variable - 
-# this just checks the total estimated population
-
-# areal package
-check_areal <- aw_interpolate(water_systems_sac,
-                              tid = water_system_name,
-                              source = census_data_acs,
-                              sid = GEOID,
-                              weight = 'total',
-                              extensive = c('population_total_count'))
-
-# check - should be TRUE if results are equivalent
-all(check_areal %>% 
-        arrange(water_system_name) %>% 
-        pull(population_total_count) %>% 
-        round(5) ==
-        water_system_demographics %>% 
-        arrange(water_system_name) %>% 
-        pull(population_total_count) %>% 
-        round(5)
-)
-```
-
-\[TO DO: add example\]
-
-## Considerations for Small / Rural Area Estimates {#sec-small-area-estimates}
-
-::: callout-warning
-This section is in progress.
-:::
-
-For some water systems, the estimated population using the areal interpolation above (@sec-areal-interp) was at or near zero, and it may be useful to look at an example to see what's going on with one of those cases.
-
-(because the water system may encompass only a small portion of one or a few census units, and the entire census unit(s) may not be representative of the small portion(s)), especially those in rural environments (where population densities are lower, population centers tend to be spread out, and census units tend to be larger).
-
-\[TO DO: insert map\]
-
-From the map above \[TO DO: insert map\], you can see that the service area reported for some systems are very small, only covering a small fraction of a single census unit, resulting in a population estimate that is very low. In these cases, it could be that the system area was drawn incorrectly (i.e., maybe it doesn't really depict the entire service area), in which case the reported service area should be revised. Or, it's possible that the population within the given census unit is very un-evenly distributed and instead there's a relatively high density population cluster in the depicted service area, in which case a more sophisticated method than an area-weighted average should be used (e.g., maybe consider the density of buildings, roads, and/or other features associated with inhabited areas).
 
 ## Alternative Computation Methods {#sec-alternative-methods}
 
@@ -1937,6 +1877,102 @@ This section is in progress.
 This section describes a method which is somewhat similar to the approach used in @sec-alternative-interpolate_pw above, in that it tries to account for variability in the distribution of the population within census units (block groups) by using more granular data from another source (decennial census blocks).
 
 This method uses block and block group data from the decennial census to estimate weights that represent the portion of each block group's population to apply to the target area (water system boundary). It then applies those weights to 'current' data from the most recent ACS to estimate count data (population, number of households, etc.) for each overlapping block group, and finally applies that estimated count data to the remaining variables that describe the count variables (per capita income, average household size, etc) to produce aggregated estimates for each target area (water system).
+
+
+## Considerations for Detailed Population Estimates {#sec-detailed-pop-estimates}
+
+If you're primarily interested in estimates of population/household counts alone (possibly including population by race/ethnicity, age, gender, etc.) as opposed to more detailed socio-economic data (like income or poverty rates), in some cases it may make sense to use the block-level population data from the decennial census rather than block group level population data from the ACS. This method likely represents the most precise estimate of population (or other count data) that we can make from census data alone (i.e., without looking at other sources such as aerial imagery or parcel data).
+
+::: callout-note
+As described elsewhere, it may also be possible to use the block-level decennial population data as a way to estimate the distribution of the population within Census units and apply that information to the ACS data - see @sec-alternative-interpolate_pw and @sec-alternative-modified-pw-areal above for methods which do that).
+:::
+
+Since the decennial census only occurs once every 10 years, those estimates won't necessarily reflect recent population changes (and will get generally be less accurate as the time since the last decennial census increases; however, keep in mind that even the 5-year ACS is an average that encompasses previous years' estimates, so it also reflects some element of 'historical' data -- for example, the 2022 5-year ACS reflects an average of data from 2018-2022). To reflect more recent population changes, one option may be to apply population projections or trends from historical records to scale the values calculated with this method. 
+
+Also, these values could simply be used to check the populations estimated from the ACS using any of the methods described above, and could help to flag areas where those methods are insufficient and more close inspection is needed.
+
+As a simple way to compute these estimates, we can use the `aw_interpolate` function from the `areal` package. This is similar to the `st_interpolate_aw` function from the `sf` package (see @sec-check-areal-interp for an example) -- either one works, but the `aw_interpolate` function provides some additional options and documentation (for example, see [here](https://cran.r-project.org/web/packages/areal/vignettes/areal.html) or [here](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html)). 
+
+::: callout-note
+There are some settings that you may need to modify in the `aw_interpolate` function depending on the type of analysis you're doing. In particular, for more information about the `weight` argument – which can be either `sum` or `total` – see [this section of the documentation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#calculating-weights-for-extensive-interpolations). For more information about extensive versus intensive interpolations, see [this section of the documenation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#extensive-and-intensive-interpolations) (as noted above, the approaches described above avoid using areal interpolation to calculate intensive variables when count data associated with those variables that can be used as weighting factors -- e.g. populations, households, etc. -- are known; some of those considerations are discussed [here](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#mixed-interpolations); more research / input may be needed on that issue).
+:::
+
+```{r}
+#| warning: false
+
+# define variables to interpolate
+vars_interpolate_aw <- census_data_decennial %>% 
+    st_drop_geometry() %>% 
+    select(starts_with('population_')) %>% 
+    names()
+
+# interpolate
+water_system_population_estimates_blocks <- water_systems_sac %>% 
+    aw_interpolate(tid = water_system_name,
+                   source = census_data_decennial,
+                   sid = GEOID,
+                   weight = 'total',
+                   extensive = vars_interpolate_aw)
+
+# clean
+water_system_population_estimates_blocks <- water_system_population_estimates_blocks %>% 
+    mutate(
+        across(
+            .cols = starts_with('population_'),
+            .fns = ~ round(.x, 0)
+        )
+    )
+```
+
+Here's a view of the structure of the data that's returned:
+```{r}
+glimpse(water_system_population_estimates_blocks)
+```
+
+@tbl-interpolate-areal-detailed-compare shows a comparison of the system populations estimated using the block-level data from the `{r decennial_year}` Decennial Census and the reported system populations.
+
+```{r}
+#| label: tbl-interpolate-areal-detailed-compare
+#| tbl-cap: "Results Comparison - detailed population estimates with block-level Decennial data vs. reported population (Sorted Largest to Smallest by Reported Population)"
+#| tbl-cap-location: top
+
+pct_format <- label_percent(accuracy = 0.01)
+
+water_system_population_estimates_blocks %>%
+    st_drop_geometry() %>% 
+    select(water_system_name, water_system_service_connections,
+           water_system_population_reported, population_total_count) %>%
+    arrange(desc(water_system_population_reported)) %>%
+    mutate(population_percent_difference =
+               round(100 * (population_total_count - water_system_population_reported) /
+                         water_system_population_reported,
+                     2),
+           .after = population_total_count) %>%
+    mutate(population_percent_difference = pct_format(
+        population_percent_difference / 100)) %>%
+    rename('Service Connections' = water_system_service_connections,
+           'Reported Population' = water_system_population_reported,
+           'Estimated Population' = population_total_count,
+           'Percent Difference' = population_percent_difference) %>%
+    kable(align = 'c',
+          format.args = list(big.mark = ',')) %>%
+    scroll_box(height = "400px")
+```
+
+## Considerations for Small / Rural Area Estimates {#sec-small-area-estimates}
+
+::: callout-warning
+This section is in progress.
+:::
+
+For some water systems, the estimated population using the areal interpolation above (@sec-areal-interp) was at or near zero, and it may be useful to look at an example to see what's going on with one of those cases.
+
+(because the water system may encompass only a small portion of one or a few census units, and the entire census unit(s) may not be representative of the small portion(s)), especially those in rural environments (where population densities are lower, population centers tend to be spread out, and census units tend to be larger).
+
+\[TO DO: insert map\]
+
+From the map above \[TO DO: insert map\], you can see that the service area reported for some systems are very small, only covering a small fraction of a single census unit, resulting in a population estimate that is very low. In these cases, it could be that the system area was drawn incorrectly (i.e., maybe it doesn't really depict the entire service area), in which case the reported service area should be revised. Or, it's possible that the population within the given census unit is very un-evenly distributed and instead there's a relatively high density population cluster in the depicted service area, in which case a more sophisticated method than an area-weighted average should be used (e.g., maybe consider the density of buildings, roads, and/or other features associated with inhabited areas).
+
 
 ## Working with Other Source Datasets {#sec-other-sources}
 
