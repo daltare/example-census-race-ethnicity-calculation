@@ -306,91 +306,10 @@ water_systems_filter <- water_systems_sac %>%
     st_as_sf()
 ```
 
-### Decennial Census {#sec-census-access-decennial}
 
-This section retrieves census data from the Decennial Census, using the `get_decennial` function from the `tidycensus` package. As of this writing, the most recent version of the decennial census data available is from 2020, and we can set that as a variable below.
+### American Community Survey (ACS) Data {#sec-census-access-acs}
 
-```{r}
-#| message: false
-#| warning: false
-#| results: hide
-
-# set year
-decennial_year <- 2020
-```
-
-Next, we can define the list of demographic variables we'd like to retrieve tabular data for, by saving the census variables we want in the `census_vars_decennial` object (see @sec-census-variables for more information about how to discover variables of interest and find their associated codes). Note that here we're providing descriptive names associated with each variable code, which makes the data easier to work with later, but isn't strictly necessary (i.e., you could just supply the variable codes alone).
-
-```{r}
-#| message: false
-#| warning: false
-#| results: hide
-
-# define variables to pull from the decennial census
-census_vars_decennial <- c(
-    'population_hispanic_or_latino_count' = 'P2_002N', # Total Hispanic or Latino
-    'population_white_count' = 'P2_005N', # White (Not Hispanic or Latino)
-    'population_black_or_african_american_count' = 'P2_006N', # Black or African American (Not Hispanic or Latino)
-    'population_native_american_or_alaska_native_count' = 'P2_007N', # American Indian and Alaska Native (Not Hispanic or Latino)
-    'population_asian_count' = 'P2_008N', # Asian (Not Hispanic or Latino)
-    'population_pacific_islander_count' = 'P2_009N', # Native Hawaiian and Other Pacific Islander (Not Hispanic or Latino)
-    'population_other_count' = 'P2_010N', # Some other race (Not Hispanic or Latino)
-    'population_multiple_count' = 'P2_011N', # Two or more races (Not Hispanic or Latino)
-    'population_total_count' = 'P2_001N'
-)
-```
-
-Now, we can make the data request, using the `get_decennial` function, which accepts several arguments that specify exactly what data to return.
-
-For this example we're getting data at the 'Block' level (with the `geography = 'block'` argument) for the demographic variables defined above in the `census_vars_decennial` object (which is passed to the `variables` argument). As noted above, block-level data is the most granular level of spatial data available, and should provide the best results when estimating demographics for areas whose boundaries don't align with census unit boundaries. However, depending on the use case, it may require too much time and computational resources to use the most granular spatial data, and may not be necessary to obtain a reasonable estimate. Also, keep in mind that block-level data may not be available for all variables, and some variables may only be available at less granular spatial scales (like block groups or tracts).
-
-In addition to the tabular data associated with the demographic variables in our list, we'll also get the spatial data – i.e., the boundaries of the census blocks – by setting the `geometry = TRUE` argument. When we do this, the tabular demographic data is pre-joined to the spatial data, so the API request returns a single dataset with both the spatial and attribute (demographic) data combined.
-
-::: callout-note
-The `tidycensus` package generally returns the Census Bureau's [cartographic boundary shapefiles](https://www.census.gov/geo/maps-data/data/tiger-cart-boundary.html) by default (as opposed to the [core TIGER/Line shapefiles](https://www.census.gov/geo/maps-data/data/tiger-line.html), which is the default format returned by the `tigris` R package). The default cartographic boundary shapefiles are pre-clipped to the US coastline, and are smaller/faster to process (alternatively you can use `cb = FALSE` to get the core TIGER/Line data) (see [here](https://walker-data.com/census-r/spatial-analysis-with-us-census-data.html#better-cartography-with-spatial-overlay)). So the default spatial data returned by `tidycensus` may be somewhat different than the default spatial data returned by the `tigris` package, but in general I find it's best to use the default `tidycensus` spatial data.
-:::
-
-::: callout-warning
-At the block level, it appears that `tidycensus` only returns the more detailed core TIGER/Line shapefiles (i.e., they are identical to the default block-level geographic data returned by `tigris`). In some cases, that can create minor inconsistencies when working with both blocks and block groups and using the default geographies.
-:::
-
-We also narrow down the search parameters geographically by specifying the state (with `state = 'CA'`) and counties (`county = counties_list`) we're seeking data for, and provide an object to the `filter_by` argument which filters the data returned so that it only includes census units that overlap with our target areas (see @nte-filter-by above for more information).
-
-::: callout-note
-Supplying a list of counties may not be strictly necessary, especially in cases where you supply the optional `filter_by` argument. However, especially when working with granular data like blocks, supplying the county argument seems to greatly speed the API request.
-:::
-
-Also, while by default the `tidycensus` package returns data in long/tidy format, we're getting the data in wide format for this example (by specifying `output = 'wide'`) because it'll be easier to work with for the interpolation method described below to estimate demographics for non-census geographies.
-
-```{r}
-#| message: false
-#| warning: false
-#| results: hide
-#| lst-label: lst-get_decennial
-#| lst-cap: Retrieve decennial census data
-
-# get census data
-census_data_decennial <- get_decennial(geography = 'block', # can be 'block', 'block group', 'tract', 'county', etc.
-                                       state = 'CA', 
-                                       county = counties_list,
-                                       filter_by = water_systems_filter,
-                                       year = decennial_year,
-                                       variables = census_vars_decennial,
-                                       output = 'wide', # can be 'wide' or 'tidy'
-                                       geometry = TRUE,
-                                       cache_table = TRUE) %>% 
-    st_transform(crs_projected) # convert to common coordinate system
-```
-
-The output is an sf object (i.e., a dataframe-like object that also includes spatial data), in wide format, where each row represents a census unit, and the population of each racial/ethnic group is reported in a separate column. Here's a view of the contents and structure of the Decennial Census data that's returned:
-
-```{r}
-glimpse(census_data_decennial)
-```
-
-### American Community Survey (ACS) {#sec-census-access-acs}
-
-To get data from the ACS, you can use the `get_acs()` function, which is very similar to the `get_decennial()` function used above. As of this writing, the most recent version of the 5-year ACS data available is the 2018-2022 ACS, and we can set that as a variable below (which makes it easier to update this document in future years).
+This section retrieves data from the ACS, using the `get_acs()` function from the `tidycensus` package. As of this writing, the most recent version of the 5-year ACS data available is the 2018-2022 ACS, and we can set that as a variable below (note that this variable is used in multiple places throughout this document, not just when retrieving the data).
 
 ```{r}
 #| message: false
@@ -401,7 +320,7 @@ To get data from the ACS, you can use the `get_acs()` function, which is very si
 acs_year <- 2022
 ```
 
-However, since the ACS data contains data on a much broader set of socio-economic metrics, the requested data includes a greatly expanded list of variables, defined in the `census_vars_acs` object (see @sec-census-variables for more information about how to discover variables of interest and find their associated codes). As above, we can provide descriptive names associated with each variable code, which makes the data easier to work with later, but isn't strictly necessary (i.e., you could just supply the variable codes alone). Note that the use of prefixes (like `population_` or `households_`) and suffixes (like `_count`) is intentional -- those will be used later as part of the calculation process.
+Next, we can define the list of demographic variables we'd like to retrieve tabular data for, by saving the census variables we want in the `census_vars_acs` object (see @sec-census-variables for more information about how to discover variables of interest and find their associated codes). Here we're providing descriptive names associated with each variable code, which makes the data easier to work with later, but isn't strictly necessary (i.e., you could just supply the variable codes alone). Note that the use of prefixes (like `population_` or `households_`) and suffixes (like `_count`) is intentional -- those will be used later as part of the calculation process.
 
 ```{r}
 #| message: false
@@ -467,7 +386,25 @@ census_vars_acs <- c(
 )
 ```
 
-Finally, we can make the data request, using the `get_acs` function, which is very similar to the `get_decennial` function described above ( @sec-census-access-decennial). However, for this example we're getting data at the 'Block Group' level (with the `geography = 'block group'` argument), which is the most granular level of spatial data available for ACS data. But, keep in mind that block group-level data may not be available for all variables, and some variables may only be available at less granular spatial scales (like tracts). Note that the `water_systems_filter` object supplied to the `filter_by` argument was created above in @lst-filter_obj (and see @nte-filter-by above for more information about this argument).
+Now, we can make the data request, using the `get_acs` function, which accepts several arguments that specify exactly what data to return.
+
+For this example we're getting data at the 'Block Group' level (with the `geography = 'block group'` argument) for the demographic variables defined above in the `census_vars_acs` object (which is passed to the `variables` argument). As noted above, block group-level data is the most granular level of spatial data available from the ACS, and should provide the best results when estimating demographics for areas whose boundaries don't align with census unit boundaries. However, note that some variables may only be available at less granular spatial scales (like tracts).
+
+In addition to the tabular data associated with the demographic variables in our list, we'll also get the spatial data – i.e., the boundaries of the census blocks – by setting the `geometry = TRUE` argument. When we do this, the tabular demographic data is pre-joined to the spatial data for the associated version of the census boundaries, so the API request returns a single dataset with both the spatial and attribute (demographic) data combined.
+
+::: callout-note
+The `tidycensus` package generally returns the Census Bureau's [cartographic boundary shapefiles](https://www.census.gov/geo/maps-data/data/tiger-cart-boundary.html) by default (as opposed to the [core TIGER/Line shapefiles](https://www.census.gov/geo/maps-data/data/tiger-line.html), which is the default format returned by the `tigris` R package). The default cartographic boundary shapefiles are pre-clipped to the US coastline, and are smaller/faster to process (alternatively you can use `cb = FALSE` to get the core TIGER/Line data) (see [here](https://walker-data.com/census-r/spatial-analysis-with-us-census-data.html#better-cartography-with-spatial-overlay)). So the default spatial data returned by `tidycensus` may be somewhat different than the default spatial data returned by the `tigris` package, but in general I find it's best to use the default `tidycensus` spatial data.
+
+However, at the block level `tidycensus` returns the more detailed core TIGER/Line shapefiles (i.e., they are identical to the default block-level geographic data returned by `tigris`). In some cases, that may create minor inconsistencies when working with both blocks and block groups and using the default geographies.
+:::
+
+We also narrow down the search parameters geographically by specifying the state (with `state = 'CA'`) and counties (`county = counties_list`) we're seeking data for, and provide an object to the `filter_by` argument which filters the data returned so that it only includes census units that overlap with our target areas. Note that the `water_systems_filter` object supplied to the `filter_by` argument was created above in @lst-filter_obj (and see @nte-filter-by above for more information about this argument).
+
+::: callout-note
+Supplying a list of counties may not be strictly necessary, especially in cases where you supply the optional `filter_by` argument. However, especially when working with granular data like blocks, supplying the county argument seems to greatly speed the API request.
+:::
+
+Also, while by default the `tidycensus` package returns data in long/tidy format, we're getting the data in wide format for this example (by specifying `output = 'wide'`) because it'll be easier to work with for the interpolation method described below to estimate demographics for non-census geographies.
 
 ```{r}
 #| message: false
@@ -490,7 +427,7 @@ census_data_acs <- get_acs(geography = 'block group',
     st_transform(crs_projected) # convert to common coordinate system
 ```
 
-As above, the output is an sf object (i.e., a dataframe-like object that also includes spatial data), in wide format, where each row represents a census unit, and the each demographic variable is reported in a separate column. Here's a view of the contents and structure of the `r acs_year` 5-year ACS data that's returned (only the first few fields are shown):
+The output is an sf object (i.e., a dataframe-like object that also includes spatial data), in wide format, where each row represents a census unit, and the each demographic variable is reported in a separate column. Here's a view of the contents and structure of the `r acs_year` 5-year ACS data that's returned (only the first few fields are shown):
 
 ```{r}
 glimpse(census_data_acs[,1:20])
@@ -523,13 +460,78 @@ census_data_acs_state <- get_acs(geography = 'state',
                                     replacement = 'NAME'))
 ```
 
+
+### Decennial Census Data {#sec-census-access-decennial}
+
+To get data from the Decennial Census, you can use the `get_decennial` function, which is very similar to the `get_acs()` function used above. As of this writing, the most recent version of the decennial census data available is from 2020, and we can set that as a variable below.
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
+# set year
+decennial_year <- 2020
+```
+
+However, since ACS data contains data on a much broader set of socio-economic metrics than the Decennial Census, the requested data includes a greatly reduced list of variables, defined in the `census_vars_decennial` object (see @sec-census-variables for more information about how to discover variables of interest and find their associated codes). As above, we can provide descriptive names associated with each variable code, which makes the data easier to work with later, but isn't strictly necessary (i.e., you could just supply the variable codes alone).
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
+# define variables to pull from the decennial census
+census_vars_decennial <- c(
+    'population_hispanic_or_latino_count' = 'P2_002N', # Total Hispanic or Latino
+    'population_white_count' = 'P2_005N', # White (Not Hispanic or Latino)
+    'population_black_or_african_american_count' = 'P2_006N', # Black or African American (Not Hispanic or Latino)
+    'population_native_american_or_alaska_native_count' = 'P2_007N', # American Indian and Alaska Native (Not Hispanic or Latino)
+    'population_asian_count' = 'P2_008N', # Asian (Not Hispanic or Latino)
+    'population_pacific_islander_count' = 'P2_009N', # Native Hawaiian and Other Pacific Islander (Not Hispanic or Latino)
+    'population_other_count' = 'P2_010N', # Some other race (Not Hispanic or Latino)
+    'population_multiple_count' = 'P2_011N', # Two or more races (Not Hispanic or Latino)
+    'population_total_count' = 'P2_001N'
+)
+```
+
+Finally, we can make the data request, using the `get_decennial` function, which is very similar to the `get_acs` function described above (@sec-census-access-acs). However, for this example we're getting data at the 'Block' level (with the `geography = 'block'` argument) for the demographic variables defined above in the `census_vars_decennial` object (which is passed to the `variables` argument). As noted above, block-level data is the most granular level of spatial data available, and should provide the best results when estimating demographics for areas whose boundaries don't align with census unit boundaries. However, depending on the use case, it may require too much time and computational resources to use the most granular spatial data, and may not be necessary to obtain a reasonable estimate. Also, keep in mind that block-level data may not be available for all variables, and some variables may only be available at less granular spatial scales (like block groups or tracts).
+
+Also note that the `water_systems_filter` object supplied to the `filter_by` argument was created above in @lst-filter_obj (and see @nte-filter-by above for more information about this argument).
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+#| lst-label: lst-get_decennial
+#| lst-cap: Retrieve decennial census data
+
+# get census data
+census_data_decennial <- get_decennial(geography = 'block', # can be 'block', 'block group', 'tract', 'county', etc.
+                                       state = 'CA', 
+                                       county = counties_list,
+                                       filter_by = water_systems_filter,
+                                       year = decennial_year,
+                                       variables = census_vars_decennial,
+                                       output = 'wide', # can be 'wide' or 'tidy'
+                                       geometry = TRUE,
+                                       cache_table = TRUE) %>% 
+    st_transform(crs_projected) # convert to common coordinate system
+```
+
+As above, the output is an sf object (i.e., a dataframe-like object that also includes spatial data), in wide format, where each row represents a census unit, and the population of each racial/ethnic group is reported in a separate column. Here's a view of the contents and structure of the Decennial Census data that's returned:
+
+```{r}
+glimpse(census_data_decennial)
+```
+
 ### Plot Census & Supplier Data {#sec-census-plot}
 
 ```{r}
 system_plot <- 'SACRAMENTO SUBURBAN WATER DISTRICT'
 ```
 
-@fig-suppliers-census-map shows the `r acs_year` 5-year ACS census units that overlap with one of the water systems (`{r} str_to_title(system_plot)`) that we'll compute demographics for below (plotting the census units that overlap all systems tends to be slow in this format).
+@fig-suppliers-census-map shows the `r acs_year` 5-year ACS census units that overlap with one of the water systems (`{r} str_to_title(system_plot)`) that we'll compute demographics for below (note that a single system is shown because plotting the census units that overlap all systems tends to be slow in this format; to view the census boundaries overlapping all systems see @fig-results-map).
 
 ::: {#fig-suppliers-census-map}
 ```{r}
