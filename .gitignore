@@ -67,7 +67,6 @@ _ignore/
 # 03_data_results/*.csv
 # 03_data_results/*.gpkg
 # 03_data_results/_dataset_hash.csv
-code_from_python_package_comparison.R
 quarto_document_publishing.txt
 water_supplier_boundaries_2024-03-11/
 water_supplier_boundaries_2024-03-11.zip
