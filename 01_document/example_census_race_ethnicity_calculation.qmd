@@ -150,10 +150,16 @@ This water system dataset comes from the [California Drinking Water System Area 
 #| warning: false
 #| results: hide
 
+# read from file
 water_systems_sac <- st_read(here('02_data_input', 
                                   'water_supplier_boundaries_sac', 
                                   'System_Area_Boundary_Layer_Sac.shp')) %>% 
     st_transform(crs_projected) # transform to common coordinate system
+
+# make sure geometry is valid
+if (sum(!st_is_valid(water_systems_sac)) > 0) {
+    water_systems_sac <- st_make_valid(water_systems_sac)
+}
 ```
 
 You can use the `glimpse` function (below) to take get a sense of what type of information is available in the water system dataset and how it's structured.
@@ -212,7 +218,7 @@ url_feature <- 'https://gispublic.waterboards.ca.gov/portalserver/rest/services/
 water_systems_feature_layer <- arc_open(url_feature)
 
 # download and filter data from source
-water_systems_sac <- arc_select(
+water_systems_sac_alternative <- arc_select(
     water_systems_feature_layer,
     # apply filters
     where = "COUNTY = 'SACRAMENTO' AND STATE_CLASSIFICATION = 'COMMUNITY'",
@@ -235,6 +241,11 @@ water_systems_sac <- arc_select(
            water_system_state_class = STATE_CLASSIFICATION,
            water_system_service_connections = SERVICE_CONNECTIONS,
            water_system_population_reported = POPULATION)
+
+# make sure geometry is valid
+if (sum(!st_is_valid(water_systems_sac_alternative)) > 0) {
+    water_systems_sac <- st_make_valid(water_systems_sac_alternative)
+}
 ```
 
 ### Get County Boundaries {#sec-county-boundaries}
@@ -259,9 +270,10 @@ Then, get a list of counties that overlap with the boundaries of the Sacramento 
 
 counties_overlap <- counties_ca %>% 
     st_filter(water_systems_sac, 
-              .predicate = st_overlaps)
+              .predicate = st_intersects)
 
 counties_list <- counties_overlap %>% pull(NAME)
+counties_list
 ```
 
 The counties in the `counties_list` variable are: `r counties_list`.
@@ -1564,23 +1576,27 @@ As noted above, it's possible to use pre-built functions for areal interpolation
 # NOTE: it's only necessary to check the estimated values for one variable - 
 # this just checks the total estimated population
 
-# sf package
+# interpolate with sf package
 check_sf <- st_interpolate_aw(x = census_data_acs %>% 
                                   select(population_total_count),
                               to = water_systems_sac,
                               extensive = TRUE) %>% 
     bind_cols(water_systems_sac %>% st_drop_geometry)
 
-# check - should be TRUE if results are equivalent
-all(check_sf %>% 
+# extract population estimates from sf package
+pop_est_sf <- check_sf %>% 
         arrange(water_system_name) %>% 
         pull(population_total_count) %>% 
-        round(5) ==
-        water_system_demographics %>% 
+        round(0)
+
+# extract population estimates from process above
+pop_est_manual <- water_system_demographics %>% 
         arrange(water_system_name) %>% 
         pull(population_total_count) %>% 
-        round(5)
-)
+        round(0)
+
+# compare - should be TRUE if results are equivalent
+all(pop_est_sf == pop_est_manual)
 ```
 
 ### Compare Estimated vs Reported Population Estimates {#sec-check-pop-estimated-reported}
@@ -1695,6 +1711,8 @@ As noted above, determining the margin of error (MOE) for estimates computed usi
 
 ::: callout-tip
 For guidance on how calculate MOEs for some types of derived estimates, see [this document](https://www.census.gov/content/dam/Census/library/publications/2020/acs/acs_general_handbook_2020_ch08.pdf).
+
+`tidycensus` has functions for calculating MOEs for derived estimates based on Census-supplied formulas, including [`moe_sum()`](https://walker-data.com/tidycensus/reference/moe_sum.html), [`moe_product()`](https://walker-data.com/tidycensus/reference/moe_product.html), [`moe_ratio()`](https://walker-data.com/tidycensus/reference/moe_ratio.html), and [`moe_prop()`](https://walker-data.com/tidycensus/reference/moe_prop.html).
 :::
 
 In this case, one option could be to use a minimum coverage threshold, where entire census units whose portion of area that overlaps the target area is greater than the threshold are treated as part of the target area, and any census units whose portion of area that overlaps the target area is less than the threshold are not treated as part of the target area (the threshold can be set to zero to use all census units that overlap the target area). But, when using a minimum coverage threshold, some water systems may not have any census units that meet the coverage threshold, so they may need to be accounted for separately (e.g., by selecting the overlapping census unit that has the greatest portion of overlap, as is done below), or those systems could be excluded from the calculation.
@@ -1704,10 +1722,6 @@ For small / medium sized target areas (small water systems), count data estimate
 :::
 
 Because this approach operates on entire census units, the census bureau's recommended approach for aggregating MOEs can be applied to produce an aggregated MOE. (However, keep in mind that the aggregated MOE applies to the uncertainty in the estimate for the census units included in the aggregation, and not may not necessarily capture the uncertainty in the estimate of the target area, since the two areas are now different – i.e., there is an additional un-quantified element of uncertainty/error which is not reflected in the MOE due to this mismatch. In general, any estimate which attempts to compute census demographics for areas that don't align with the census boundaries may have some element of un-quantifiable error – more research/input may be needed.)
-
-::: callout-tip
-`tidycensus` has functions for calculating MOEs for derived estimates based on Census-supplied formulas, including [`moe_sum()`](https://walker-data.com/tidycensus/reference/moe_sum.html), [`moe_product()`](https://walker-data.com/tidycensus/reference/moe_product.html), [`moe_ratio()`](https://walker-data.com/tidycensus/reference/moe_ratio.html), and [`moe_prop()`](https://walker-data.com/tidycensus/reference/moe_prop.html).
-:::
 
 #### Compute Demographic Estimates {#sec-alternative-simplified-calculate}
 
@@ -1991,7 +2005,6 @@ water_system_demographics_simplified_method %>%
 ```{r}
 #| message: false
 #| warning: false
-#| warning: false
 #| code-fold: true
 
 mapview(census_data_acs_moe %>% 
@@ -2023,7 +2036,6 @@ While this approach may work well for relatively large water systems (where the 
 ::: {#fig-simplified-calc-map-small-system}
 ```{r}
 #| message: false
-#| warning: false
 #| warning: false
 #| code-fold: true
 
@@ -2111,7 +2123,7 @@ The `tidycensus` package has a function for performing population weighted areal
 
 According to the documentation for the [`interpolate_pw`](https://walker-data.com/tidycensus/reference/interpolate_pw.html) function, the approach it implements is based on Esri's data apportionment algorithm -- more information about that can be found [here](https://pro.arcgis.com/en/pro-app/latest/help/analysis/business-analyst/data-apportionment-and-layers.htm) and [here](https://developers.arcgis.com/rest/geoenrichment/api-reference/data-apportionment.htm).
 
-:::
+::: callout-warning
 Margins of error (MOEs) for estimated values cannot be calculated directly using the `interpolate_pw` function (and may be difficult to calculate at all) -- the  [`interpolate_pw`](https://walker-data.com/tidycensus/reference/interpolate_pw.html) documentation states: *Margins of error in the ACS will not be transferred correctly with this function, so please use with caution*
 :::
 
@@ -2347,7 +2359,7 @@ water_system_population_estimates_blocks <- water_system_population_estimates_bl
 
 ### View Results
 
-@tbl-interpolate-areal-detailed-compare shows a comparison of the system populations estimated using the block-level data from the `{r decennial_year}` Decennial Census and the reported system populations.
+@tbl-interpolate-areal-detailed-compare shows a comparison of the system populations estimated using the block-level data from the `r decennial_year` Decennial Census and the reported system populations.
 
 ```{r}
 #| message: false
@@ -2380,7 +2392,7 @@ water_system_population_estimates_blocks %>%
     scroll_box(height = "400px")
 ```
 
-@tbl-water-sys-demographics-interpolate-pw shows all demographic variables estimated using the population weighted areal interpolation approach with the tidycensus `interpolate_pw` function.
+@tbl-water-sys-demographics-areal-detailed shows all demographic variables estimated using the block-level data from the `r decennial_year` Decennial Census.
 
 ```{r}
 #| message: false
