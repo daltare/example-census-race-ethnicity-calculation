@@ -2192,42 +2192,42 @@ First interpolate data for the 'extensive' (count) variables, by computing weigh
 #| message: false
 
 # population weighted variables ----
-water_system_demographics_interpolate_pw_extensive_pop <- interpolate_pw(
-    from = census_data_acs %>%
-        filter(!is.na(population_total_count)) %>% 
-        select(starts_with(c('population_', 'poverty_')) & ends_with('_count')),
-    to = water_systems_sac,
-    to_id = 'water_system_name',
-    extensive = TRUE, # use TRUE for count data - returns weighted sums
-    weights = census_data_decennial,
-    # weight_placement = 'surface',
-    weight_column = 'population_total_count') %>%
+water_system_demographics_interpolate_pw_extensive_pop <- 
+    interpolate_pw(
+        from = census_data_acs %>%
+            filter(!is.na(population_total_count)) %>% 
+            select(starts_with(c('population_', 'poverty_')) & ends_with('_count')),
+        to = water_systems_sac,
+        to_id = 'water_system_name',
+        extensive = TRUE, # use TRUE for count data - returns weighted sums
+        weights = census_data_decennial,
+        # weight_placement = 'surface',
+        weight_column = 'population_total_count') %>%
     mutate(across(
         .cols = ends_with('_count'),
-        .fns = ~ round(.x, 0)
-    )) %>% 
+        .fns = ~ round(.x, 0))) %>% 
     arrange(water_system_name)
 
 # household weighted variables ----
-water_system_demographics_interpolate_pw_extensive_hh <- interpolate_pw(
-    from = census_data_acs %>%
-        filter(!is.na(population_total_count)) %>% 
-        select(starts_with('households_') & ends_with('_count')),
-    to = water_systems_sac,
-    to_id = 'water_system_name',
-    extensive = TRUE, # use TRUE for count data - returns weighted sums
-    weights = census_data_decennial,
-    # weight_placement = 'surface',
-    weight_column = 'households_count') %>%
+water_system_demographics_interpolate_pw_extensive_hh <- 
+    interpolate_pw(
+        from = census_data_acs %>%
+            filter(!is.na(households_count)) %>% 
+            select(starts_with('households_') & ends_with('_count')),
+        to = water_systems_sac,
+        to_id = 'water_system_name',
+        extensive = TRUE, # use TRUE for count data - returns weighted sums
+        weights = census_data_decennial,
+        # weight_placement = 'surface',
+        weight_column = 'households_count') %>%
     mutate(across(
         .cols = ends_with('_count'),
-        .fns = ~ round(.x, 0)
-    )) %>% 
+        .fns = ~ round(.x, 0))) %>% 
     arrange(water_system_name) %>% 
     st_drop_geometry() # only need to keep geometry for 1 group - joining them all below
 ```
 
-#### Interpolate Intensive Variables
+##### Intensive Variables
 
 Then interpolate data for the remaining 'intensive' variables, by computing weighted means for those variables:
 
@@ -2236,32 +2236,34 @@ Then interpolate data for the remaining 'intensive' variables, by computing weig
 #| message: false
 
 # population weighted variables ----
-water_system_demographics_interpolate_pw_intensive_pop <- interpolate_pw(
-    from = census_data_acs %>%
-        filter(!is.na(population_total_count)) %>% 
-        select(per_capita_income),
-    to = water_systems_sac,
-    to_id = 'water_system_name',
-    extensive = FALSE, # use FALSE to get weighted means
-    weights = census_data_decennial,
-    # weight_placement = 'surface',
-    weight_column = 'population_total_count') %>%
+water_system_demographics_interpolate_pw_intensive_pop <- 
+    interpolate_pw(
+        from = census_data_acs %>%
+            filter(!is.na(population_total_count)) %>% 
+            select(per_capita_income),
+        to = water_systems_sac,
+        to_id = 'water_system_name',
+        extensive = FALSE, # use FALSE to get weighted means
+        weights = census_data_decennial,
+        # weight_placement = 'surface',
+        weight_column = 'population_total_count') %>%
     mutate(per_capita_income = round(per_capita_income, 0)) %>%
     arrange(water_system_name) %>% 
     st_drop_geometry() # only need to keep geometry for 1 group - joining them all below
 
 # household weighted variables ----
-water_system_demographics_interpolate_pw_intensive_hh <- interpolate_pw(
-    from = census_data_acs %>%
-        filter(!is.na(population_total_count)) %>% 
-        select(average_household_size, 
-               median_household_income),
-    to = water_systems_sac,
-    to_id = 'water_system_name',
-    extensive = FALSE, # use FALSE to get weighted means
-    weights = census_data_decennial,
-    # weight_placement = 'surface',
-    weight_column = 'households_count') %>%
+water_system_demographics_interpolate_pw_intensive_hh <- 
+    interpolate_pw(
+        from = census_data_acs %>%
+            filter(!is.na(households_count)) %>% 
+            select(average_household_size, 
+                   median_household_income),
+        to = water_systems_sac,
+        to_id = 'water_system_name',
+        extensive = FALSE, # use FALSE to get weighted means
+        weights = census_data_decennial,
+        # weight_placement = 'surface',
+        weight_column = 'households_count') %>%
     mutate(average_household_size = round(average_household_size, 2),
            median_household_income = round(median_household_income, 0)) %>% 
     arrange(water_system_name) %>% 
