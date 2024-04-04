@@ -79,7 +79,7 @@ crs_projected <- 3310 # see: https://epsg.io/3310
 
 ## Census Data Overview {#sec-census-overview}
 
-This section provides some brief background on the various types of data available from the U.S. Census Bureau (a later section - @sec-census-access - demonstrates how to retrieve data from the U.S. Census Bureau using the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package). Most of the information covered here comes from the book [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/index.html), which is a great source of information if you'd like more detail about any of the topics below [@walker2023].
+This section provides some brief background on the various types of data available from the U.S. Census Bureau (for more information about census data available for tribal areas / populations, see @sec-tribal-data). A later section -- @sec-census-access -- demonstrates how to retrieve data from the U.S. Census Bureau using the [`tidycensus`](https://walker-data.com/tidycensus/index.html) R package. Most of the information covered here comes from the book [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/index.html), which is a great source of information if you'd like more detail about any of the topics below [@walker2023].
 
 ::: callout-note
 If you're already familiar with Census data and want to skip this overview, go directly to the next section: @sec-system-boundaries
@@ -109,7 +109,7 @@ For a list of the different geographic units available for each of the different
 
 The Decennial Census is conducted every 10 years, and is intended to provide a complete count of the US population and assist with political redistricting. As a result, it collects a relatively limited set of basic demographic data, but (should) provide a high degree of precision (i.e., in general it should provide exact counts). It is available for geographic units down to the census block (the smallest census unit available – see @sec-census-hierarchy). For information about existing and planned future releases of 2020 census data products, go [here](https://www.census.gov/programs-surveys/decennial-census/decade/2020/planning-management/release/about-2020-data-products.html).
 
-The American Community Survey (ACS) provides a much larger array of demographic information than the Decennial Census, and is updated more frequently. The ACS is based on a sample of the population (rather than a count of the entire population, as in the Decennial Census), so it represents estimated values rather than precise counts; therefore, each data point is available as an estimate (typically labeled with an "E" in census variable codes, which are discussed in @sec-census-variables ) along with an associated margin of error (typically labeled with "M" or "MOE" in census variable codes) around its estimated value.
+The American Community Survey (ACS) provides a much larger array of demographic information than the Decennial Census, and is updated more frequently. The ACS is based on a sample of the population (rather than a count of the entire population, as in the Decennial Census), so it represents estimated values rather than precise counts; therefore, each data point is available as an estimate (typically labeled with an "E" in census variable codes, which are discussed in @sec-census-variables ) along with an associated margin of error (typically labeled with "M" or "MOE" in census variable codes) around its estimated value. The MOEs for ACS data are typically provided at a 90% confidence level -- to calculate the 90% confidence interval for an estimate, add the MOE to the estimated value to get the upper bound of the confidence interval, and subtract the MOE from the estimate to get the lower bound of the confidence interval (for more information see [here](https://www.census.gov/content/dam/Census/library/publications/2018/acs/acs_general_handbook_2018_ch07.pdf)). Note that it's possible to calculate MOEs for some types of derived estimates of census data, such as aggregating data across multiple census units or calculating proportions and percentages (see [here](https://www.census.gov/content/dam/Census/library/publications/2018/acs/acs_general_handbook_2018_ch08.pdf) for more information); however, it may be difficult or not possible to calculate MOEs for some more complicated types of derived estimates (like some of the aggregation methods described below).
 
 The ACS is available in two formats. The 5-year ACS is a rolling average of 5 years of data (e.g., the 2021 5-year ACS dataset is an average of the ACS data from 2017 through 2021), and is generally available for geographic units down to the census block group (though some 5-year ACS data may only be available at less granular levels). The 1-year ACS provides data for a single year, and is only available for geographies with population greater than 65,000 (e.g., large cities and counties). Therefore, only the 5-year ACS will be useful for any analysis at a relatively fine scale (e.g., anything that requires data at or more detailed than the census tract level, or any analysis that considers smaller counties/cities – by definition, census tracts always contain significantly fewer than 65,000 people).
 
@@ -244,7 +244,7 @@ water_systems_sac_alternative <- arc_select(
 
 # make sure geometry is valid
 if (sum(!st_is_valid(water_systems_sac_alternative)) > 0) {
-    water_systems_sac <- st_make_valid(water_systems_sac_alternative)
+    water_systems_sac_alternative <- st_make_valid(water_systems_sac_alternative)
 }
 ```
 
@@ -273,7 +273,6 @@ counties_overlap <- counties_ca %>%
               .predicate = st_intersects)
 
 counties_list <- counties_overlap %>% pull(NAME)
-counties_list
 ```
 
 The counties in the `counties_list` variable are: `r counties_list`.
@@ -617,7 +616,7 @@ Methods described in this document include the following (in no particular order
 
 2.  Simplified method which uses entire census units that overlap the target areas (water systems) to estimate demographics for those areas. This method is relatively simple and explainable, and makes it possible to produce MOEs for the derived estimates. However, it uses entire census units as proxies for water system service area boundaries, so may produce significantly less precise estimates than other approaches in some cases. See @sec-alternative-simplified.
 
-3.  Population weighted areal interpolation, using the [`interpolate_pw`](https://walker-data.com/tidycensus/reference/interpolate_pw.html) function from the `tidycensus` R package. This attempts to take into account the distribution of the population within census units, by using data from a third more granular dataset as weights for the interpolation process between the source and target areas. This approach likely will produce more precise estimates than the approaches described above, especially for mid- and smaller- sized target areas that may only overlap portions of a relatively small number of census units. However it doesn't appear to be applicable to very small target areas (small water systems), and doesn't provide estimates for those areas -- more research may be needed on considerations for its use in certain cases. It may also be somewhat difficult to explain the methodology and/or interpret the results. See @sec-alternative-interpolate_pw.
+3.  Population weighted areal interpolation, using the [`interpolate_pw`](https://walker-data.com/tidycensus/reference/interpolate_pw.html) function from the `tidycensus` R package, which implements an approach that is based on Esri's data apportionment algorithm (see [here](https://pro.arcgis.com/en/pro-app/latest/help/analysis/business-analyst/data-apportionment-and-layers.htm) and [here](https://developers.arcgis.com/rest/geoenrichment/api-reference/data-apportionment.htm). This attempts to take into account the distribution of the population within census units, by using data from a third more granular dataset as weights for the interpolation process between the source and target areas. This approach likely will produce more precise estimates than the approaches described above, especially for mid- and smaller- sized target areas that may only overlap portions of a relatively small number of census units. However it doesn't appear to be applicable for very small target areas (small water systems), and doesn't provide estimates for those areas -- more research may be needed on considerations for its use in certain cases. It may also be somewhat difficult to explain the methodology and/or interpret the results. See @sec-alternative-interpolate_pw.
 
 4.  Modified version of population weighted areal interpolation, which is somewhat similar to the approach above in that it uses data from a third (more granular) dataset to estimate the distribution of the population within census units (block groups) and determine what portion of each census unit to apply to each target area (water system). This modified approach may especially improve estimates in cases where the target areas (water systems) only overlap a portion of the source data (census units), and may provide somewhat more valid estimates for mid- and smaller- sized water systems (though it still won't work for very small areas/ systems). However, it may be somewhat complicated for some use cases, may not meaningfully improve estimates for some (mostly larger) systems, and may be somewhat difficult to describe and interpret. See @sec-alternative-modified-pw-areal.
 
@@ -1910,6 +1909,8 @@ Using the aggregated data, compute additional metrics for each system, like ethn
 #| warning: false
 #| message: false
 
+# !!!! NOTE: may need to revise this section to calculate MOEs correctly !!!!
+
 # compute rates / percentages ----
 ## race / ethnicity ----
 water_system_demographics_simplified_method <- water_system_demographics_simplified_method %>%
@@ -1917,39 +1918,86 @@ water_system_demographics_simplified_method <- water_system_demographics_simplif
         across(
             .cols = starts_with('population_'),
             .fns = ~ round(.x / population_total_countE * 100, 2),
-            .names = "{str_replace(.col, '_countE', '_percent')}"
+            .names = "{str_replace(.col, '_countE', '_percentE')}"
         ),
         .after = population_multiple_countE) %>% 
-    select(-population_total_percent) # this always equals 1, not needed
+    select(-population_total_percentE) # this always equals 1, not needed
 
 ## poverty rate ----
 water_system_demographics_simplified_method <- water_system_demographics_simplified_method %>% 
-    mutate(poverty_rate_percent = case_when(
+    mutate(poverty_rate_percentE = case_when(
         poverty_total_assessed_countE == 0 ~ 0,
         .default = 100 * poverty_below_level_countE / poverty_total_assessed_countE
     ), 
     .after = poverty_above_level_countE)
 
+# consistent income brackets ----
+## 25k brackets ----
+water_system_demographics_simplified_method <- water_system_demographics_simplified_method %>% 
+    mutate(households_income_25k_brackets_0_25k_countE = 
+               households_income_below_10k_countE + 
+               households_income_10k_15k_countE + 
+               households_income_15k_20k_countE +
+               households_income_20k_25k_countE,
+           households_income_25k_brackets_25k_50k_countE =
+               households_income_25k_30k_countE + 
+               households_income_30k_35k_countE +
+               households_income_35k_40k_countE +
+               households_income_40k_45k_countE +
+               households_income_45k_50k_countE,
+           households_income_25k_brackets_50k_75k_countE =
+               households_income_50k_60k_countE +
+               households_income_60k_75k_countE,
+           .after = households_income_above_200k_countE
+    ) # note - above 75k is already in 25k increments
+
+## 50k brackets ----
+water_system_demographics_simplified_method <- water_system_demographics_simplified_method %>% 
+    mutate(households_income_50k_brackets_0_50k_countE = 
+               households_income_below_10k_countE + 
+               households_income_10k_15k_countE + 
+               households_income_15k_20k_countE +
+               households_income_20k_25k_countE + 
+               households_income_25k_30k_countE + 
+               households_income_30k_35k_countE +
+               households_income_35k_40k_countE +
+               households_income_40k_45k_countE +
+               households_income_45k_50k_countE,
+           households_income_50k_brackets_50k_100k_countE =
+               households_income_50k_60k_countE +
+               households_income_60k_75k_countE +
+               households_income_75k_100k_countE,
+           households_income_50k_brackets_100k_150k_countE =
+               households_income_100k_125k_countE +
+               households_income_125k_150k_countE,
+           .after = households_income_25k_brackets_50k_75k_countE
+    ) # above 150k is already in 50k increments
+
 ## portion of households paying more than 30% / 50% of income on housing ----
 water_system_demographics_simplified_method <- water_system_demographics_simplified_method %>%
-    mutate(households_all_housing_costs_over30pct_percent = 
+    mutate(households_all_housing_costs_over30pct_percentE = 
                100 * (households_mortgage_housing_costs_over30pct_countE + 
                           households_no_mortgage_housing_costs_over30pct_countE +
                           households_rent_housing_costs_over30pct_countE) / 
                households_countE, 
            .after = households_rent_housing_costs_over50pct_countE) %>% 
-    mutate(households_all_housing_costs_over50pct_percent = 
+    mutate(households_all_housing_costs_over50pct_percentE = 
                100 * (households_mortgage_housing_costs_over50pct_countE + 
                           households_no_mortgage_housing_costs_over50pct_countE +
                           households_rent_housing_costs_over50pct_countE) / 
                households_countE,
-           .after = households_all_housing_costs_over30pct_percent) 
+           .after = households_all_housing_costs_over30pct_percentE) 
 
 # round values
 water_system_demographics_simplified_method <- water_system_demographics_simplified_method %>%
     mutate(
         across(
-            .cols = ends_with('_percent'),
+            .cols = ends_with('_countE'),
+            .fns = ~ round(.x, 0)
+        ))  %>%
+    mutate(
+        across(
+            .cols = ends_with('_percentE'),
             .fns = ~ round(.x, 2)
         ))
 
@@ -1964,6 +2012,8 @@ Finally, we can compute MOEs for the derived (estimated) data:
 
 # compute MOEs
 # [TO DO - use tidycensus functions to calculate MOEs for derived estimates]
+
+# !!!! NOTE: may need to combine this with the section above to calculate MOEs correctly !!!!
 ```
 
 \[TO DO: insert results / plots of derived MOEs\]
@@ -2129,7 +2179,11 @@ Margins of error (MOEs) for estimated values cannot be calculated directly using
 
 One drawback of using this approach is that it may not work well in cases where the overall area covered by the target area is significantly smaller than the area covered by the source dataset -- for example, small water systems are often not given an estimated value using this method and `NA`s are returned for many of those areas (even if `NA` values are removed from the source data first). More research / feedback may be needed on how applicable this approach may be for certain use cases. It may also be somewhat difficult to explain and intrepret the results.
 
-#### Interpolate Extensive (Count) Variables
+#### Interpolate 
+
+For these computations, we can use the ACS data that was accessed above in @sec-census-access-acs and transformed in @sec-estimate-demographics-prep-census-data, and the decennial census data that was accessed above in @sec-census-access-decennial.
+
+##### Extensive (Count) Variables
 
 First interpolate data for the 'extensive' (count) variables, by computing weighted sums for those variables:
 
@@ -2137,10 +2191,11 @@ First interpolate data for the 'extensive' (count) variables, by computing weigh
 #| warning: false
 #| message: false
 
-water_system_demographics_interpolate_pw_extensive <- interpolate_pw(
+# population weighted variables ----
+water_system_demographics_interpolate_pw_extensive_pop <- interpolate_pw(
     from = census_data_acs %>%
         filter(!is.na(population_total_count)) %>% 
-        select(ends_with('_count')),
+        select(starts_with(c('population_', 'poverty_')) & ends_with('_count')),
     to = water_systems_sac,
     to_id = 'water_system_name',
     extensive = TRUE, # use TRUE for count data - returns weighted sums
@@ -2152,6 +2207,24 @@ water_system_demographics_interpolate_pw_extensive <- interpolate_pw(
         .fns = ~ round(.x, 0)
     )) %>% 
     arrange(water_system_name)
+
+# household weighted variables ----
+water_system_demographics_interpolate_pw_extensive_hh <- interpolate_pw(
+    from = census_data_acs %>%
+        filter(!is.na(population_total_count)) %>% 
+        select(starts_with('households_') & ends_with('_count')),
+    to = water_systems_sac,
+    to_id = 'water_system_name',
+    extensive = TRUE, # use TRUE for count data - returns weighted sums
+    weights = census_data_decennial,
+    # weight_placement = 'surface',
+    weight_column = 'households_count') %>%
+    mutate(across(
+        .cols = ends_with('_count'),
+        .fns = ~ round(.x, 0)
+    )) %>% 
+    arrange(water_system_name) %>% 
+    st_drop_geometry() # only need to keep geometry for 1 group - joining them all below
 ```
 
 #### Interpolate Intensive Variables
@@ -2162,23 +2235,38 @@ Then interpolate data for the remaining 'intensive' variables, by computing weig
 #| warning: false
 #| message: false
 
-water_system_demographics_interpolate_pw_intensive <- interpolate_pw(
+# population weighted variables ----
+water_system_demographics_interpolate_pw_intensive_pop <- interpolate_pw(
     from = census_data_acs %>%
         filter(!is.na(population_total_count)) %>% 
-        select(average_household_size, 
-               median_household_income, 
-               per_capita_income),
+        select(per_capita_income),
     to = water_systems_sac,
     to_id = 'water_system_name',
     extensive = FALSE, # use FALSE to get weighted means
     weights = census_data_decennial,
     # weight_placement = 'surface',
     weight_column = 'population_total_count') %>%
-    mutate(across(
-        .cols = ends_with('_count'),
-        .fns = ~ round(.x, 0)
-    )) %>% 
-    arrange(water_system_name)
+    mutate(per_capita_income = round(per_capita_income, 0)) %>%
+    arrange(water_system_name) %>% 
+    st_drop_geometry() # only need to keep geometry for 1 group - joining them all below
+
+# household weighted variables ----
+water_system_demographics_interpolate_pw_intensive_hh <- interpolate_pw(
+    from = census_data_acs %>%
+        filter(!is.na(population_total_count)) %>% 
+        select(average_household_size, 
+               median_household_income),
+    to = water_systems_sac,
+    to_id = 'water_system_name',
+    extensive = FALSE, # use FALSE to get weighted means
+    weights = census_data_decennial,
+    # weight_placement = 'surface',
+    weight_column = 'households_count') %>%
+    mutate(average_household_size = round(average_household_size, 2),
+           median_household_income = round(median_household_income, 0)) %>% 
+    arrange(water_system_name) %>% 
+    st_drop_geometry() # only need to keep geometry for 1 group - joining them all below
+
 ```
 
 #### Join All Variables
@@ -2189,15 +2277,134 @@ Then join the datasets with the two types of variables:
 #| warning: false
 #| message: false
 
-water_system_demographics_interpolate_pw <- water_system_demographics_interpolate_pw_extensive %>% 
-    left_join(water_system_demographics_interpolate_pw_intensive %>% 
-                  st_drop_geometry(), 
-              by = 'water_system_name')
+water_system_demographics_interpolate_pw <- 
+    water_system_demographics_interpolate_pw_extensive_pop %>% 
+    left_join(water_system_demographics_interpolate_pw_extensive_hh, 
+              by = 'water_system_name') %>% 
+    left_join(water_system_demographics_interpolate_pw_intensive_pop, 
+          by = 'water_system_name') %>% 
+    left_join(water_system_demographics_interpolate_pw_intensive_hh, 
+          by = 'water_system_name')
+```
+
+#### Compute Additional Aggregated Data
+
+Since computing a weighted mean for the median household income may be somewhat inaccurate (as noted above in @cau-median-income), it may also be worth calculating a grouped median household income based on the income bracket data:
+
+```{r}
+#| message: false
+#| warning: false
+
+# TO DO: Compute grouped median incomes
+```
+
+Using the aggregated data, we can also compute some additional metrics for each system, like ethnic/racial group portions, poverty rates, income distributions, etc.:
+
+```{r}
+#| message: false
+#| warning: false
+
+# race / ethnicity ----
+water_system_demographics_interpolate_pw <- water_system_demographics_interpolate_pw %>%
+    mutate(
+        across(
+            .cols = starts_with('population_'),
+            .fns = ~ ifelse(population_total_count == 0,
+                            NA,
+                            round(.x / population_total_count * 100, 2)),
+            .names = "{str_replace(.col, '_count', '_percent')}"
+        ),
+        .after = population_multiple_count) %>% 
+    select(-population_total_percent) # this always equals 1, not needed
+
+# poverty rate ----
+water_system_demographics_interpolate_pw <- water_system_demographics_interpolate_pw %>% 
+    mutate(poverty_rate_percent = case_when(
+        population_total_count == 0 ~ NA,
+        poverty_total_assessed_count == 0 ~ 0,
+        .default = 100 * poverty_below_level_count / poverty_total_assessed_count
+    ), 
+    .after = poverty_above_level_count)
+
+# consistent income brackets ----
+## 25k brackets ----
+water_system_demographics_interpolate_pw <- water_system_demographics_interpolate_pw %>% 
+    mutate(households_income_25k_brackets_0_25k_count = 
+               households_income_below_10k_count + 
+               households_income_10k_15k_count + 
+               households_income_15k_20k_count +
+               households_income_20k_25k_count,
+           households_income_25k_brackets_25k_50k_count =
+               households_income_25k_30k_count + 
+               households_income_30k_35k_count +
+               households_income_35k_40k_count +
+               households_income_40k_45k_count +
+               households_income_45k_50k_count,
+           households_income_25k_brackets_50k_75k_count =
+               households_income_50k_60k_count +
+               households_income_60k_75k_count,
+           .after = households_income_above_200k_count
+    ) # note: above 75k is already in 25k increments
+
+## 50k brackets ----
+water_system_demographics_interpolate_pw <- water_system_demographics_interpolate_pw %>% 
+    mutate(households_income_50k_brackets_0_50k_count = 
+               households_income_below_10k_count + 
+               households_income_10k_15k_count + 
+               households_income_15k_20k_count +
+               households_income_20k_25k_count + 
+               households_income_25k_30k_count + 
+               households_income_30k_35k_count +
+               households_income_35k_40k_count +
+               households_income_40k_45k_count +
+               households_income_45k_50k_count,
+           households_income_50k_brackets_50k_100k_count =
+               households_income_50k_60k_count +
+               households_income_60k_75k_count +
+               households_income_75k_100k_count,
+           households_income_50k_brackets_100k_150k_count =
+               households_income_100k_125k_count +
+               households_income_125k_150k_count,
+           .after = households_income_25k_brackets_50k_75k_count
+    ) # note: above 150k is already in 50k increments
+
+# portion of households paying more than 30% / 50% of income on housing ----
+water_system_demographics_interpolate_pw <- water_system_demographics_interpolate_pw %>%
+    mutate(households_all_housing_costs_over30pct_percent = 
+               ifelse(households_count == 0, 
+                      NA,
+                      100 * (households_mortgage_housing_costs_over30pct_count + 
+                                 households_no_mortgage_housing_costs_over30pct_count +
+                                 households_rent_housing_costs_over30pct_count) / 
+                          households_count), 
+           .after = households_rent_housing_costs_over50pct_count) %>% 
+    mutate(households_all_housing_costs_over50pct_percent = 
+               ifelse(households_count == 0, 
+                      NA,
+                      100 * (households_mortgage_housing_costs_over50pct_count + 
+                                 households_no_mortgage_housing_costs_over50pct_count +
+                                 households_rent_housing_costs_over50pct_count) / 
+                          households_count
+               ),
+           .after = households_all_housing_costs_over30pct_percent)
+
+# round values ----
+water_system_demographics_interpolate_pw <- water_system_demographics_interpolate_pw %>%
+    mutate(
+        across(
+            .cols = ends_with('_count'),
+            .fns = ~ round(.x, 0)
+        ))  %>%
+    mutate(
+        across(
+            .cols = ends_with('_percent'),
+            .fns = ~ round(.x, 2)
+        ))
 ```
 
 #### View Results
 
-Note that this process returns `NA`s for `{r} sum(is.na(water_system_demographics_interpolate_pw_extensive$population_total_count))` water systems, which generally appear to be relatively smaller systems.
+Note that this process returns `NA`s for `{r} sum(is.na(water_system_demographics_interpolate_pw$population_total_count))` water systems, which generally appear to be relatively smaller systems.
 
 @tbl-interpolate-pw-compare shows a comparison of the water system populations estimated using `interpolate_pw` and the reported system populations.
 
@@ -2275,9 +2482,573 @@ This section is in progress.
 
 This section describes a method which is somewhat similar to the approach used in @sec-alternative-interpolate_pw above, in that it tries to account for variability in the distribution of the population within census units (block groups) by using more granular data from another source (block level data from the decennial census).
 
-This method uses block and block group data from the decennial census to estimate the distribution of populations and households within census block groups, then applies those distributions to the block group data from the current ACS. Using those estimates of populations/households within block groups, it then uses areal interpolation to estimate the portion of each block group's count data to apply to the target area (water system boundary). Finally, it uses that estimated count data to compute weighted averages for remaining variables (e.g., per capita income, average household size, etc).
+This method uses block and block group data from the decennial census to estimate the distribution of populations and households within census block groups, then applies those distributions to the block group data from the current ACS. Using those estimated distributions of populations/households within block groups, it then uses areal interpolation to estimate the portion of each block group's count data to apply to the target area (water system boundary). Finally, it uses that estimated count data to compute weighted averages for remaining variables (e.g., per capita income, average household size, etc).
 
-## Detailed Population Estimates {#sec-detailed-pop-estimates}
+[TO DO: add example calculation]
+
+````{comment}
+!!!!!!!!!! COMMENTED SECTION - START !!!!!!!!!!
+
+::: callout-note
+While this method attempts to estimate the distribution of population and households within census block groups for ACS data, it makes the simplifying assumption that population / household characteristics are consistent/homogeneous across the populations / households in each block group. So, this method can't account for clusters of populations or households within block groups that have demographic characteristics that aren't representative of the entire block group, such as clusters of high or low income households or clusters of populations of a given racial/ethnic group.
+
+Also, it would be possible to estimate distributions of racial/ethnic groups within block groups -- because that data is available at the block level from the decennial census -- but this method avoids doing that, because other population variables (income, education) are likely correlated to some degree with race/ethnicity, and we can't estimate the distributions of those other variables (so using estimated racial/ethnic group distributions could distort any analysis of those correlations).
+:::
+
+#### Estimate Population / Household Distributions Within Block Groups {#sec-alternative-estimate-distributions}
+
+This section uses decennial census block and block group data to compute weights that represent the distribution of population and households by census block within each census block group. For any given block, this weight is equal to the population count or number of households in that block divided by the population count or number of households in the block group which that block is contained within. In other words, it's the portion of the block group's population / households contained within that block.
+
+To start, get tabular data on total population and number of households for all blocks and block groups in the counties containing the water systems we're assessing:
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
+df_decennial_blocks <- get_decennial(geography = 'block', 
+                                     state = 'CA', 
+                                     county = counties_list,
+                                     year = decennial_year,
+                                     variables = c('population_block_count' = 'P2_001N', # total population  
+                                                   'households_block_count' = 'H1_002N'), # total households (occupied)
+                                     output = 'wide', 
+                                     geometry = FALSE,
+                                     cache_table = TRUE)
+
+df_decennial_blockgroups <- get_decennial(geography = 'block group', 
+                                          state = 'CA', 
+                                          county = counties_list,
+                                          year = decennial_year,
+                                          variables = c('population_blockgroup_count' = 'P2_001N', # total population  
+                                                        'households_blockgroup_count' = 'H1_002N'), # total households (occupied)
+                                          output = 'wide', 
+                                          geometry = FALSE,
+                                          cache_table = TRUE)
+```
+
+Next, compute population and household weights for each block (as the portion of each block's population or households relative to the total population or households in its respective block group):
+
+```{r}
+#| message: false
+#| warning: false
+
+# get block group GEOIDs for blocks ----
+df_decennial_blocks <- df_decennial_blocks %>% 
+    rename(block_geoid = GEOID,
+           block_name = NAME) %>%
+    mutate(blockgroup_geoid = str_sub(string = block_geoid, 
+                                      start = 1, 
+                                      end = 12))
+# glimpse(df_decennial_blocks)
+
+# clean block group data ----
+df_decennial_blockgroups <- df_decennial_blockgroups %>% 
+    rename(blockgroup_geoid = GEOID,
+           blockgroup_name = NAME)
+# glimpse(df_decennial_blockgroups)
+
+# compute block population / household weights ----
+## join block group data to blocks ----
+df_decennial_block_weights <- df_decennial_blocks %>% 
+    left_join(df_decennial_blockgroups, by = 'blockgroup_geoid')
+
+## compute weights ----
+df_decennial_block_weights <- df_decennial_block_weights %>% 
+    mutate(block_population_decennial_weight = ifelse(population_blockgroup_count == 0, # a few block groups have zero population
+                                            0,
+                                            population_block_count / population_blockgroup_count),
+           block_household_decennial_weight = ifelse(households_blockgroup_count == 0, # a few block groups have no households
+                                            0, 
+                                            households_block_count / households_blockgroup_count))
+# glimpse(df_decennial_block_weights)
+
+# ## check - make sure weights add to 1 for all block groups ----
+# df_decennial_block_weights_check <- df_decennial_block_weights %>%
+#     group_by(blockgroup_geoid) %>%
+#     summarize(block_population_decennial_weight_sum = round(sum(block_population_decennial_weight), 4),
+#               block_household_decennial_weight_sum = round(sum(block_household_decennial_weight), 4)) %>% 
+#     ungroup()
+# # glimpse(df_decennial_block_weights_check)
+# df_decennial_block_weights_check %>% count(block_population_decennial_weight_sum)
+# df_decennial_block_weights_check %>% count(block_household_decennial_weight_sum)
+
+# clean block weight dataset ----
+## (will make it easier to apply / less confusing for subsequent calculations)
+
+df_decennial_block_weights <- df_decennial_block_weights %>% 
+    select(block_geoid, 
+           block_population_decennial_weight, 
+           block_household_decennial_weight, 
+           blockgroup_geoid)
+```
+
+Then, using the estimated population and household distributions computed above, transfer the ACS data at the block group level to census blocks (note that this uses the ACS data that was accessed above in @sec-census-access-acs and transformed / re-formatted in @sec-estimate-demographics-prep-census-data):
+
+```{r}
+#| message: false
+#| warning: false
+
+# prepare ACS datset ----
+df_acs_data <- census_data_acs %>% 
+    st_drop_geometry() %>% 
+    # select(-poverty_rate_pct_calc_census_unit)
+    rename(blockgroup_geoid = GEOID,
+           blockgroup_name = NAME)
+# glimpse(df_acs_data)
+
+# join ACS data to block weight data ----
+# glimpse(df_decennial_block_weights)
+df_acs_data_estimated_blocks <- df_decennial_block_weights %>% 
+    inner_join(df_acs_data, 
+               by = 'blockgroup_geoid')
+# glimpse(df_acs_data_estimated_blocks)
+
+# scale ACS block group level data to block level data ----
+df_acs_data_estimated_blocks <- df_acs_data_estimated_blocks %>% 
+    mutate(across(
+        .cols = starts_with('population_') & ends_with('_count'),
+        .fns = ~ .x * block_population_decennial_weight
+    )) %>% 
+    mutate(across(
+        .cols = starts_with('poverty_') & ends_with('_count'),
+        .fns = ~ .x * block_population_decennial_weight
+    )) %>%
+    mutate(across(
+        .cols = starts_with('households_') & ends_with('_count'),
+        .fns = ~ .x * block_household_decennial_weight
+    ))
+
+# transfer estimated ACS block-level data to block spatial data ----
+
+## get block level geometry ----
+## NOTE: block-level geometry is already stored in the census_data_decennial object, but that 
+## was filtered only for blocks that overlap the water systems - some blocks included in block 
+## groups overlapping the water systems may not be included, so for consistency get all of those
+## blocks
+
+### create spatial filter ----
+acs_blockgroup_filter <- census_data_acs %>% 
+    st_union() %>% 
+    st_as_sf()
+
+### get blocks ----
+## NOTE: the tigris::blocks() function returns fields with the population (POP20) and number of 
+## households (HOUSING20) for each block. The POP20 variable has the same data as the population data 
+## accessed above (decennial variable: P2_001N). But, the HOUSING20 variable represents the total of 
+## occupied + vacant households (decennial variable: H1_001N); however, we're just using the number of 
+## occupied households (decennial variable: H1_002N) (because that's in line with the denominator for 
+## most ACS variables, like income brackets)
+
+census_blocks <- blocks(state = 'CA', 
+                        county = counties_list, 
+                        year = acs_year,
+                        filter_by = acs_blockgroup_filter) %>% 
+    st_transform(crs_projected)
+
+### filter for blocks contained in block groups included in the ACS data ----
+census_blocks <- census_blocks %>% 
+    select(block_geoid = GEOID20, 
+           block_name = NAME20, 
+           # INTPTLAT20, INTPTLON20,
+           geometry) %>% 
+    mutate(blockgroup_geoid = str_sub(string = block_geoid, 
+                                      start = 1, 
+                                      end = 12)) %>% 
+    filter(blockgroup_geoid %in% df_acs_data$blockgroup_geoid)
+
+### rename and remove census_blocks object ----
+### (to avoid keeping two copies of the census_blocks object - may be large) 
+sf_acs_data_estimated_blocks <- census_blocks
+rm(census_blocks)
+
+
+## join estimated ACS block-level data to block spatial data ----
+sf_acs_data_estimated_blocks <- sf_acs_data_estimated_blocks %>% 
+                   select(block_geoid,
+                          block_name,
+                          geometry) %>% 
+    inner_join(df_acs_data_estimated_blocks, # rename GEOID field to make consistent
+               by = 'block_geoid') %>% 
+    relocate(geometry, .after = last_col())
+# glimpse(sf_acs_data_estimated_blocks)
+
+
+# # check ----
+# ## make sure estimated (scaled) ACS block-level data matches original block group ACS data
+# 
+# ## summarize the estimated data at the block group level (sum block count data for each block group) ----
+# check_acs_data_estimated_blocks <- sf_acs_data_estimated_blocks %>%
+#     st_drop_geometry() %>% 
+#     group_by(blockgroup_geoid) %>%
+#     summarize(
+#         across(
+#             .cols = starts_with('population_') & ends_with('_count'),
+#             .fns = ~ sum(.)
+#         ),
+#         across(
+#             .cols = starts_with('poverty_') & ends_with('_count'),
+#             .fns = ~ sum(.)
+#         ),
+#         across(
+#             .cols = starts_with('households_') & ends_with('_count'),
+#             .fns = ~ sum(.)
+#         )) %>%
+#     rename_with(.cols = starts_with('population_') & ends_with('_count'),
+#                 .fn =  ~ str_replace(., pattern = 'population_', replacement = 'population_block_sum_')) %>%
+#     rename_with(.cols = starts_with('poverty_') & ends_with('_count'),
+#                 .fn =  ~ str_replace(., pattern = 'poverty_', replacement = 'poverty_block_sum_')) %>%
+#     rename_with(.cols = starts_with('households_') & ends_with('_count'),
+#                 .fn =  ~ str_replace(., pattern = 'households_', replacement = 'households_block_sum_'))
+# 
+# ## join original ACS data to summarized estimated data ----
+# check_acs_data_estimated_blocks <- check_acs_data_estimated_blocks %>%
+#     left_join(df_acs_data %>% select(-blockgroup_name),
+#               by = 'blockgroup_geoid')
+# # glimpse(check_acs_data_estimated_blocks)
+# 
+# ## compare - this should be zero for any variable chosen ----
+# check_acs_data_estimated_blocks %>%
+#     select(acs_original = population_block_sum_asian_count, # population_total_count # households_count # population_block_sum_asian_count
+#            acs_estimated_blocks_sum = population_asian_count) %>% # population_block_sum_total_count # households_block_sum_count # population_asian_count
+#     mutate(difference = acs_original - acs_estimated_blocks_sum) %>%
+#     pull(difference) %>%
+#     round(2) %>%
+#     range()
+```
+
+#### Compute Demographic Estimates for Target Areas
+
+Now, we can apply the same steps as described above in @sec-estimate-demographics-method-description to compute demographics for each water system.
+
+##### Interpolation Step 1: Estimate Data for Count (Extensive) Variables with Areal Interpolation {#sec-areal-interp-modified}
+
+First, clip the estimated ACS block-level data to the water system boundaries (as described in @sec-areal-interp-modified) to determine what portion of each block overlaps each water system:
+
+```{r}
+#| message: false
+#| warning: false
+
+acs_estimated_blocks_clip <- sf_acs_data_estimated_blocks %>% 
+    mutate(census_unit_area = st_area(.)) %>% 
+    st_intersection(water_systems_sac) %>% 
+    mutate(clipped_area = st_area(.)) %>% 
+    mutate(areal_weight_factor = drop_units(clipped_area / census_unit_area))
+```
+
+@fig-map-clipped-polygons-modified-method shows a plot of the census units clipped to the `{r} str_to_title(system_plot_small_2)` water system, along with the original/complete census units. Note that you can toggle layers on and off (and change their order of appearance) using the layers button in the upper left part of the map (below the zoom buttons).
+
+::: {#fig-map-clipped-polygons-modified-method}
+```{r}
+#| message: false
+#| warning: false
+#| code-fold: true
+
+mapview(water_systems_sac %>% 
+            filter(water_system_name == system_plot_small_2), 
+        zcol = 'water_system_name', 
+        layer.name = 'Water System', 
+        legend = FALSE) + 
+    mapview(sf_acs_data_estimated_blocks %>% 
+                st_filter(census_data_acs %>% 
+                              st_filter(water_systems_sac %>% 
+                                            filter(water_system_name == system_plot_small_2))), 
+            alpha.regions = 0.15, 
+            col.regions = 'grey', 
+            color = 'red', 
+            lwd = 0.8, 
+            label = 'block_name',  
+            layer.name = 'ACS Blocks (Estimated) - Full', 
+            legend = FALSE, 
+            popup = popupTable(sf_acs_data_estimated_blocks,
+                                      zcol = c('block_name',
+                                               'population_total_count',
+                                               'households_count'))) +
+    mapview(acs_estimated_blocks_clip %>% 
+                filter(water_system_name == system_plot_small_2),
+            alpha.regions = 0, 
+            color = 'cyan', 
+            lwd = 1.3, 
+            label = 'block_name',  
+            layer.name = 'ACS Blocks (Estimated) - Clipped', 
+            legend = FALSE,
+            popup = popupTable(acs_estimated_blocks_clip,
+                                      zcol = c('block_name',
+                                               'population_total_count',
+                                               'households_count'))) +
+        mapview(census_data_acs %>% 
+                st_filter(water_systems_sac %>% 
+                              filter(water_system_name == system_plot_small_2)), 
+            alpha.regions = 0.15, 
+            col.regions = 'grey', 
+            color = 'black', 
+            lwd = 1.5, 
+            label = 'NAME',  
+            layer.name = 'ACS Block Groups - Full', 
+            legend = FALSE,
+            popup = popupTable(census_data_acs,
+                                      zcol = c('NAME',
+                                               'population_total_count',
+                                               'households_count')))
+```
+
+Water system `{r} str_to_title(system_plot_small_2)` (filled polygon), boundaries of overlapping census block groups (black boundaries / grey fill), overlapping census blocks (red boundaries / grey fill) which ACS data was transferred to (using estimated estimated population distributions from decennial data), and clipped portions of census blocks (light blue) that will be used to estimate water system demographics.
+:::
+
+Next, compute area-weighted counts for the portions of the census blocks that overlap each water system boundary, based on the estimated block-level ACS data:
+
+```{r}
+#| message: false
+#| warning: false
+
+acs_estimated_blocks_interpolate <- acs_estimated_blocks_clip %>% 
+    mutate(
+        across(
+            .cols = ends_with('_count'),
+            .fns = ~ .x * areal_weight_factor
+        )) 
+```
+
+##### Interpolation Step 2: Estimate Weighted Values for Remaining (Intensive) Variables Based on Interpolated Counts {#sec-pop-interp-modified}
+
+Next, compute count-weighted values for remaining variables (as described in @sec-pop-interp above).
+
+```{r}
+#| message: false
+#| warning: false
+
+acs_estimated_blocks_interpolate <- acs_estimated_blocks_interpolate %>% 
+    mutate(average_household_size_weighted = average_household_size * households_count,
+           median_household_income_weighted = median_household_income * households_count,
+           per_capita_income_weighted = per_capita_income * population_total_count)
+```
+
+##### Interpolation Step 3: Aggregate by Water System {#sec-estimate-demographics-aggregate-by-system-modified}
+
+Next, combine the variables calculated above to produce estimated demographics for each water system, by summing all of the count-based variables computed in step 1 above, and calculating weighted means for all count-weighted variables computed in step 2 above (as described in @sec-estimate-demographics-aggregate-by-system above).
+
+```{r}
+#| message: false
+#| warning: false
+
+# aggregate ----
+water_system_demographics_acs_estimated_blocks <- acs_estimated_blocks_interpolate %>% 
+    mutate(
+        average_household_size_denominator = if_else(
+            is.na(average_household_size), 
+            0, 
+            households_count),
+        median_household_income_denominator = if_else(
+            is.na(median_household_income), 
+            0, 
+            households_count),
+        per_capita_income_denominator = if_else(
+            is.na(per_capita_income), 
+            0, 
+            population_total_count)
+    ) %>% 
+    group_by(water_system_name) %>% 
+    summarize(
+        across(
+            .cols = ends_with('_count'),
+            .fns = ~ sum(.x)
+        ),
+        average_household_size_hh_weighted = 
+            sum(average_household_size_weighted, na.rm = TRUE) / 
+            sum(average_household_size_denominator),
+        median_household_income_hh_weighted = 
+            sum(median_household_income_weighted, na.rm = TRUE) /
+            sum(median_household_income_denominator),
+        per_capita_income_pop_weighted = 
+            sum(per_capita_income_weighted, na.rm = TRUE) / 
+            sum(per_capita_income_denominator)
+    ) %>% 
+    ungroup()
+
+# round count data to nearest whole number
+water_system_demographics_acs_estimated_blocks <- water_system_demographics_acs_estimated_blocks %>%
+    mutate(
+        across(
+            .cols = ends_with('_count'),
+            .fns = ~ round(.x, 0)
+        ))
+# glimpse(water_system_demographics_acs_estimated_blocks)
+
+# if population / household counts are zero, set population / household weighted means values to NA
+water_system_demographics_acs_estimated_blocks <- water_system_demographics_acs_estimated_blocks %>% 
+    mutate(
+        average_household_size_hh_weighted = case_when(
+            households_count == 0 ~ NA,
+            .default = average_household_size_hh_weighted
+        ),
+        median_household_income_hh_weighted = case_when(
+            households_count == 0 ~ NA,
+            .default = median_household_income_hh_weighted
+        ),
+        per_capita_income_pop_weighted = case_when(
+            population_total_count == 0 ~ NA,
+            .default = per_capita_income_pop_weighted
+        )
+    )
+
+```
+
+Since computing a weighted mean for the median household income may be somewhat inaccurate (as noted above in @cau-median-income), it may also be worth calculating a grouped median household income based on the income bracket data:
+
+```{r}
+#| message: false
+#| warning: false
+
+# TO DO: Compute grouped median incomes
+```
+
+Using the aggregated data, compute additional metrics for each system, like ethnic/racial group portions, poverty rates, income distributions, etc.:
+
+```{r}
+#| warning: false
+#| message: false
+
+# race / ethnicity ----
+water_system_demographics_acs_estimated_blocks <- water_system_demographics_acs_estimated_blocks %>%
+    mutate(
+        across(
+            .cols = starts_with('population_'),
+            .fns = ~ round(.x / population_total_count * 100, 2),
+            .names = "{str_replace(.col, '_count', '_percent')}"
+        ),
+        .after = population_multiple_count) %>% 
+    select(-population_total_percent) # this always equals 1, not needed
+
+# poverty rate ----
+water_system_demographics_acs_estimated_blocks <- water_system_demographics_acs_estimated_blocks %>% 
+    mutate(poverty_rate_percent = case_when(
+        poverty_total_assessed_count == 0 ~ 0,
+        .default = 100 * poverty_below_level_count / poverty_total_assessed_count
+    ), 
+    .after = poverty_above_level_count)
+
+# portion of households paying more than 30% / 50% of income on housing ----
+water_system_demographics_acs_estimated_blocks <- water_system_demographics_acs_estimated_blocks %>%
+    mutate(households_all_housing_costs_over30pct_percent = 
+               100 * (households_mortgage_housing_costs_over30pct_count + 
+                          households_no_mortgage_housing_costs_over30pct_count +
+                          households_rent_housing_costs_over30pct_count) / 
+               households_count, 
+           .after = households_rent_housing_costs_over50pct_count) %>% 
+    mutate(households_all_housing_costs_over50pct_percent = 
+               100 * (households_mortgage_housing_costs_over50pct_count + 
+                          households_no_mortgage_housing_costs_over50pct_count +
+                          households_rent_housing_costs_over50pct_count) / 
+               households_count,
+           .after = households_all_housing_costs_over30pct_percent)
+
+# consistent income brackets ----
+## 25k brackets ----
+water_system_demographics_acs_estimated_blocks <- water_system_demographics_acs_estimated_blocks %>% 
+    mutate(households_income_25k_brackets_0_25k_count = 
+               households_income_below_10k_count + 
+               households_income_10k_15k_count + 
+               households_income_15k_20k_count +
+               households_income_20k_25k_count,
+           households_income_25k_brackets_25k_50k_count =
+               households_income_25k_30k_count + 
+               households_income_30k_35k_count +
+               households_income_35k_40k_count +
+               households_income_40k_45k_count +
+               households_income_45k_50k_count,
+           households_income_25k_brackets_50k_75k_count =
+               households_income_50k_60k_count +
+               households_income_60k_75k_count,
+           .after = households_income_above_200k_count
+    ) # note - above 75k is already in 25k increments
+
+## 50k brackets ----
+water_system_demographics_acs_estimated_blocks <- water_system_demographics_acs_estimated_blocks %>% 
+    mutate(households_income_50k_brackets_0_50k_count = 
+               households_income_below_10k_count + 
+               households_income_10k_15k_count + 
+               households_income_15k_20k_count +
+               households_income_20k_25k_count + 
+               households_income_25k_30k_count + 
+               households_income_30k_35k_count +
+               households_income_35k_40k_count +
+               households_income_40k_45k_count +
+               households_income_45k_50k_count,
+           households_income_50k_brackets_50k_100k_count =
+               households_income_50k_60k_count +
+               households_income_60k_75k_count +
+               households_income_75k_100k_count,
+           households_income_50k_brackets_100k_150k_count =
+               households_income_100k_125k_count +
+               households_income_125k_150k_count,
+           .after = households_income_25k_brackets_50k_75k_count
+    ) # above 150k is already in 50k increments
+
+
+# round values ----
+water_system_demographics_acs_estimated_blocks <- water_system_demographics_acs_estimated_blocks %>%
+    mutate(
+        across(
+            .cols = ends_with('_count'),
+            .fns = ~ round(.x, 0)
+        ))  %>%
+    mutate(
+        across(
+            .cols = ends_with('_percent'),
+            .fns = ~ round(.x, 2)
+        ))
+```
+
+#### View Results {#sec-results-clean-modified-interp}
+
+@tbl-water-sys-demographics-rev-modified-interp shows the estimated demographics for each water system using the modified interpolation method:
+
+```{r}
+#| message: false
+#| warning: false
+#| label: tbl-water-sys-demographics-rev-modified-interp
+#| tbl-cap: "Estimated Water System Demographics"
+#| tbl-cap-location: top
+#| code-fold: true
+
+pct_format <- label_percent(accuracy = 0.01)
+
+water_system_demographics_acs_estimated_blocks %>%
+    st_drop_geometry() %>% 
+    mutate(across(
+        .cols = ends_with('_percent'),
+        .fns = ~ pct_format(. / 100))
+    ) %>%
+    rename_with(.cols = everything(), 
+                .fn = ~ str_replace_all(., pattern = '_', replacement = ' ') %>% 
+                    str_to_title(.)) %>% 
+    kable(align = 'c', 
+          format.args = list(big.mark = ',')
+    ) %>%
+    scroll_box(height = "400px")
+```
+
+<br>
+
+
+
+````
+<!-- 
+```` !!!!!!!!!! COMMENTED SECTION - END (DELETE THESE 4 LINES) !!!!!!!!!! 
+-->
+
+
+
+### Method Comparison {#sec-alternative-method-comparison}
+
+::: callout-warning
+This section is in progress.
+:::
+
+[TO DO: compare results across methods for certain variables - population, households, income, etc]
+
+
+## Detailed Population Estimates with Decennial Data {#sec-detailed-pop-estimates}
 
 If you're primarily interested in estimates of population/household counts alone (possibly including population by race/ethnicity, age, gender, etc.) as opposed to more detailed socioeconomic data (like income or poverty rates), in some cases it may make sense to use the block-level population data from the decennial census rather than block group level population data from the ACS. This method likely represents the most precise estimate of population (or other count data) that we can make from census data alone (i.e., without looking at other sources such as aerial imagery or parcel data).
 
@@ -2296,6 +3067,8 @@ As a simple way to compute these estimates, we can use the `aw_interpolate` func
 ::: callout-note
 There are some settings that you may need to modify in the `aw_interpolate` function depending on the type of analysis you're doing. In particular, for more information about the `weight` argument – which can be either `sum` or `total` – see [this section of the documentation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#calculating-weights-for-extensive-interpolations). For more information about extensive versus intensive interpolations, see [this section of the documentation](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#extensive-and-intensive-interpolations) (as noted above, the approaches described above avoid using areal interpolation to calculate intensive variables when count data associated with those variables that can be used as weighting factors -- e.g. populations, households, etc. -- are known; some of those considerations are discussed [here](https://chris-prener.github.io/areal/articles/areal-weighted-interpolation.html#mixed-interpolations); more research / input may be needed on that issue).
 :::
+
+For these computations, we can use the decennial census data that was accessed above in @sec-census-access-decennial.
 
 ```{r}
 #| message: false
@@ -2433,6 +3206,12 @@ This may be especially true for systems in rural environments, where population 
 \[TO DO: insert map\]
 
 From the map above \[TO DO: insert map\], you can see that the service area reported for some systems are very small, only covering a small fraction of a single census unit, resulting in a population estimate that is very low. In these cases, it could be that the system area was drawn incorrectly (i.e., maybe it doesn't really depict the entire service area), in which case the reported service area should be revised. Or, it's possible that the population within the given census unit is very un-evenly distributed and instead there's a relatively high density population cluster in the depicted service area, in which case a more sophisticated method than an area-weighted average should be used (e.g., maybe consider using aerial imagery, parcel data, etc. to estimate the density of buildings, roads, and/or other features associated with inhabited areas in the target area).
+
+## Tribal Data {#sec-tribal-data}
+
+::: callout-warning
+This section is in progress.
+:::
 
 ## Working with Other Source Data {#sec-other-sources}
 
